@@ -23,7 +23,7 @@ export interface CreateClassRequest {
   grade: number;
   section?: string;
   academicYear: string;
-  capacity?: number;
+  maxCapacity?: number;
   classTeacherId?: number;
   subjectIds?: number[];
   description?: string;

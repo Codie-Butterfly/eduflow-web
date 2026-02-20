@@ -195,8 +195,8 @@ export class ClassService {
       grade: data.grade,
       section: data.section,
       academicYear: data.academicYear || data.academic_year,
-      capacity: data.capacity,
-      studentCount: data.studentCount || data.student_count,
+      capacity: data.maxCapacity ?? data.capacity,
+      studentCount: data.currentEnrollment ?? data.studentCount ?? data.student_count,
       classTeacher: teacher ? {
         id: teacher.id,
         name: teacher.name || teacher.fullName || `${teacher.firstName} ${teacher.lastName}`,

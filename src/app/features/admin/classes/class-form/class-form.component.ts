@@ -187,7 +187,7 @@ export class ClassFormComponent implements OnInit {
       grade: formValue.grade,
       section: formValue.section || null,
       academicYear: formValue.academicYear,
-      capacity: formValue.capacity || null,
+      maxCapacity: formValue.capacity || null,
       classTeacherId: formValue.classTeacherId || null,
       description: formValue.description || null,
       active: formValue.active,
