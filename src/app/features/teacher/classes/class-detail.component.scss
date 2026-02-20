@@ -1,0 +1,161 @@
+@use 'styles/variables' as *;
+@use 'styles/mixins' as *;
+
+.class-detail {
+  max-width: 1000px;
+  margin: 0 auto;
+}
+
+.page-header {
+  margin-bottom: $spacing-lg;
+}
+
+.loading-container {
+  @include flex-center;
+  min-height: 300px;
+}
+
+.class-info-card {
+  margin-bottom: $spacing-lg;
+
+  .class-header {
+    display: flex;
+    align-items: center;
+    gap: $spacing-lg;
+    padding: $spacing-lg;
+    border-bottom: 1px solid $divider-color;
+
+    @include mobile {
+      flex-direction: column;
+      text-align: center;
+    }
+
+    .class-icon {
+      @include flex-center;
+      width: 72px;
+      height: 72px;
+      background: $primary-color;
+      border-radius: $border-radius-lg;
+      flex-shrink: 0;
+
+      mat-icon {
+        color: white;
+        font-size: 36px;
+        width: 36px;
+        height: 36px;
+      }
+    }
+
+    .info {
+      flex: 1;
+
+      h1 {
+        margin: 0;
+        font-size: $font-size-xl;
+      }
+
+      p {
+        margin: $spacing-xs 0 0;
+        color: $text-secondary;
+      }
+    }
+  }
+
+  .class-stats {
+    display: flex;
+    padding: $spacing-lg;
+    gap: $spacing-xl;
+
+    @include mobile {
+      flex-direction: column;
+      gap: $spacing-md;
+    }
+
+    .stat {
+      display: flex;
+      align-items: center;
+      gap: $spacing-md;
+
+      mat-icon {
+        @include flex-center;
+        width: 48px;
+        height: 48px;
+        background: rgba($primary-color, 0.1);
+        color: $primary-color;
+        border-radius: 50%;
+      }
+
+      .value {
+        display: block;
+        font-size: $font-size-lg;
+        font-weight: $font-weight-bold;
+
+        &.schedule {
+          font-size: $font-size-base;
+          font-weight: $font-weight-medium;
+        }
+      }
+
+      .label {
+        display: block;
+        font-size: $font-size-sm;
+        color: $text-secondary;
+      }
+    }
+  }
+}
+
+.students-card {
+  mat-card-header {
+    margin-bottom: $spacing-md;
+  }
+}
+
+.table-container {
+  overflow-x: auto;
+}
+
+.students-table {
+  width: 100%;
+
+  th.mat-header-cell {
+    font-weight: $font-weight-bold;
+  }
+
+  .student-name {
+    display: flex;
+    align-items: center;
+    gap: $spacing-sm;
+
+    .avatar {
+      @include flex-center;
+      width: 32px;
+      height: 32px;
+      background: $primary-color;
+      color: white;
+      border-radius: 50%;
+      font-size: $font-size-sm;
+      font-weight: $font-weight-medium;
+    }
+  }
+}
+
+.no-students {
+  @include flex-center;
+  @include flex-column;
+  padding: $spacing-xl;
+  text-align: center;
+
+  mat-icon {
+    font-size: 64px;
+    width: 64px;
+    height: 64px;
+    color: $text-disabled;
+    margin-bottom: $spacing-md;
+  }
+
+  p {
+    color: $text-secondary;
+    margin: 0;
+  }
+}

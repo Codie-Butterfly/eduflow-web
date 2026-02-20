@@ -1,0 +1,190 @@
+@use 'styles/variables' as *;
+@use 'styles/mixins' as *;
+
+.student-fees {
+  max-width: 1000px;
+  margin: 0 auto;
+}
+
+.page-header {
+  margin-bottom: $spacing-lg;
+
+  h1 {
+    margin: 0;
+  }
+
+  p {
+    margin: $spacing-xs 0 0;
+  }
+}
+
+.loading-container {
+  @include flex-center;
+  min-height: 300px;
+}
+
+.summary-card {
+  margin-bottom: $spacing-lg;
+
+  .summary-grid {
+    display: flex;
+    padding: $spacing-lg;
+
+    @include mobile {
+      flex-direction: column;
+    }
+
+    .summary-item {
+      flex: 1;
+      @include flex-column;
+      align-items: center;
+      padding: $spacing-md;
+
+      &:not(:last-child) {
+        border-right: 1px solid $divider-color;
+
+        @include mobile {
+          border-right: none;
+          border-bottom: 1px solid $divider-color;
+        }
+      }
+
+      &.highlight {
+        background: $background-color;
+        border-radius: $border-radius-md;
+      }
+
+      .label {
+        font-size: $font-size-sm;
+        color: $text-secondary;
+        margin-bottom: $spacing-xs;
+      }
+
+      .value {
+        font-size: $font-size-xl;
+        font-weight: $font-weight-bold;
+
+        &.success {
+          color: $success-color;
+        }
+
+        &.warning {
+          color: $warning-color;
+        }
+      }
+    }
+  }
+}
+
+.content-card {
+  overflow: hidden;
+}
+
+.tab-content {
+  padding: $spacing-lg;
+}
+
+.table-container {
+  overflow-x: auto;
+}
+
+.fees-table,
+.payments-table {
+  width: 100%;
+
+  th.mat-header-cell {
+    font-weight: $font-weight-bold;
+  }
+}
+
+.fee-info {
+  @include flex-column;
+
+  .fee-name {
+    font-weight: $font-weight-medium;
+  }
+
+  .fee-category {
+    font-size: $font-size-sm;
+    color: $text-secondary;
+  }
+}
+
+.overdue {
+  color: $error-color;
+  font-weight: $font-weight-medium;
+}
+
+.paid-amount {
+  color: $success-color;
+}
+
+.balance-amount {
+  font-weight: $font-weight-medium;
+
+  &.has-balance {
+    color: $warning-color;
+    font-weight: $font-weight-bold;
+  }
+}
+
+.date-cell {
+  @include flex-column;
+
+  .date {
+    font-weight: $font-weight-medium;
+  }
+
+  .time {
+    font-size: $font-size-sm;
+    color: $text-secondary;
+  }
+}
+
+.payment-amount {
+  font-weight: $font-weight-bold;
+  color: $success-color;
+}
+
+.method-cell {
+  display: flex;
+  align-items: center;
+  gap: $spacing-xs;
+
+  mat-icon {
+    font-size: 18px;
+    width: 18px;
+    height: 18px;
+    color: $text-secondary;
+  }
+}
+
+.receipt-number {
+  font-family: monospace;
+  font-size: $font-size-sm;
+  color: $text-secondary;
+}
+
+.empty-state {
+  @include flex-center;
+  @include flex-column;
+  padding: $spacing-xl * 2;
+  text-align: center;
+
+  mat-icon {
+    font-size: 64px;
+    width: 64px;
+    height: 64px;
+    color: $text-disabled;
+    margin-bottom: $spacing-md;
+  }
+
+  h3 {
+    margin: 0 0 $spacing-sm;
+  }
+
+  p {
+    color: $text-secondary;
+    margin: 0;
+  }
+}

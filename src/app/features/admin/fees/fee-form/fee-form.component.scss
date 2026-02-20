@@ -1,0 +1,90 @@
+@use 'styles/variables' as *;
+@use 'styles/mixins' as *;
+
+.fee-form {
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.page-header {
+  @include flex-between;
+  flex-wrap: wrap;
+  gap: $spacing-md;
+  margin-bottom: $spacing-lg;
+
+  h1 {
+    margin: 0;
+  }
+
+  p {
+    margin: $spacing-xs 0 0;
+  }
+}
+
+.loading-container {
+  @include flex-center;
+  padding: $spacing-xxl;
+}
+
+mat-card {
+  margin-bottom: $spacing-lg;
+
+  mat-card-header {
+    margin-bottom: $spacing-md;
+  }
+}
+
+.form-row {
+  display: flex;
+  gap: $spacing-md;
+
+  @include mobile {
+    flex-direction: column;
+  }
+
+  .form-field {
+    flex: 1;
+  }
+}
+
+.form-field {
+  margin-bottom: $spacing-sm;
+
+  &.full-width {
+    width: 100%;
+  }
+}
+
+.checkbox-group {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-md;
+  margin-top: $spacing-md;
+
+  .checkbox-label {
+    display: flex;
+    flex-direction: column;
+
+    .hint {
+      font-size: $font-size-sm;
+      color: $text-secondary;
+    }
+  }
+}
+
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: $spacing-md;
+  margin-top: $spacing-lg;
+
+  button {
+    display: flex;
+    align-items: center;
+    gap: $spacing-sm;
+
+    mat-spinner {
+      display: inline-block;
+    }
+  }
+}

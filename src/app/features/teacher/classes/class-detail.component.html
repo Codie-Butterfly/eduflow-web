@@ -1,0 +1,97 @@
+<div class="class-detail">
+  <header class="page-header">
+    <a mat-button routerLink="/teacher/classes">
+      <mat-icon>arrow_back</mat-icon>
+      Back to Classes
+    </a>
+  </header>
+
+  @if (isLoading()) {
+    <div class="loading-container">
+      <mat-spinner diameter="40"></mat-spinner>
+    </div>
+  } @else if (classInfo(); as cls) {
+    <mat-card class="class-info-card">
+      <div class="class-header">
+        <div class="class-icon">
+          <mat-icon>class</mat-icon>
+        </div>
+        <div class="info">
+          <h1>{{ cls.name }}</h1>
+          <p>{{ cls.subject }} | {{ cls.academicYear }}</p>
+        </div>
+        <a mat-raised-button color="primary" routerLink="/teacher/attendance" [queryParams]="{classId: cls.id}">
+          <mat-icon>fact_check</mat-icon>
+          Take Attendance
+        </a>
+      </div>
+
+      <div class="class-stats">
+        <div class="stat">
+          <mat-icon>people</mat-icon>
+          <div>
+            <span class="value">{{ cls.studentCount }}</span>
+            <span class="label">Students</span>
+          </div>
+        </div>
+        <div class="stat">
+          <mat-icon>schedule</mat-icon>
+          <div>
+            <span class="value schedule">{{ cls.schedule }}</span>
+            <span class="label">Schedule</span>
+          </div>
+        </div>
+      </div>
+    </mat-card>
+
+    <mat-card class="students-card">
+      <mat-card-header>
+        <mat-card-title>Students ({{ students().length }})</mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        @if (students().length > 0) {
+          <div class="table-container">
+            <table mat-table [dataSource]="students()" class="students-table">
+              <ng-container matColumnDef="studentId">
+                <th mat-header-cell *matHeaderCellDef>Student ID</th>
+                <td mat-cell *matCellDef="let student">{{ student.studentId }}</td>
+              </ng-container>
+
+              <ng-container matColumnDef="name">
+                <th mat-header-cell *matHeaderCellDef>Name</th>
+                <td mat-cell *matCellDef="let student">
+                  <div class="student-name">
+                    <span class="avatar">{{ getInitials(student) }}</span>
+                    <span>{{ student.fullName }}</span>
+                  </div>
+                </td>
+              </ng-container>
+
+              <ng-container matColumnDef="gender">
+                <th mat-header-cell *matHeaderCellDef>Gender</th>
+                <td mat-cell *matCellDef="let student">{{ student.gender }}</td>
+              </ng-container>
+
+              <ng-container matColumnDef="status">
+                <th mat-header-cell *matHeaderCellDef>Status</th>
+                <td mat-cell *matCellDef="let student">
+                  <mat-chip [color]="student.status === 'ACTIVE' ? 'primary' : 'warn'" size="small">
+                    {{ student.status }}
+                  </mat-chip>
+                </td>
+              </ng-container>
+
+              <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+              <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+            </table>
+          </div>
+        } @else {
+          <div class="no-students">
+            <mat-icon>people_outline</mat-icon>
+            <p>No students enrolled in this class.</p>
+          </div>
+        }
+      </mat-card-content>
+    </mat-card>
+  }
+</div>

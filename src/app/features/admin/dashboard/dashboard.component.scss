@@ -1,0 +1,109 @@
+@use 'styles/variables' as *;
+@use 'styles/mixins' as *;
+
+.dashboard {
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.page-header {
+  @include flex-between;
+  flex-wrap: wrap;
+  gap: $spacing-md;
+  margin-bottom: $spacing-xl;
+
+  h1 {
+    margin: 0;
+    font-size: $font-size-xxl;
+  }
+
+  p {
+    margin: $spacing-xs 0 0;
+  }
+}
+
+.header-actions {
+  display: flex;
+  gap: $spacing-sm;
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: $spacing-lg;
+  margin-bottom: $spacing-xl;
+
+  @include desktop {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  @include mobile {
+    grid-template-columns: 1fr;
+  }
+}
+
+.content-grid {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: $spacing-lg;
+
+  @include tablet {
+    grid-template-columns: 1fr;
+  }
+}
+
+.recent-payments {
+  mat-card-header {
+    @include flex-between;
+    margin-bottom: $spacing-md;
+  }
+
+  .payments-table {
+    width: 100%;
+  }
+}
+
+.quick-actions {
+  mat-card-header {
+    margin-bottom: $spacing-md;
+  }
+
+  .actions-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: $spacing-sm;
+  }
+
+  .action-btn {
+    @include flex-column;
+    align-items: center;
+    gap: $spacing-sm;
+    padding: $spacing-lg;
+    height: auto;
+
+    mat-icon {
+      font-size: 32px;
+      width: 32px;
+      height: 32px;
+      color: $primary-color;
+    }
+
+    span {
+      font-size: $font-size-sm;
+    }
+  }
+}
+
+// Table styles
+::ng-deep .mat-mdc-table {
+  background: transparent;
+}
+
+::ng-deep .mat-mdc-header-cell {
+  font-weight: $font-weight-medium;
+  color: $text-secondary;
+}
+
+::ng-deep .mat-mdc-row:hover {
+  background: rgba(0, 0, 0, 0.02);
+}

@@ -1,0 +1,205 @@
+@use 'styles/variables' as *;
+@use 'styles/mixins' as *;
+
+.fee-assignment {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.page-header {
+  @include flex-between;
+  flex-wrap: wrap;
+  gap: $spacing-md;
+  margin-bottom: $spacing-lg;
+
+  h1 {
+    margin: 0;
+  }
+
+  p {
+    margin: $spacing-xs 0 0;
+  }
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: $spacing-lg;
+
+  @include tablet {
+    grid-template-columns: 1fr;
+  }
+}
+
+mat-card {
+  height: fit-content;
+
+  mat-card-header {
+    margin-bottom: $spacing-md;
+  }
+}
+
+.full-width {
+  width: 100%;
+}
+
+.fee-option {
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+
+  .fee-amount {
+    color: $text-secondary;
+    font-weight: $font-weight-medium;
+  }
+}
+
+.selected-fee-info {
+  background: rgba($primary-color, 0.05);
+  border-radius: $border-radius-md;
+  padding: $spacing-md;
+  margin-bottom: $spacing-md;
+
+  .info-row {
+    display: flex;
+    align-items: center;
+    gap: $spacing-sm;
+    margin-bottom: $spacing-sm;
+
+    &:last-child {
+      margin-bottom: 0;
+    }
+
+    .label {
+      font-size: $font-size-sm;
+      color: $text-secondary;
+      min-width: 80px;
+    }
+
+    .amount {
+      font-weight: $font-weight-bold;
+      font-size: $font-size-lg;
+      color: $primary-color;
+    }
+  }
+}
+
+.discount-section {
+  margin-top: $spacing-lg;
+  padding-top: $spacing-lg;
+  border-top: 1px solid $divider-color;
+
+  h4 {
+    margin: 0 0 $spacing-md;
+    color: $text-secondary;
+  }
+
+  .discount-field {
+    width: 200px;
+  }
+}
+
+.target-selection {
+  mat-radio-group {
+    display: flex;
+    gap: $spacing-lg;
+    margin-bottom: $spacing-lg;
+  }
+}
+
+.selection-list {
+  border: 1px solid $divider-color;
+  border-radius: $border-radius-md;
+  overflow: hidden;
+
+  .list-header {
+    @include flex-between;
+    padding: $spacing-sm $spacing-md;
+    background: $background-color;
+    border-bottom: 1px solid $divider-color;
+
+    .selection-count {
+      font-size: $font-size-sm;
+      color: $text-secondary;
+    }
+  }
+
+  .list-items {
+    max-height: 400px;
+    overflow-y: auto;
+    @include custom-scrollbar;
+  }
+
+  .list-item {
+    display: block;
+    padding: $spacing-sm $spacing-md;
+    border-bottom: 1px solid $divider-color;
+
+    &:last-child {
+      border-bottom: none;
+    }
+
+    &:hover {
+      background: rgba(0, 0, 0, 0.02);
+    }
+  }
+}
+
+.student-item,
+.class-item {
+  display: flex;
+  align-items: center;
+  gap: $spacing-sm;
+
+  .avatar {
+    @include flex-center;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: $primary-color;
+    color: white;
+    font-size: $font-size-sm;
+    font-weight: $font-weight-medium;
+    flex-shrink: 0;
+  }
+
+  mat-icon {
+    @include flex-center;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: rgba($primary-color, 0.1);
+    color: $primary-color;
+    flex-shrink: 0;
+  }
+
+  .info {
+    @include flex-column;
+
+    .name {
+      font-weight: $font-weight-medium;
+    }
+
+    .details {
+      font-size: $font-size-sm;
+      color: $text-secondary;
+    }
+  }
+}
+
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: $spacing-md;
+  margin-top: $spacing-xl;
+
+  button {
+    display: flex;
+    align-items: center;
+    gap: $spacing-sm;
+
+    mat-spinner {
+      display: inline-block;
+    }
+  }
+}

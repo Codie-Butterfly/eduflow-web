@@ -1,0 +1,269 @@
+<div class="student-detail">
+  @if (isLoading()) {
+    <div class="loading-container">
+      <mat-spinner diameter="40"></mat-spinner>
+    </div>
+  } @else if (student(); as s) {
+    <header class="page-header">
+      <div class="header-left">
+        <a mat-icon-button routerLink="/admin/students" class="back-btn">
+          <mat-icon>arrow_back</mat-icon>
+        </a>
+        <div class="student-header">
+          <div class="avatar">{{ s.firstName[0] }}{{ s.lastName[0] }}</div>
+          <div class="header-info">
+            <h1>{{ s.fullName }}</h1>
+            <div class="meta">
+              <span class="student-id">{{ s.studentId }}</span>
+              <mat-chip [color]="getStatusColor(s.status)" selected>{{ s.status | lowercase }}</mat-chip>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="header-actions">
+        <button mat-stroked-button [routerLink]="['/admin/students', s.id, 'edit']">
+          <mat-icon>edit</mat-icon>
+          Edit
+        </button>
+        <button mat-stroked-button color="warn" (click)="deleteStudent()">
+          <mat-icon>delete</mat-icon>
+          Delete
+        </button>
+      </div>
+    </header>
+
+    <div class="content-grid">
+      <div class="main-content">
+        <mat-card>
+          <mat-card-header>
+            <mat-card-title>Personal Information</mat-card-title>
+          </mat-card-header>
+          <mat-card-content>
+            <div class="info-grid">
+              <div class="info-item">
+                <label>Full Name</label>
+                <span>{{ s.fullName }}</span>
+              </div>
+              <div class="info-item">
+                <label>Email</label>
+                <span>{{ s.email }}</span>
+              </div>
+              <div class="info-item">
+                <label>Phone</label>
+                <span>{{ s.phone || 'Not provided' }}</span>
+              </div>
+              <div class="info-item">
+                <label>Date of Birth</label>
+                <span>
+                  @if (s.dateOfBirth) {
+                    {{ s.dateOfBirth | date:'mediumDate' }} ({{ calculateAge(s.dateOfBirth) }} years old)
+                  } @else {
+                    Not provided
+                  }
+                </span>
+              </div>
+              <div class="info-item">
+                <label>Gender</label>
+                <span>{{ s.gender | titlecase }}</span>
+              </div>
+              <div class="info-item">
+                <label>Address</label>
+                <span>{{ s.address || 'Not provided' }}</span>
+              </div>
+            </div>
+          </mat-card-content>
+        </mat-card>
+
+        <mat-card>
+          <mat-card-header>
+            <mat-card-title>Academic Information</mat-card-title>
+          </mat-card-header>
+          <mat-card-content>
+            <div class="info-grid">
+              <div class="info-item">
+                <label>Current Class</label>
+                <span>
+                  @if (s.currentClass) {
+                    {{ s.currentClass.name }} ({{ s.currentClass.academicYear }})
+                  } @else {
+                    Not enrolled
+                  }
+                </span>
+              </div>
+              <div class="info-item">
+                <label>Enrollment Date</label>
+                <span>{{ s.enrollmentDate | date:'mediumDate' }}</span>
+              </div>
+              <div class="info-item">
+                <label>Status</label>
+                <mat-chip [color]="getStatusColor(s.status)" selected>{{ s.status | lowercase }}</mat-chip>
+              </div>
+            </div>
+          </mat-card-content>
+        </mat-card>
+
+        <!-- Student Fees Section -->
+        @if (showFees()) {
+          <mat-card class="fees-card">
+            <mat-card-header>
+              <mat-card-title>Student Fees</mat-card-title>
+              <button mat-icon-button (click)="hideFees()" class="close-btn">
+                <mat-icon>close</mat-icon>
+              </button>
+            </mat-card-header>
+            <mat-card-content>
+              @if (feesLoading()) {
+                <div class="fees-loading">
+                  <mat-spinner diameter="30"></mat-spinner>
+                  <span>Loading fees...</span>
+                </div>
+              } @else if (studentFees().length === 0) {
+                <div class="no-fees">
+                  <mat-icon>receipt_long</mat-icon>
+                  <p>No fees assigned to this student</p>
+                </div>
+              } @else {
+                <!-- Fee Summary -->
+                <div class="fee-summary">
+                  <div class="summary-item">
+                    <span class="label">Total Fees</span>
+                    <span class="value">{{ getTotalFees() | currency:'ZMW':'symbol':'1.2-2' }}</span>
+                  </div>
+                  <div class="summary-item paid">
+                    <span class="label">Total Paid</span>
+                    <span class="value">{{ getTotalPaid() | currency:'ZMW':'symbol':'1.2-2' }}</span>
+                  </div>
+                  <div class="summary-item balance">
+                    <span class="label">Balance</span>
+                    <span class="value">{{ getTotalBalance() | currency:'ZMW':'symbol':'1.2-2' }}</span>
+                  </div>
+                </div>
+
+                <!-- Fee Table -->
+                <table mat-table [dataSource]="studentFees()" class="fees-table">
+                  <ng-container matColumnDef="feeName">
+                    <th mat-header-cell *matHeaderCellDef>Fee Name</th>
+                    <td mat-cell *matCellDef="let fee">
+                      <div class="fee-name">
+                        <span>{{ fee.feeName }}</span>
+                        <small>{{ fee.term || fee.academicYear }}</small>
+                      </div>
+                    </td>
+                  </ng-container>
+
+                  <ng-container matColumnDef="category">
+                    <th mat-header-cell *matHeaderCellDef>Category</th>
+                    <td mat-cell *matCellDef="let fee">{{ fee.category }}</td>
+                  </ng-container>
+
+                  <ng-container matColumnDef="amount">
+                    <th mat-header-cell *matHeaderCellDef>Amount</th>
+                    <td mat-cell *matCellDef="let fee">{{ fee.netAmount | currency:'ZMW':'symbol':'1.2-2' }}</td>
+                  </ng-container>
+
+                  <ng-container matColumnDef="paid">
+                    <th mat-header-cell *matHeaderCellDef>Paid</th>
+                    <td mat-cell *matCellDef="let fee">{{ fee.amountPaid | currency:'ZMW':'symbol':'1.2-2' }}</td>
+                  </ng-container>
+
+                  <ng-container matColumnDef="balance">
+                    <th mat-header-cell *matHeaderCellDef>Balance</th>
+                    <td mat-cell *matCellDef="let fee" [class.overdue]="fee.status === 'OVERDUE'">
+                      {{ fee.balance | currency:'ZMW':'symbol':'1.2-2' }}
+                    </td>
+                  </ng-container>
+
+                  <ng-container matColumnDef="status">
+                    <th mat-header-cell *matHeaderCellDef>Status</th>
+                    <td mat-cell *matCellDef="let fee">
+                      <mat-chip [color]="getStatusColor(fee.status)" selected size="small">
+                        {{ fee.status | lowercase }}
+                      </mat-chip>
+                    </td>
+                  </ng-container>
+
+                  <tr mat-header-row *matHeaderRowDef="feeColumns"></tr>
+                  <tr mat-row *matRowDef="let row; columns: feeColumns;"></tr>
+                </table>
+              }
+            </mat-card-content>
+          </mat-card>
+        }
+
+        <mat-card>
+          <mat-card-header>
+            <mat-card-title>Medical Information</mat-card-title>
+          </mat-card-header>
+          <mat-card-content>
+            <div class="info-grid">
+              <div class="info-item">
+                <label>Blood Group</label>
+                <span>{{ s.bloodGroup || 'Not specified' }}</span>
+              </div>
+              <div class="info-item full-width">
+                <label>Medical Conditions / Allergies</label>
+                <span>{{ s.medicalConditions || 'None reported' }}</span>
+              </div>
+            </div>
+          </mat-card-content>
+        </mat-card>
+      </div>
+
+      <div class="sidebar">
+        <mat-card>
+          <mat-card-header>
+            <mat-card-title>Parent / Guardian</mat-card-title>
+          </mat-card-header>
+          <mat-card-content>
+            @if (s.parent) {
+              <div class="parent-card">
+                <div class="parent-avatar">
+                  <mat-icon>person</mat-icon>
+                </div>
+                <div class="parent-info">
+                  <span class="name">{{ s.parent.name }}</span>
+                  @if (s.parent.phone) {
+                    <a href="tel:{{ s.parent.phone }}" class="contact">
+                      <mat-icon>phone</mat-icon>
+                      {{ s.parent.phone }}
+                    </a>
+                  }
+                  @if (s.parent.email) {
+                    <a href="mailto:{{ s.parent.email }}" class="contact">
+                      <mat-icon>email</mat-icon>
+                      {{ s.parent.email }}
+                    </a>
+                  }
+                </div>
+              </div>
+            } @else {
+              <p class="no-data">No parent/guardian assigned</p>
+            }
+          </mat-card-content>
+        </mat-card>
+
+        <mat-card>
+          <mat-card-header>
+            <mat-card-title>Quick Actions</mat-card-title>
+          </mat-card-header>
+          <mat-card-content>
+            <div class="quick-actions">
+              <button mat-stroked-button (click)="viewFees()" [disabled]="showFees()">
+                <mat-icon>payments</mat-icon>
+                View Fees
+              </button>
+              <button mat-stroked-button>
+                <mat-icon>grade</mat-icon>
+                View Grades
+              </button>
+              <button mat-stroked-button (click)="assignToClass()">
+                <mat-icon>assignment</mat-icon>
+                Assign to Class
+              </button>
+            </div>
+          </mat-card-content>
+        </mat-card>
+      </div>
+    </div>
+  }
+</div>

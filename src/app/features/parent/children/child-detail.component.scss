@@ -1,0 +1,248 @@
+@use 'styles/variables' as *;
+@use 'styles/mixins' as *;
+
+.child-detail {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.page-header {
+  margin-bottom: $spacing-lg;
+}
+
+.loading-container {
+  @include flex-center;
+  min-height: 300px;
+}
+
+.child-info-card {
+  margin-bottom: $spacing-lg;
+
+  .child-header {
+    display: flex;
+    align-items: center;
+    gap: $spacing-lg;
+    padding: $spacing-lg;
+    border-bottom: 1px solid $divider-color;
+
+    .avatar {
+      @include flex-center;
+      width: 72px;
+      height: 72px;
+      background: $primary-color;
+      color: white;
+      border-radius: 50%;
+      font-size: $font-size-xl * 1.5;
+      font-weight: $font-weight-bold;
+      flex-shrink: 0;
+    }
+
+    .info {
+      h1 {
+        margin: 0;
+        font-size: $font-size-xl;
+      }
+
+      p {
+        margin: $spacing-xs 0 0;
+        color: $text-secondary;
+      }
+    }
+  }
+
+  .summary-stats {
+    display: flex;
+    padding: $spacing-lg;
+
+    @include mobile {
+      flex-direction: column;
+    }
+
+    .stat {
+      flex: 1;
+      @include flex-column;
+      align-items: center;
+      padding: $spacing-md;
+
+      &:not(:last-child) {
+        border-right: 1px solid $divider-color;
+
+        @include mobile {
+          border-right: none;
+          border-bottom: 1px solid $divider-color;
+        }
+      }
+
+      &.highlight {
+        background: $background-color;
+        border-radius: $border-radius-md;
+      }
+
+      .label {
+        font-size: $font-size-sm;
+        color: $text-secondary;
+        margin-bottom: $spacing-xs;
+      }
+
+      .value {
+        font-size: $font-size-xl;
+        font-weight: $font-weight-bold;
+
+        &.success {
+          color: $success-color;
+        }
+
+        &.warning {
+          color: $warning-color;
+        }
+      }
+    }
+  }
+}
+
+.fees-card {
+  mat-card-header {
+    margin-bottom: $spacing-md;
+  }
+}
+
+.fees-table-container {
+  overflow-x: auto;
+  margin-bottom: $spacing-lg;
+}
+
+.fees-table {
+  width: 100%;
+
+  .fee-info {
+    @include flex-column;
+
+    .fee-name {
+      font-weight: $font-weight-medium;
+    }
+
+    .fee-category {
+      font-size: $font-size-sm;
+      color: $text-secondary;
+    }
+  }
+
+  .overdue {
+    color: $error-color;
+    font-weight: $font-weight-medium;
+  }
+
+  .discount-badge {
+    display: inline-block;
+    margin-left: $spacing-xs;
+    padding: 2px 6px;
+    background: rgba($success-color, 0.1);
+    color: $success-color;
+    border-radius: $border-radius-sm;
+    font-size: $font-size-xs;
+  }
+
+  .paid-amount {
+    color: $success-color;
+  }
+
+  .balance-amount {
+    font-weight: $font-weight-medium;
+
+    &.has-balance {
+      color: $warning-color;
+      font-weight: $font-weight-bold;
+    }
+  }
+
+  .paid-icon {
+    color: $success-color;
+  }
+
+  th.mat-header-cell {
+    font-weight: $font-weight-bold;
+  }
+}
+
+.payment-history {
+  border-top: 1px solid $divider-color;
+  padding-top: $spacing-lg;
+
+  h3 {
+    margin: 0 0 $spacing-md;
+    font-size: $font-size-md;
+  }
+
+  .payment-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: $spacing-md;
+    background: $background-color;
+    border-radius: $border-radius-md;
+    margin-bottom: $spacing-sm;
+
+    .payment-info {
+      display: flex;
+      align-items: center;
+      gap: $spacing-sm;
+
+      mat-icon {
+        color: $primary-color;
+      }
+
+      .payment-fee {
+        display: block;
+        font-weight: $font-weight-medium;
+      }
+
+      .payment-date {
+        display: block;
+        font-size: $font-size-sm;
+        color: $text-secondary;
+      }
+    }
+
+    .payment-details {
+      text-align: right;
+
+      .payment-method {
+        display: block;
+        font-size: $font-size-sm;
+        color: $text-secondary;
+      }
+
+      .payment-amount {
+        display: block;
+        font-weight: $font-weight-bold;
+        color: $success-color;
+      }
+    }
+  }
+
+  .no-payments {
+    text-align: center;
+    color: $text-secondary;
+    padding: $spacing-lg;
+  }
+}
+
+.no-fees {
+  @include flex-center;
+  @include flex-column;
+  padding: $spacing-xl * 2;
+  text-align: center;
+
+  mat-icon {
+    font-size: 64px;
+    width: 64px;
+    height: 64px;
+    color: $text-disabled;
+    margin-bottom: $spacing-md;
+  }
+
+  p {
+    color: $text-secondary;
+    margin: 0;
+  }
+}

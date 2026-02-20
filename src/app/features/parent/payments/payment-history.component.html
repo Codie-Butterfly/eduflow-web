@@ -1,0 +1,143 @@
+<div class="payment-history">
+  <header class="page-header">
+    <div>
+      <h1>Payment History</h1>
+      <p class="text-secondary">View all your payment transactions</p>
+    </div>
+  </header>
+
+  @if (isLoading()) {
+    <div class="loading-container">
+      <mat-spinner diameter="40"></mat-spinner>
+    </div>
+  } @else {
+    <!-- Summary Card -->
+    <mat-card class="summary-card">
+      <div class="summary-content">
+        <div class="summary-item">
+          <mat-icon>receipt_long</mat-icon>
+          <div class="info">
+            <span class="label">Total Payments</span>
+            <span class="value">{{ payments().length }}</span>
+          </div>
+        </div>
+        <div class="summary-item">
+          <mat-icon>check_circle</mat-icon>
+          <div class="info">
+            <span class="label">Total Paid</span>
+            <span class="value success">{{ getTotalPaid() | currency:'ZMW':'symbol':'1.0-0' }}</span>
+          </div>
+        </div>
+      </div>
+    </mat-card>
+
+    <!-- Payments Table -->
+    <mat-card class="table-card">
+      @if (payments().length > 0) {
+        <div class="table-container">
+          <table mat-table [dataSource]="payments()" class="payments-table">
+            <!-- Date Column -->
+            <ng-container matColumnDef="date">
+              <th mat-header-cell *matHeaderCellDef>Date</th>
+              <td mat-cell *matCellDef="let payment">
+                <div class="date-cell">
+                  <span class="date">{{ payment.paidAt | date:'mediumDate' }}</span>
+                  <span class="time">{{ payment.paidAt | date:'shortTime' }}</span>
+                </div>
+              </td>
+            </ng-container>
+
+            <!-- Student Column -->
+            <ng-container matColumnDef="student">
+              <th mat-header-cell *matHeaderCellDef>Student</th>
+              <td mat-cell *matCellDef="let payment">
+                @if (payment.studentFee) {
+                  <div class="student-cell">
+                    <span class="name">{{ payment.studentFee.studentName }}</span>
+                    <span class="id">{{ payment.studentFee.studentId }}</span>
+                  </div>
+                }
+              </td>
+            </ng-container>
+
+            <!-- Fee Column -->
+            <ng-container matColumnDef="fee">
+              <th mat-header-cell *matHeaderCellDef>Fee</th>
+              <td mat-cell *matCellDef="let payment">
+                {{ payment.studentFee?.feeName || 'N/A' }}
+              </td>
+            </ng-container>
+
+            <!-- Amount Column -->
+            <ng-container matColumnDef="amount">
+              <th mat-header-cell *matHeaderCellDef>Amount</th>
+              <td mat-cell *matCellDef="let payment">
+                <span class="amount">{{ payment.amount | currency:'ZMW':'symbol':'1.0-0' }}</span>
+              </td>
+            </ng-container>
+
+            <!-- Method Column -->
+            <ng-container matColumnDef="method">
+              <th mat-header-cell *matHeaderCellDef>Method</th>
+              <td mat-cell *matCellDef="let payment">
+                <div class="method-cell">
+                  <mat-icon>{{ getMethodIcon(payment.paymentMethod) }}</mat-icon>
+                  <span>{{ getMethodLabel(payment.paymentMethod) }}</span>
+                </div>
+              </td>
+            </ng-container>
+
+            <!-- Receipt Column -->
+            <ng-container matColumnDef="receipt">
+              <th mat-header-cell *matHeaderCellDef>Receipt #</th>
+              <td mat-cell *matCellDef="let payment">
+                <span class="receipt-number">{{ payment.receiptNumber }}</span>
+              </td>
+            </ng-container>
+
+            <!-- Status Column -->
+            <ng-container matColumnDef="status">
+              <th mat-header-cell *matHeaderCellDef>Status</th>
+              <td mat-cell *matCellDef="let payment">
+                <mat-chip [color]="getStatusColor(payment.status)" size="small">
+                  {{ getStatusLabel(payment.status) }}
+                </mat-chip>
+              </td>
+            </ng-container>
+
+            <!-- Actions Column -->
+            <ng-container matColumnDef="actions">
+              <th mat-header-cell *matHeaderCellDef>Actions</th>
+              <td mat-cell *matCellDef="let payment">
+                @if (payment.status === 'COMPLETED') {
+                  <button mat-icon-button color="primary" (click)="downloadReceipt(payment)"
+                    matTooltip="Download Receipt">
+                    <mat-icon>download</mat-icon>
+                  </button>
+                }
+              </td>
+            </ng-container>
+
+            <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+            <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+          </table>
+        </div>
+
+        <mat-paginator
+          [length]="totalElements()"
+          [pageSize]="pageSize"
+          [pageIndex]="currentPage"
+          [pageSizeOptions]="[5, 10, 25]"
+          (page)="onPageChange($event)"
+          showFirstLastButtons>
+        </mat-paginator>
+      } @else {
+        <div class="empty-state">
+          <mat-icon>receipt_long</mat-icon>
+          <h3>No Payments Found</h3>
+          <p>You haven't made any payments yet.</p>
+        </div>
+      }
+    </mat-card>
+  }
+</div>

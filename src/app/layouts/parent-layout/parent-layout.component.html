@@ -1,0 +1,14 @@
+<app-header
+  title="EduFlow Parent Portal"
+  (toggleSidebar)="toggleSidebar()">
+</app-header>
+
+<app-sidebar
+  [items]="sidebarItems"
+  [isOpen]="sidebarOpen()"
+  (itemClick)="onSidebarItemClick()">
+</app-sidebar>
+
+<main class="main-content" [class.sidebar-open]="sidebarOpen()">
+  <router-outlet></router-outlet>
+</main>

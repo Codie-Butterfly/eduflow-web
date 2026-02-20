@@ -1,0 +1,164 @@
+<div class="child-detail">
+  <header class="page-header">
+    <a mat-button routerLink="/parent/children">
+      <mat-icon>arrow_back</mat-icon>
+      Back to Children
+    </a>
+  </header>
+
+  @if (isLoading()) {
+    <div class="loading-container">
+      <mat-spinner diameter="40"></mat-spinner>
+    </div>
+  } @else if (child(); as c) {
+    <!-- Child Info Card -->
+    <mat-card class="child-info-card">
+      <div class="child-header">
+        <div class="avatar">{{ c.firstName[0] }}{{ c.lastName[0] }}</div>
+        <div class="info">
+          <h1>{{ c.fullName }}</h1>
+          <p>{{ c.studentId }} | {{ c.currentClass?.name || 'Not enrolled' }}</p>
+        </div>
+      </div>
+
+      <div class="summary-stats">
+        <div class="stat">
+          <span class="label">Total Fees</span>
+          <span class="value">{{ getTotalFees() | currency:'ZMW':'symbol':'1.0-0' }}</span>
+        </div>
+        <div class="stat">
+          <span class="label">Paid</span>
+          <span class="value success">{{ getTotalPaid() | currency:'ZMW':'symbol':'1.0-0' }}</span>
+        </div>
+        <div class="stat highlight">
+          <span class="label">Balance</span>
+          <span class="value" [class.warning]="getTotalBalance() > 0">
+            {{ getTotalBalance() | currency:'ZMW':'symbol':'1.0-0' }}
+          </span>
+        </div>
+      </div>
+    </mat-card>
+
+    <!-- Fees List -->
+    <mat-card class="fees-card">
+      <mat-card-header>
+        <mat-card-title>Fee Details</mat-card-title>
+        <mat-card-subtitle>Academic Year 2024</mat-card-subtitle>
+      </mat-card-header>
+      <mat-card-content>
+        @if (fees().length > 0) {
+          <div class="fees-table-container">
+            <table mat-table [dataSource]="fees()" class="fees-table">
+              <!-- Fee Column -->
+              <ng-container matColumnDef="fee">
+                <th mat-header-cell *matHeaderCellDef>Fee</th>
+                <td mat-cell *matCellDef="let fee">
+                  <div class="fee-info">
+                    <span class="fee-name">{{ fee.feeName }}</span>
+                    <span class="fee-category">{{ fee.category }}</span>
+                  </div>
+                </td>
+              </ng-container>
+
+              <!-- Due Date Column -->
+              <ng-container matColumnDef="dueDate">
+                <th mat-header-cell *matHeaderCellDef>Due Date</th>
+                <td mat-cell *matCellDef="let fee">
+                  <span [class.overdue]="isOverdue(fee.dueDate) && fee.balance > 0">
+                    {{ fee.dueDate | date:'mediumDate' }}
+                  </span>
+                </td>
+              </ng-container>
+
+              <!-- Amount Column -->
+              <ng-container matColumnDef="amount">
+                <th mat-header-cell *matHeaderCellDef>Amount</th>
+                <td mat-cell *matCellDef="let fee">
+                  {{ fee.netAmount | currency:'ZMW':'symbol':'1.0-0' }}
+                  @if (fee.discountAmount > 0) {
+                    <span class="discount-badge">-{{ fee.discountAmount | currency:'ZMW':'symbol':'1.0-0' }}</span>
+                  }
+                </td>
+              </ng-container>
+
+              <!-- Paid Column -->
+              <ng-container matColumnDef="paid">
+                <th mat-header-cell *matHeaderCellDef>Paid</th>
+                <td mat-cell *matCellDef="let fee">
+                  <span class="paid-amount">{{ fee.amountPaid | currency:'ZMW':'symbol':'1.0-0' }}</span>
+                </td>
+              </ng-container>
+
+              <!-- Balance Column -->
+              <ng-container matColumnDef="balance">
+                <th mat-header-cell *matHeaderCellDef>Balance</th>
+                <td mat-cell *matCellDef="let fee">
+                  <span class="balance-amount" [class.has-balance]="fee.balance > 0">
+                    {{ fee.balance | currency:'ZMW':'symbol':'1.0-0' }}
+                  </span>
+                </td>
+              </ng-container>
+
+              <!-- Status Column -->
+              <ng-container matColumnDef="status">
+                <th mat-header-cell *matHeaderCellDef>Status</th>
+                <td mat-cell *matCellDef="let fee">
+                  <mat-chip [color]="getStatusColor(fee.status)" size="small">
+                    {{ getStatusLabel(fee.status) }}
+                  </mat-chip>
+                </td>
+              </ng-container>
+
+              <!-- Actions Column -->
+              <ng-container matColumnDef="actions">
+                <th mat-header-cell *matHeaderCellDef>Actions</th>
+                <td mat-cell *matCellDef="let fee">
+                  @if (fee.balance > 0) {
+                    <button mat-raised-button color="primary" (click)="openPaymentDialog(fee)">
+                      <mat-icon>payment</mat-icon>
+                      Pay
+                    </button>
+                  } @else {
+                    <mat-icon class="paid-icon">check_circle</mat-icon>
+                  }
+                </td>
+              </ng-container>
+
+              <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+              <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+            </table>
+          </div>
+
+          <!-- Payment History -->
+          <div class="payment-history">
+            <h3>Recent Payments</h3>
+            @for (fee of fees(); track fee.id) {
+              @for (payment of fee.payments; track payment.id) {
+                <div class="payment-item">
+                  <div class="payment-info">
+                    <mat-icon>receipt</mat-icon>
+                    <div>
+                      <span class="payment-fee">{{ fee.feeName }}</span>
+                      <span class="payment-date">{{ payment.paidAt | date:'medium' }}</span>
+                    </div>
+                  </div>
+                  <div class="payment-details">
+                    <span class="payment-method">{{ payment.paymentMethod }}</span>
+                    <span class="payment-amount">{{ payment.amount | currency:'ZMW':'symbol':'1.0-0' }}</span>
+                  </div>
+                </div>
+              }
+            } @empty {
+              <p class="no-payments">No payments made yet.</p>
+            }
+          </div>
+        } @else {
+          <div class="no-fees">
+            <mat-icon>receipt_long</mat-icon>
+            <p>No fees assigned to this student.</p>
+          </div>
+        }
+      </mat-card-content>
+    </mat-card>
+  }
+</div>

@@ -1,0 +1,146 @@
+@use 'styles/variables' as *;
+@use 'styles/mixins' as *;
+
+.class-list {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.page-header {
+  margin-bottom: $spacing-lg;
+
+  h1 {
+    margin: 0;
+  }
+
+  p {
+    margin: $spacing-xs 0 0;
+  }
+}
+
+.loading-container {
+  @include flex-center;
+  min-height: 300px;
+}
+
+.classes-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+  gap: $spacing-lg;
+
+  @include mobile {
+    grid-template-columns: 1fr;
+  }
+}
+
+.class-card {
+  .card-header {
+    display: flex;
+    align-items: center;
+    gap: $spacing-md;
+    padding: $spacing-lg;
+    background: linear-gradient(135deg, rgba($primary-color, 0.1) 0%, rgba($primary-color, 0.05) 100%);
+    border-bottom: 1px solid $divider-color;
+
+    .class-icon {
+      @include flex-center;
+      width: 56px;
+      height: 56px;
+      background: $primary-color;
+      border-radius: $border-radius-md;
+
+      mat-icon {
+        color: white;
+        font-size: 28px;
+        width: 28px;
+        height: 28px;
+      }
+    }
+
+    .class-info {
+      h3 {
+        margin: 0;
+        font-size: $font-size-lg;
+      }
+
+      p {
+        margin: $spacing-xs 0 0;
+        color: $text-secondary;
+      }
+    }
+  }
+
+  .card-body {
+    padding: $spacing-lg;
+  }
+
+  .info-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: $spacing-md;
+
+    .info-item {
+      display: flex;
+      align-items: flex-start;
+      gap: $spacing-sm;
+
+      &.full-width {
+        grid-column: 1 / -1;
+      }
+
+      mat-icon {
+        color: $primary-color;
+        font-size: 20px;
+        width: 20px;
+        height: 20px;
+        margin-top: 2px;
+      }
+
+      .label {
+        display: block;
+        font-size: $font-size-sm;
+        color: $text-secondary;
+      }
+
+      .value {
+        display: block;
+        font-weight: $font-weight-medium;
+      }
+    }
+  }
+
+  .card-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: $spacing-sm;
+    padding: $spacing-md $spacing-lg;
+    border-top: 1px solid $divider-color;
+  }
+}
+
+.empty-card {
+  grid-column: 1 / -1;
+
+  mat-card-content {
+    @include flex-center;
+    @include flex-column;
+    padding: $spacing-xl * 2;
+    text-align: center;
+
+    mat-icon {
+      font-size: 80px;
+      width: 80px;
+      height: 80px;
+      color: $text-disabled;
+      margin-bottom: $spacing-lg;
+    }
+
+    h3 {
+      margin: 0 0 $spacing-sm;
+    }
+
+    p {
+      margin: $spacing-xs 0;
+    }
+  }
+}

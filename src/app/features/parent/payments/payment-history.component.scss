@@ -1,0 +1,162 @@
+@use 'styles/variables' as *;
+@use 'styles/mixins' as *;
+
+.payment-history {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.page-header {
+  margin-bottom: $spacing-lg;
+
+  h1 {
+    margin: 0;
+  }
+
+  p {
+    margin: $spacing-xs 0 0;
+  }
+}
+
+.loading-container {
+  @include flex-center;
+  min-height: 300px;
+}
+
+.summary-card {
+  margin-bottom: $spacing-lg;
+
+  .summary-content {
+    display: flex;
+    gap: $spacing-xl;
+    padding: $spacing-lg;
+
+    @include mobile {
+      flex-direction: column;
+      gap: $spacing-md;
+    }
+  }
+
+  .summary-item {
+    display: flex;
+    align-items: center;
+    gap: $spacing-md;
+
+    mat-icon {
+      @include flex-center;
+      width: 48px;
+      height: 48px;
+      background: rgba($primary-color, 0.1);
+      color: $primary-color;
+      border-radius: 50%;
+    }
+
+    .info {
+      @include flex-column;
+
+      .label {
+        font-size: $font-size-sm;
+        color: $text-secondary;
+      }
+
+      .value {
+        font-size: $font-size-xl;
+        font-weight: $font-weight-bold;
+
+        &.success {
+          color: $success-color;
+        }
+      }
+    }
+  }
+}
+
+.table-card {
+  overflow: hidden;
+}
+
+.table-container {
+  overflow-x: auto;
+}
+
+.payments-table {
+  width: 100%;
+
+  th.mat-header-cell {
+    font-weight: $font-weight-bold;
+  }
+
+  .date-cell {
+    @include flex-column;
+
+    .date {
+      font-weight: $font-weight-medium;
+    }
+
+    .time {
+      font-size: $font-size-sm;
+      color: $text-secondary;
+    }
+  }
+
+  .student-cell {
+    @include flex-column;
+
+    .name {
+      font-weight: $font-weight-medium;
+    }
+
+    .id {
+      font-size: $font-size-sm;
+      color: $text-secondary;
+    }
+  }
+
+  .amount {
+    font-weight: $font-weight-bold;
+    color: $success-color;
+  }
+
+  .method-cell {
+    display: flex;
+    align-items: center;
+    gap: $spacing-xs;
+
+    mat-icon {
+      font-size: 18px;
+      width: 18px;
+      height: 18px;
+      color: $text-secondary;
+    }
+  }
+
+  .receipt-number {
+    font-family: monospace;
+    font-size: $font-size-sm;
+    color: $text-secondary;
+  }
+}
+
+.empty-state {
+  @include flex-center;
+  @include flex-column;
+  padding: $spacing-xl * 2;
+  text-align: center;
+
+  mat-icon {
+    font-size: 80px;
+    width: 80px;
+    height: 80px;
+    color: $text-disabled;
+    margin-bottom: $spacing-lg;
+  }
+
+  h3 {
+    margin: 0 0 $spacing-sm;
+  }
+
+  p {
+    color: $text-secondary;
+    margin: 0;
+  }
+}

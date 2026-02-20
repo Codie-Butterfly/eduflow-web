@@ -1,0 +1,128 @@
+<div class="fee-form">
+  <header class="page-header">
+    <div>
+      <h1>{{ isEditMode() ? 'Edit Fee' : 'Create New Fee' }}</h1>
+      <p class="text-secondary">{{ isEditMode() ? 'Update fee structure details' : 'Define a new fee structure' }}</p>
+    </div>
+    <a mat-button routerLink="/admin/fees">
+      <mat-icon>arrow_back</mat-icon>
+      Back to Fees
+    </a>
+  </header>
+
+  @if (isLoading()) {
+    <div class="loading-container">
+      <mat-spinner diameter="40"></mat-spinner>
+    </div>
+  } @else {
+    <form [formGroup]="feeForm" (ngSubmit)="onSubmit()">
+      <mat-card>
+        <mat-card-header>
+          <mat-card-title>Fee Details</mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+          <mat-form-field appearance="outline" class="form-field full-width">
+            <mat-label>Fee Name</mat-label>
+            <input matInput formControlName="name" placeholder="e.g., Term 1 Tuition Fee 2024">
+            @if (name?.hasError('required') && name?.touched) {
+              <mat-error>Fee name is required</mat-error>
+            }
+            @if (name?.hasError('minlength')) {
+              <mat-error>Minimum 3 characters required</mat-error>
+            }
+          </mat-form-field>
+
+          <div class="form-row">
+            <mat-form-field appearance="outline" class="form-field">
+              <mat-label>Category</mat-label>
+              <mat-select formControlName="category">
+                @for (cat of categories; track cat.value) {
+                  <mat-option [value]="cat.value">{{ cat.label }}</mat-option>
+                }
+              </mat-select>
+              @if (category?.hasError('required') && category?.touched) {
+                <mat-error>Category is required</mat-error>
+              }
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="form-field">
+              <mat-label>Amount (ZMW)</mat-label>
+              <input matInput type="number" formControlName="amount" placeholder="0.00">
+              <span matTextPrefix>K&nbsp;</span>
+              @if (amount?.hasError('required') && amount?.touched) {
+                <mat-error>Amount is required</mat-error>
+              }
+              @if (amount?.hasError('min')) {
+                <mat-error>Amount must be greater than 0</mat-error>
+              }
+            </mat-form-field>
+          </div>
+
+          <div class="form-row">
+            <mat-form-field appearance="outline" class="form-field">
+              <mat-label>Academic Year</mat-label>
+              <mat-select formControlName="academicYear">
+                @for (year of academicYears; track year) {
+                  <mat-option [value]="year">{{ year }}</mat-option>
+                }
+              </mat-select>
+              @if (academicYear?.hasError('required') && academicYear?.touched) {
+                <mat-error>Academic year is required</mat-error>
+              }
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="form-field">
+              <mat-label>Term (Optional)</mat-label>
+              <mat-select formControlName="term">
+                <mat-option value="">No specific term</mat-option>
+                @for (term of terms; track term.value) {
+                  <mat-option [value]="term.value">{{ term.label }}</mat-option>
+                }
+              </mat-select>
+            </mat-form-field>
+          </div>
+
+          <mat-form-field appearance="outline" class="form-field full-width">
+            <mat-label>Description (Optional)</mat-label>
+            <textarea matInput formControlName="description" rows="3"
+              placeholder="Brief description of this fee"></textarea>
+            @if (description?.hasError('maxlength')) {
+              <mat-error>Maximum 500 characters allowed</mat-error>
+            }
+          </mat-form-field>
+
+          <div class="checkbox-group">
+            <mat-checkbox formControlName="mandatory" color="primary">
+              <div class="checkbox-label">
+                <span>Mandatory Fee</span>
+                <span class="hint">Students must pay this fee</span>
+              </div>
+            </mat-checkbox>
+
+            @if (isEditMode()) {
+              <mat-checkbox formControlName="active" color="primary">
+                <div class="checkbox-label">
+                  <span>Active</span>
+                  <span class="hint">Fee is available for assignment</span>
+                </div>
+              </mat-checkbox>
+            }
+          </div>
+        </mat-card-content>
+      </mat-card>
+
+      <div class="form-actions">
+        <button mat-button type="button" routerLink="/admin/fees">Cancel</button>
+        <button mat-raised-button color="primary" type="submit" [disabled]="isSaving()">
+          @if (isSaving()) {
+            <mat-spinner diameter="20"></mat-spinner>
+            <span>Saving...</span>
+          } @else {
+            <mat-icon>save</mat-icon>
+            <span>{{ isEditMode() ? 'Update Fee' : 'Create Fee' }}</span>
+          }
+        </button>
+      </div>
+    </form>
+  }
+</div>

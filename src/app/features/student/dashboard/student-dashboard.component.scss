@@ -1,0 +1,228 @@
+@use 'styles/variables' as *;
+@use 'styles/mixins' as *;
+
+.student-dashboard {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.loading-container {
+  @include flex-center;
+  min-height: 300px;
+}
+
+.welcome-header {
+  display: flex;
+  align-items: center;
+  gap: $spacing-lg;
+  margin-bottom: $spacing-lg;
+  padding: $spacing-lg;
+  background: linear-gradient(135deg, $primary-color 0%, darken($primary-color, 10%) 100%);
+  border-radius: $border-radius-lg;
+  color: white;
+
+  .avatar {
+    @include flex-center;
+    width: 72px;
+    height: 72px;
+    background: rgba(white, 0.2);
+    border-radius: 50%;
+    font-size: $font-size-xl * 1.5;
+    font-weight: $font-weight-bold;
+  }
+
+  .info {
+    h1 {
+      margin: 0;
+      font-size: $font-size-xl;
+    }
+
+    p {
+      margin: $spacing-xs 0 0;
+      opacity: 0.9;
+    }
+  }
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: $spacing-md;
+  margin-bottom: $spacing-lg;
+
+  @include tablet {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  @include mobile {
+    grid-template-columns: 1fr;
+  }
+}
+
+.alert {
+  display: flex;
+  align-items: center;
+  gap: $spacing-md;
+  padding: $spacing-md;
+  border-radius: $border-radius-md;
+  margin-bottom: $spacing-lg;
+
+  mat-icon {
+    flex-shrink: 0;
+  }
+
+  span {
+    flex: 1;
+  }
+
+  &.alert-warning {
+    background: rgba($warning-color, 0.1);
+    border: 1px solid $warning-color;
+    color: $text-primary;
+
+    mat-icon {
+      color: $warning-color;
+    }
+  }
+}
+
+.content-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: $spacing-lg;
+  margin-bottom: $spacing-lg;
+
+  @include tablet {
+    grid-template-columns: 1fr;
+  }
+}
+
+.profile-card {
+  .profile-info {
+    .info-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: $spacing-sm 0;
+      border-bottom: 1px solid $divider-color;
+
+      &:last-child {
+        border-bottom: none;
+      }
+
+      .label {
+        color: $text-secondary;
+        font-size: $font-size-sm;
+      }
+
+      .value {
+        font-weight: $font-weight-medium;
+      }
+    }
+  }
+}
+
+.fees-card {
+  mat-card-header {
+    @include flex-between;
+    margin-bottom: $spacing-md;
+  }
+
+  .fees-list {
+    .fee-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: $spacing-md;
+      background: $background-color;
+      border-radius: $border-radius-md;
+      margin-bottom: $spacing-sm;
+
+      &:last-child {
+        margin-bottom: 0;
+      }
+
+      .fee-info {
+        @include flex-column;
+
+        .fee-name {
+          font-weight: $font-weight-medium;
+        }
+
+        .fee-due {
+          font-size: $font-size-sm;
+          color: $text-secondary;
+        }
+      }
+
+      .fee-amount {
+        text-align: right;
+
+        .balance {
+          display: block;
+          font-weight: $font-weight-bold;
+          color: $warning-color;
+          margin-bottom: $spacing-xs;
+        }
+      }
+    }
+  }
+
+  .no-fees {
+    @include flex-center;
+    @include flex-column;
+    padding: $spacing-xl;
+    text-align: center;
+
+    mat-icon {
+      font-size: 48px;
+      width: 48px;
+      height: 48px;
+      color: $success-color;
+      margin-bottom: $spacing-sm;
+    }
+
+    p {
+      color: $text-secondary;
+      margin: 0;
+    }
+  }
+}
+
+.quick-actions {
+  h2 {
+    margin: 0 0 $spacing-md;
+  }
+}
+
+.actions-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: $spacing-md;
+}
+
+.action-card {
+  @include flex-center;
+  @include flex-column;
+  padding: $spacing-lg;
+  cursor: pointer;
+  @include transition(all);
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: $shadow-md;
+  }
+
+  mat-icon {
+    font-size: 48px;
+    width: 48px;
+    height: 48px;
+    color: $primary-color;
+    margin-bottom: $spacing-sm;
+  }
+
+  span {
+    font-weight: $font-weight-medium;
+    color: $text-secondary;
+  }
+}

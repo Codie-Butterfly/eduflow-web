@@ -1,0 +1,164 @@
+<div class="fee-assignment">
+  <header class="page-header">
+    <div>
+      <h1>Assign Fees</h1>
+      <p class="text-secondary">Assign fees to students or classes</p>
+    </div>
+    <a mat-button routerLink="/admin/fees">
+      <mat-icon>arrow_back</mat-icon>
+      Back to Fees
+    </a>
+  </header>
+
+  <form [formGroup]="assignmentForm" (ngSubmit)="onSubmit()">
+    <div class="form-grid">
+      <!-- Left Column: Fee Selection -->
+      <mat-card class="fee-selection">
+        <mat-card-header>
+          <mat-card-title>1. Select Fee</mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Fee Structure</mat-label>
+            <mat-select formControlName="feeId">
+              @for (fee of fees(); track fee.id) {
+                <mat-option [value]="fee.id">
+                  <div class="fee-option">
+                    <span>{{ fee.name }}</span>
+                    <span class="fee-amount">{{ fee.amount | currency:'ZMW':'symbol':'1.0-0' }}</span>
+                  </div>
+                </mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+
+          @if (selectedFee(); as fee) {
+            <div class="selected-fee-info">
+              <div class="info-row">
+                <span class="label">Category:</span>
+                <mat-chip>{{ getCategoryLabel(fee.category) }}</mat-chip>
+              </div>
+              <div class="info-row">
+                <span class="label">Amount:</span>
+                <span class="amount">{{ fee.amount | currency:'ZMW':'symbol':'1.0-0' }}</span>
+              </div>
+              @if (fee.description) {
+                <div class="info-row">
+                  <span class="label">Description:</span>
+                  <span>{{ fee.description }}</span>
+                </div>
+              }
+            </div>
+          }
+
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Due Date</mat-label>
+            <input matInput [matDatepicker]="picker" formControlName="dueDate" [min]="minDate">
+            <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
+            <mat-datepicker #picker></mat-datepicker>
+          </mat-form-field>
+
+          <div class="discount-section">
+            <h4>Discount (Optional)</h4>
+            <div class="form-row">
+              <mat-form-field appearance="outline" class="discount-field">
+                <mat-label>Discount Amount</mat-label>
+                <input matInput type="number" formControlName="discountAmount">
+                <span matTextPrefix>K&nbsp;</span>
+              </mat-form-field>
+            </div>
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Discount Reason</mat-label>
+              <input matInput formControlName="discountReason" placeholder="e.g., Sibling discount">
+            </mat-form-field>
+          </div>
+        </mat-card-content>
+      </mat-card>
+
+      <!-- Right Column: Target Selection -->
+      <mat-card class="target-selection">
+        <mat-card-header>
+          <mat-card-title>2. Select Recipients</mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+          <mat-radio-group [(ngModel)]="assignmentType" [ngModelOptions]="{standalone: true}"
+            (change)="onAssignmentTypeChange($event.value)">
+            <mat-radio-button value="students">Individual Students</mat-radio-button>
+            <mat-radio-button value="classes">Entire Classes</mat-radio-button>
+          </mat-radio-group>
+
+          @if (assignmentType === 'students') {
+            <div class="selection-list">
+              <div class="list-header">
+                <mat-checkbox
+                  [checked]="studentSelection.selected.length === students().length && students().length > 0"
+                  [indeterminate]="studentSelection.selected.length > 0 && studentSelection.selected.length < students().length"
+                  (change)="selectAllStudents()">
+                  Select All ({{ students().length }})
+                </mat-checkbox>
+                <span class="selection-count">{{ studentSelection.selected.length }} selected</span>
+              </div>
+              <div class="list-items">
+                @for (student of students(); track student.id) {
+                  <mat-checkbox
+                    [checked]="studentSelection.isSelected(student.id)"
+                    (change)="toggleStudent(student.id)"
+                    class="list-item">
+                    <div class="student-item">
+                      <div class="avatar">{{ student.firstName[0] }}{{ student.lastName[0] }}</div>
+                      <div class="info">
+                        <span class="name">{{ student.fullName }}</span>
+                        <span class="details">{{ student.studentId }} | {{ student.currentClass?.name || 'Not enrolled' }}</span>
+                      </div>
+                    </div>
+                  </mat-checkbox>
+                }
+              </div>
+            </div>
+          } @else {
+            <div class="selection-list">
+              <div class="list-header">
+                <mat-checkbox
+                  [checked]="classSelection.selected.length === classes.length && classes.length > 0"
+                  [indeterminate]="classSelection.selected.length > 0 && classSelection.selected.length < classes.length"
+                  (change)="selectAllClasses()">
+                  Select All ({{ classes.length }})
+                </mat-checkbox>
+                <span class="selection-count">{{ classSelection.selected.length }} selected</span>
+              </div>
+              <div class="list-items">
+                @for (cls of classes; track cls.id) {
+                  <mat-checkbox
+                    [checked]="classSelection.isSelected(cls.id)"
+                    (change)="toggleClass(cls.id)"
+                    class="list-item">
+                    <div class="class-item">
+                      <mat-icon>class</mat-icon>
+                      <div class="info">
+                        <span class="name">{{ cls.name }}</span>
+                        <span class="details">Grade {{ cls.grade }} | {{ cls.academicYear }}</span>
+                      </div>
+                    </div>
+                  </mat-checkbox>
+                }
+              </div>
+            </div>
+          }
+        </mat-card-content>
+      </mat-card>
+    </div>
+
+    <div class="form-actions">
+      <button mat-button type="button" routerLink="/admin/fees">Cancel</button>
+      <button mat-raised-button color="primary" type="submit" [disabled]="isSaving()">
+        @if (isSaving()) {
+          <mat-spinner diameter="20"></mat-spinner>
+          <span>Assigning...</span>
+        } @else {
+          <mat-icon>assignment</mat-icon>
+          <span>Assign Fee to {{ getSelectedCount() }} {{ assignmentType === 'students' ? 'Student(s)' : 'Class(es)' }}</span>
+        }
+      </button>
+    </div>
+  </form>
+</div>

@@ -1,0 +1,98 @@
+@use 'styles/variables' as *;
+@use 'styles/mixins' as *;
+
+.header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: $z-index-fixed;
+  background: $surface-color;
+  border-bottom: 1px solid $divider-color;
+  height: 64px;
+}
+
+.menu-button {
+  margin-right: $spacing-sm;
+}
+
+.brand-link {
+  display: flex;
+  align-items: center;
+  text-decoration: none;
+}
+
+.brand-logo {
+  height: 42px;
+  width: auto;
+  object-fit: contain;
+}
+
+.brand {
+  font-size: $font-size-xl;
+  font-weight: $font-weight-bold;
+  color: $primary-color;
+}
+
+.spacer {
+  flex: 1;
+}
+
+.notification-btn {
+  margin-right: $spacing-sm;
+}
+
+.user-btn {
+  display: flex;
+  align-items: center;
+  gap: $spacing-xs;
+  padding: $spacing-xs $spacing-sm;
+  border-radius: $border-radius-md;
+
+  &:hover {
+    background: rgba(0, 0, 0, 0.04);
+  }
+}
+
+.user-avatar {
+  @include flex-center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: $primary-color;
+  color: white;
+
+  mat-icon {
+    font-size: 20px;
+    width: 20px;
+    height: 20px;
+  }
+}
+
+.user-name {
+  @include truncate;
+  max-width: 150px;
+  font-weight: $font-weight-medium;
+
+  @include mobile {
+    display: none;
+  }
+}
+
+::ng-deep .notification-menu {
+  min-width: 300px;
+
+  .notification-header {
+    @include flex-between;
+    padding: $spacing-sm $spacing-md;
+
+    span {
+      font-weight: $font-weight-medium;
+    }
+  }
+
+  .view-all {
+    justify-content: center;
+    color: $primary-color;
+  }
+}

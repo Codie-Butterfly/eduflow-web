@@ -1,0 +1,85 @@
+<div class="login-container">
+  <h2 class="login-title">Sign In</h2>
+  <p class="login-subtitle">Enter your credentials to access your account</p>
+
+  <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="login-form">
+    <mat-form-field appearance="outline" class="form-field">
+      <mat-label>Email</mat-label>
+      <input matInput type="email" formControlName="email" placeholder="Enter your email">
+      <mat-icon matPrefix>email</mat-icon>
+      @if (email?.hasError('required') && email?.touched) {
+        <mat-error>Email is required</mat-error>
+      }
+      @if (email?.hasError('email') && email?.touched) {
+        <mat-error>Please enter a valid email</mat-error>
+      }
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="form-field">
+      <mat-label>Password</mat-label>
+      <input
+        matInput
+        [type]="hidePassword() ? 'password' : 'text'"
+        formControlName="password"
+        placeholder="Enter your password">
+      <mat-icon matPrefix>lock</mat-icon>
+      <button mat-icon-button matSuffix type="button" (click)="togglePasswordVisibility()">
+        <mat-icon>{{ hidePassword() ? 'visibility_off' : 'visibility' }}</mat-icon>
+      </button>
+      @if (password?.hasError('required') && password?.touched) {
+        <mat-error>Password is required</mat-error>
+      }
+      @if (password?.hasError('minlength') && password?.touched) {
+        <mat-error>Password must be at least 8 characters</mat-error>
+      }
+    </mat-form-field>
+
+    <div class="form-options">
+      <mat-checkbox formControlName="rememberMe" color="primary">
+        Remember me
+      </mat-checkbox>
+      <a routerLink="/auth/forgot-password" class="forgot-link">Forgot password?</a>
+    </div>
+
+    <button
+      mat-raised-button
+      color="primary"
+      type="submit"
+      class="submit-button"
+      [disabled]="isLoading()">
+      @if (isLoading()) {
+        <mat-spinner diameter="20" class="spinner"></mat-spinner>
+        <span>Signing in...</span>
+      } @else {
+        <span>Sign In</span>
+      }
+    </button>
+  </form>
+
+  <p class="register-link">
+    Don't have an account?
+    <a routerLink="/auth/register">Create one</a>
+  </p>
+
+  <div class="demo-credentials">
+    <p class="demo-title">Demo Credentials (password: admin123)</p>
+    <div class="demo-users">
+      <button type="button" mat-stroked-button (click)="fillCredentials('admin@eduflow.com')">
+        <mat-icon>admin_panel_settings</mat-icon>
+        Admin
+      </button>
+      <button type="button" mat-stroked-button (click)="fillCredentials('parent@eduflow.com')">
+        <mat-icon>family_restroom</mat-icon>
+        Parent
+      </button>
+      <button type="button" mat-stroked-button (click)="fillCredentials('teacher@eduflow.com')">
+        <mat-icon>school</mat-icon>
+        Teacher
+      </button>
+      <button type="button" mat-stroked-button (click)="fillCredentials('student@eduflow.com')">
+        <mat-icon>person</mat-icon>
+        Student
+      </button>
+    </div>
+  </div>
+</div>

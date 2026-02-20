@@ -1,0 +1,154 @@
+<div class="student-form">
+  <header class="page-header">
+    <div>
+      <h1>{{ isEditMode() ? 'Edit Student' : 'Add New Student' }}</h1>
+      <p class="text-secondary">{{ isEditMode() ? 'Update student information' : 'Enter student details to create a new record' }}</p>
+    </div>
+    <a mat-button routerLink="/admin/students">
+      <mat-icon>arrow_back</mat-icon>
+      Back to Students
+    </a>
+  </header>
+
+  @if (isLoading()) {
+    <div class="loading-container">
+      <mat-spinner diameter="40"></mat-spinner>
+    </div>
+  } @else {
+    <form [formGroup]="studentForm" (ngSubmit)="onSubmit()">
+      <mat-card>
+        <mat-card-header>
+          <mat-card-title>Personal Information</mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+          <div class="form-row">
+            <mat-form-field appearance="outline" class="form-field">
+              <mat-label>First Name</mat-label>
+              <input matInput formControlName="firstName" placeholder="Enter first name">
+              @if (firstName?.hasError('required') && firstName?.touched) {
+                <mat-error>First name is required</mat-error>
+              }
+              @if (firstName?.hasError('minlength')) {
+                <mat-error>Minimum 2 characters</mat-error>
+              }
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="form-field">
+              <mat-label>Last Name</mat-label>
+              <input matInput formControlName="lastName" placeholder="Enter last name">
+              @if (lastName?.hasError('required') && lastName?.touched) {
+                <mat-error>Last name is required</mat-error>
+              }
+              @if (lastName?.hasError('minlength')) {
+                <mat-error>Minimum 2 characters</mat-error>
+              }
+            </mat-form-field>
+          </div>
+
+          <div class="form-row">
+            <mat-form-field appearance="outline" class="form-field">
+              <mat-label>Email</mat-label>
+              <input matInput type="email" formControlName="email" placeholder="Enter email address">
+              <mat-icon matPrefix>email</mat-icon>
+              @if (email?.hasError('required') && email?.touched) {
+                <mat-error>Email is required</mat-error>
+              }
+              @if (email?.hasError('email')) {
+                <mat-error>Enter a valid email</mat-error>
+              }
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="form-field">
+              <mat-label>Phone</mat-label>
+              <input matInput formControlName="phone" placeholder="+260971234567">
+              <mat-icon matPrefix>phone</mat-icon>
+              @if (phone?.hasError('pattern')) {
+                <mat-error>Enter a valid phone number</mat-error>
+              }
+            </mat-form-field>
+          </div>
+
+          <div class="form-row">
+            <mat-form-field appearance="outline" class="form-field">
+              <mat-label>Date of Birth</mat-label>
+              <input matInput [matDatepicker]="picker" formControlName="dateOfBirth" [max]="maxDate">
+              <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
+              <mat-datepicker #picker></mat-datepicker>
+              @if (dateOfBirth?.hasError('required') && dateOfBirth?.touched) {
+                <mat-error>Date of birth is required</mat-error>
+              }
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="form-field">
+              <mat-label>Gender</mat-label>
+              <mat-select formControlName="gender">
+                @for (option of genderOptions; track option.value) {
+                  <mat-option [value]="option.value">{{ option.label }}</mat-option>
+                }
+              </mat-select>
+              @if (gender?.hasError('required') && gender?.touched) {
+                <mat-error>Gender is required</mat-error>
+              }
+            </mat-form-field>
+          </div>
+
+          <mat-form-field appearance="outline" class="form-field full-width">
+            <mat-label>Address</mat-label>
+            <textarea matInput formControlName="address" rows="3" placeholder="Enter full address"></textarea>
+            <mat-icon matPrefix>location_on</mat-icon>
+          </mat-form-field>
+        </mat-card-content>
+      </mat-card>
+
+      <mat-card>
+        <mat-card-header>
+          <mat-card-title>Medical Information</mat-card-title>
+          <mat-card-subtitle>Optional health-related details</mat-card-subtitle>
+        </mat-card-header>
+        <mat-card-content>
+          <div class="form-row">
+            <mat-form-field appearance="outline" class="form-field">
+              <mat-label>Blood Group</mat-label>
+              <mat-select formControlName="bloodGroup">
+                <mat-option value="">Not specified</mat-option>
+                @for (group of bloodGroupOptions; track group) {
+                  <mat-option [value]="group">{{ group }}</mat-option>
+                }
+              </mat-select>
+            </mat-form-field>
+
+            @if (isEditMode()) {
+              <mat-form-field appearance="outline" class="form-field">
+                <mat-label>Status</mat-label>
+                <mat-select formControlName="status">
+                  @for (option of statusOptions; track option.value) {
+                    <mat-option [value]="option.value">{{ option.label }}</mat-option>
+                  }
+                </mat-select>
+              </mat-form-field>
+            }
+          </div>
+
+          <mat-form-field appearance="outline" class="form-field full-width">
+            <mat-label>Medical Conditions / Allergies</mat-label>
+            <textarea matInput formControlName="medicalConditions" rows="3"
+              placeholder="Enter any medical conditions, allergies, or special needs"></textarea>
+          </mat-form-field>
+        </mat-card-content>
+      </mat-card>
+
+      <div class="form-actions">
+        <button mat-button type="button" routerLink="/admin/students">Cancel</button>
+        <button mat-raised-button color="primary" type="submit" [disabled]="isSaving()">
+          @if (isSaving()) {
+            <mat-spinner diameter="20"></mat-spinner>
+            <span>Saving...</span>
+          } @else {
+            <mat-icon>save</mat-icon>
+            <span>{{ isEditMode() ? 'Update Student' : 'Create Student' }}</span>
+          }
+        </button>
+      </div>
+    </form>
+  }
+</div>

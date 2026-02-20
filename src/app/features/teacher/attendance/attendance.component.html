@@ -1,0 +1,126 @@
+<div class="attendance-page">
+  <header class="page-header">
+    <div>
+      <h1>Mark Attendance</h1>
+      <p class="text-secondary">Record student attendance for your classes</p>
+    </div>
+  </header>
+
+  <mat-card class="filter-card">
+    <div class="filters">
+      <mat-form-field appearance="outline">
+        <mat-label>Select Class</mat-label>
+        <mat-select [(ngModel)]="selectedClassId" (selectionChange)="onClassChange()">
+          @for (cls of classes(); track cls.id) {
+            <mat-option [value]="cls.id">{{ cls.name }} - {{ cls.subject }}</mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Date</mat-label>
+        <input matInput [matDatepicker]="picker" [(ngModel)]="selectedDate"
+          [max]="maxDate" (dateChange)="onDateChange()">
+        <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
+        <mat-datepicker #picker></mat-datepicker>
+      </mat-form-field>
+    </div>
+  </mat-card>
+
+  @if (!selectedClassId) {
+    <mat-card class="empty-state">
+      <mat-card-content>
+        <mat-icon>fact_check</mat-icon>
+        <h3>Select a Class</h3>
+        <p>Please select a class to mark attendance.</p>
+      </mat-card-content>
+    </mat-card>
+  } @else if (isLoading()) {
+    <div class="loading-container">
+      <mat-spinner diameter="40"></mat-spinner>
+    </div>
+  } @else {
+    <mat-card class="attendance-card">
+      <mat-card-header>
+        <mat-card-title>{{ getSelectedClassName() }} - {{ selectedDate | date:'fullDate' }}</mat-card-title>
+        <mat-card-subtitle>{{ attendanceEntries().length }} students</mat-card-subtitle>
+      </mat-card-header>
+
+      <div class="quick-actions">
+        <button mat-stroked-button (click)="markAllPresent()">
+          <mat-icon>check_circle</mat-icon>
+          Mark All Present
+        </button>
+        <button mat-stroked-button color="warn" (click)="markAllAbsent()">
+          <mat-icon>cancel</mat-icon>
+          Mark All Absent
+        </button>
+      </div>
+
+      <div class="summary-chips">
+        <mat-chip color="primary">Present: {{ getStatusCount('PRESENT') }}</mat-chip>
+        <mat-chip color="warn">Absent: {{ getStatusCount('ABSENT') }}</mat-chip>
+        <mat-chip>Late: {{ getStatusCount('LATE') }}</mat-chip>
+        <mat-chip>Excused: {{ getStatusCount('EXCUSED') }}</mat-chip>
+      </div>
+
+      <mat-card-content>
+        <div class="attendance-list">
+          @for (entry of attendanceEntries(); track entry.studentId) {
+            <div class="attendance-item">
+              <div class="student-info">
+                <span class="avatar">{{ getInitials(entry.studentName) }}</span>
+                <div class="details">
+                  <span class="name">{{ entry.studentName }}</span>
+                  <span class="id">{{ entry.studentNumber }}</span>
+                </div>
+              </div>
+
+              <div class="status-options">
+                <mat-radio-group [ngModel]="entry.status" (ngModelChange)="updateStatus(entry.studentId, $event)">
+                  <mat-radio-button value="PRESENT" color="primary">
+                    <mat-icon>check_circle</mat-icon>
+                    Present
+                  </mat-radio-button>
+                  <mat-radio-button value="ABSENT" color="warn">
+                    <mat-icon>cancel</mat-icon>
+                    Absent
+                  </mat-radio-button>
+                  <mat-radio-button value="LATE">
+                    <mat-icon>schedule</mat-icon>
+                    Late
+                  </mat-radio-button>
+                  <mat-radio-button value="EXCUSED">
+                    <mat-icon>event_busy</mat-icon>
+                    Excused
+                  </mat-radio-button>
+                </mat-radio-group>
+              </div>
+
+              @if (entry.status !== 'PRESENT') {
+                <mat-form-field appearance="outline" class="remarks-field">
+                  <mat-label>Remarks</mat-label>
+                  <input matInput [ngModel]="entry.remarks"
+                    (ngModelChange)="updateRemarks(entry.studentId, $event)"
+                    placeholder="Optional remarks">
+                </mat-form-field>
+              }
+            </div>
+          }
+        </div>
+      </mat-card-content>
+
+      <mat-card-actions>
+        <button mat-raised-button color="primary" (click)="saveAttendance()" [disabled]="isSaving()">
+          @if (isSaving()) {
+            <mat-spinner diameter="20"></mat-spinner>
+            <span>Saving...</span>
+          } @else {
+            <mat-icon>save</mat-icon>
+            <span>Save Attendance</span>
+          }
+        </button>
+      </mat-card-actions>
+    </mat-card>
+  }
+</div>

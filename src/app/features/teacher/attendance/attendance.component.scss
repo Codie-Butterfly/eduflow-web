@@ -1,0 +1,182 @@
+@use 'styles/variables' as *;
+@use 'styles/mixins' as *;
+
+.attendance-page {
+  max-width: 1000px;
+  margin: 0 auto;
+}
+
+.page-header {
+  margin-bottom: $spacing-lg;
+
+  h1 {
+    margin: 0;
+  }
+
+  p {
+    margin: $spacing-xs 0 0;
+  }
+}
+
+.filter-card {
+  margin-bottom: $spacing-lg;
+  padding: $spacing-md;
+
+  .filters {
+    display: flex;
+    gap: $spacing-md;
+    flex-wrap: wrap;
+
+    mat-form-field {
+      min-width: 200px;
+    }
+  }
+}
+
+.loading-container {
+  @include flex-center;
+  min-height: 300px;
+}
+
+.empty-state {
+  mat-card-content {
+    @include flex-center;
+    @include flex-column;
+    padding: $spacing-xl * 2;
+    text-align: center;
+
+    mat-icon {
+      font-size: 80px;
+      width: 80px;
+      height: 80px;
+      color: $text-disabled;
+      margin-bottom: $spacing-lg;
+    }
+
+    h3 {
+      margin: 0 0 $spacing-sm;
+    }
+
+    p {
+      color: $text-secondary;
+      margin: 0;
+    }
+  }
+}
+
+.attendance-card {
+  mat-card-header {
+    margin-bottom: $spacing-md;
+  }
+
+  .quick-actions {
+    display: flex;
+    gap: $spacing-sm;
+    padding: 0 $spacing-md;
+    margin-bottom: $spacing-md;
+
+    button {
+      display: flex;
+      align-items: center;
+      gap: $spacing-xs;
+    }
+  }
+
+  .summary-chips {
+    display: flex;
+    gap: $spacing-sm;
+    padding: 0 $spacing-md;
+    margin-bottom: $spacing-lg;
+    flex-wrap: wrap;
+  }
+
+  mat-card-actions {
+    display: flex;
+    justify-content: flex-end;
+    padding: $spacing-md;
+    border-top: 1px solid $divider-color;
+
+    button {
+      display: flex;
+      align-items: center;
+      gap: $spacing-sm;
+    }
+  }
+}
+
+.attendance-list {
+  .attendance-item {
+    padding: $spacing-md;
+    border-bottom: 1px solid $divider-color;
+
+    &:last-child {
+      border-bottom: none;
+    }
+
+    &:hover {
+      background: rgba(0, 0, 0, 0.02);
+    }
+  }
+
+  .student-info {
+    display: flex;
+    align-items: center;
+    gap: $spacing-md;
+    margin-bottom: $spacing-md;
+
+    .avatar {
+      @include flex-center;
+      width: 40px;
+      height: 40px;
+      background: $primary-color;
+      color: white;
+      border-radius: 50%;
+      font-size: $font-size-sm;
+      font-weight: $font-weight-medium;
+      flex-shrink: 0;
+    }
+
+    .details {
+      @include flex-column;
+
+      .name {
+        font-weight: $font-weight-medium;
+      }
+
+      .id {
+        font-size: $font-size-sm;
+        color: $text-secondary;
+      }
+    }
+  }
+
+  .status-options {
+    margin-bottom: $spacing-sm;
+
+    mat-radio-group {
+      display: flex;
+      flex-wrap: wrap;
+      gap: $spacing-md;
+    }
+
+    mat-radio-button {
+      ::ng-deep .mdc-label {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+      }
+
+      mat-icon {
+        font-size: 18px;
+        width: 18px;
+        height: 18px;
+      }
+    }
+  }
+
+  .remarks-field {
+    width: 100%;
+    max-width: 400px;
+    margin-left: 56px;
+  }
+}

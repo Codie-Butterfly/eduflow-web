@@ -1,0 +1,76 @@
+<div class="class-list">
+  <header class="page-header">
+    <div>
+      <h1>My Classes</h1>
+      <p class="text-secondary">View and manage your assigned classes</p>
+    </div>
+  </header>
+
+  @if (isLoading()) {
+    <div class="loading-container">
+      <mat-spinner diameter="40"></mat-spinner>
+    </div>
+  } @else {
+    <div class="classes-grid">
+      @for (cls of classes(); track cls.id) {
+        <mat-card class="class-card">
+          <div class="card-header">
+            <div class="class-icon">
+              <mat-icon>class</mat-icon>
+            </div>
+            <div class="class-info">
+              <h3>{{ cls.name }}</h3>
+              <p>{{ cls.subject }}</p>
+            </div>
+          </div>
+
+          <div class="card-body">
+            <div class="info-grid">
+              <div class="info-item">
+                <mat-icon>people</mat-icon>
+                <div>
+                  <span class="label">Students</span>
+                  <span class="value">{{ cls.studentCount }}</span>
+                </div>
+              </div>
+              <div class="info-item">
+                <mat-icon>calendar_today</mat-icon>
+                <div>
+                  <span class="label">Academic Year</span>
+                  <span class="value">{{ cls.academicYear }}</span>
+                </div>
+              </div>
+              <div class="info-item full-width">
+                <mat-icon>schedule</mat-icon>
+                <div>
+                  <span class="label">Schedule</span>
+                  <span class="value">{{ cls.schedule }}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="card-actions">
+            <a mat-button [routerLink]="[cls.id]">
+              <mat-icon>people</mat-icon>
+              View Students
+            </a>
+            <a mat-raised-button color="primary" routerLink="/teacher/attendance" [queryParams]="{classId: cls.id}">
+              <mat-icon>fact_check</mat-icon>
+              Take Attendance
+            </a>
+          </div>
+        </mat-card>
+      } @empty {
+        <mat-card class="empty-card">
+          <mat-card-content>
+            <mat-icon>class</mat-icon>
+            <h3>No Classes Found</h3>
+            <p>You don't have any classes assigned to you.</p>
+            <p class="text-secondary">Please contact the administrator.</p>
+          </mat-card-content>
+        </mat-card>
+      }
+    </div>
+  }
+</div>

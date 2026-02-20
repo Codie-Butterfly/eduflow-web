@@ -1,0 +1,118 @@
+@use 'styles/variables' as *;
+@use 'styles/mixins' as *;
+
+.login-container {
+  max-width: 360px;
+  margin: 0 auto;
+}
+
+.login-title {
+  font-size: $font-size-xxl;
+  font-weight: $font-weight-medium;
+  color: $text-primary;
+  margin: 0 0 $spacing-xs;
+  text-align: center;
+}
+
+.login-subtitle {
+  font-size: $font-size-base;
+  color: $text-secondary;
+  margin: 0 0 $spacing-lg;
+  text-align: center;
+}
+
+.login-form {
+  display: flex;
+  flex-direction: column;
+}
+
+.form-field {
+  width: 100%;
+  margin-bottom: $spacing-sm;
+}
+
+.form-options {
+  @include flex-between;
+  margin-bottom: $spacing-lg;
+
+  .forgot-link {
+    font-size: $font-size-sm;
+    color: $primary-color;
+
+    &:hover {
+      text-decoration: underline;
+    }
+  }
+}
+
+.submit-button {
+  width: 100%;
+  height: 48px;
+  font-size: $font-size-md;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: $spacing-sm;
+
+  .spinner {
+    display: inline-block;
+  }
+}
+
+.register-link {
+  text-align: center;
+  margin-top: $spacing-lg;
+  font-size: $font-size-base;
+  color: $text-secondary;
+
+  a {
+    color: $primary-color;
+    font-weight: $font-weight-medium;
+
+    &:hover {
+      text-decoration: underline;
+    }
+  }
+}
+
+.demo-credentials {
+  margin-top: $spacing-xl;
+  padding: $spacing-md;
+  background: rgba($primary-color, 0.05);
+  border-radius: $border-radius-md;
+  text-align: center;
+
+  .demo-title {
+    font-size: $font-size-sm;
+    color: $text-secondary;
+    margin: 0 0 $spacing-md;
+  }
+
+  .demo-users {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: $spacing-sm;
+
+    button {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: $spacing-xs;
+      font-size: $font-size-sm;
+
+      mat-icon {
+        font-size: 18px;
+        width: 18px;
+        height: 18px;
+      }
+    }
+  }
+
+  code {
+    font-size: $font-size-sm;
+    color: $primary-color;
+    background: rgba($primary-color, 0.1);
+    padding: $spacing-xs $spacing-sm;
+    border-radius: $border-radius-sm;
+  }
+}

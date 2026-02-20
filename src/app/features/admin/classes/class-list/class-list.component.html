@@ -1,0 +1,148 @@
+<div class="class-list">
+  <header class="page-header">
+    <div>
+      <h1>Classes</h1>
+      <p class="text-secondary">Manage school classes and sections</p>
+    </div>
+    <a mat-raised-button color="primary" routerLink="/admin/classes/new">
+      <mat-icon>add</mat-icon>
+      Add Class
+    </a>
+  </header>
+
+  <mat-card class="filter-card">
+    <mat-card-content>
+      <div class="filters">
+        <mat-form-field appearance="outline">
+          <mat-label>Academic Year</mat-label>
+          <mat-select [(ngModel)]="selectedAcademicYear" (selectionChange)="onFilterChange()">
+            <mat-option value="">All Years</mat-option>
+            @for (year of academicYears; track year) {
+              <mat-option [value]="year">{{ year }}</mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Grade</mat-label>
+          <mat-select [(ngModel)]="selectedGrade" (selectionChange)="onFilterChange()">
+            <mat-option [value]="null">All Grades</mat-option>
+            @for (grade of grades; track grade) {
+              <mat-option [value]="grade">Grade {{ grade }}</mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
+
+        @if (selectedAcademicYear || selectedGrade) {
+          <button mat-button (click)="clearFilters()">
+            <mat-icon>clear</mat-icon>
+            Clear Filters
+          </button>
+        }
+      </div>
+    </mat-card-content>
+  </mat-card>
+
+  <mat-card>
+    @if (isLoading()) {
+      <div class="loading-container">
+        <mat-spinner diameter="40"></mat-spinner>
+      </div>
+    } @else if (classes().length === 0) {
+      <div class="empty-state">
+        <mat-icon>class</mat-icon>
+        <h3>No Classes Found</h3>
+        <p>Get started by creating your first class.</p>
+        <a mat-raised-button color="primary" routerLink="/admin/classes/new">
+          <mat-icon>add</mat-icon>
+          Add Class
+        </a>
+      </div>
+    } @else {
+      <table mat-table [dataSource]="classes()" class="classes-table">
+        <ng-container matColumnDef="name">
+          <th mat-header-cell *matHeaderCellDef>Class</th>
+          <td mat-cell *matCellDef="let cls">
+            <div class="class-info">
+              <span class="class-name">{{ cls.name }}</span>
+              <small>{{ cls.academicYear }}</small>
+            </div>
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="grade">
+          <th mat-header-cell *matHeaderCellDef>Grade</th>
+          <td mat-cell *matCellDef="let cls">
+            <mat-chip color="primary" selected>Grade {{ cls.grade }}</mat-chip>
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="teacher">
+          <th mat-header-cell *matHeaderCellDef>Class Teacher</th>
+          <td mat-cell *matCellDef="let cls">
+            @if (cls.classTeacher) {
+              <div class="teacher-info">
+                <mat-icon>person</mat-icon>
+                <span>{{ cls.classTeacher.name }}</span>
+              </div>
+            } @else {
+              <span class="text-secondary">Not assigned</span>
+            }
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="students">
+          <th mat-header-cell *matHeaderCellDef>Students</th>
+          <td mat-cell *matCellDef="let cls">
+            <div class="capacity-info">
+              <span>{{ cls.studentCount || 0 }} / {{ cls.capacity || '∞' }}</span>
+              @if (cls.capacity) {
+                <mat-chip [color]="getCapacityColor(cls)" selected size="small">
+                  {{ getCapacityPercentage(cls) }}%
+                </mat-chip>
+              }
+            </div>
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="status">
+          <th mat-header-cell *matHeaderCellDef>Status</th>
+          <td mat-cell *matCellDef="let cls">
+            <mat-chip [color]="cls.active ? 'primary' : 'accent'" selected>
+              {{ cls.active ? 'Active' : 'Inactive' }}
+            </mat-chip>
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="actions">
+          <th mat-header-cell *matHeaderCellDef>Actions</th>
+          <td mat-cell *matCellDef="let cls">
+            <div class="action-buttons">
+              <a mat-icon-button [routerLink]="['/admin/classes', cls.id]" matTooltip="View Details">
+                <mat-icon>visibility</mat-icon>
+              </a>
+              <a mat-icon-button [routerLink]="['/admin/classes', cls.id, 'edit']" matTooltip="Edit">
+                <mat-icon>edit</mat-icon>
+              </a>
+              <button mat-icon-button color="warn" (click)="deleteClass(cls)" matTooltip="Delete">
+                <mat-icon>delete</mat-icon>
+              </button>
+            </div>
+          </td>
+        </ng-container>
+
+        <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+        <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+      </table>
+
+      <mat-paginator
+        [length]="totalElements()"
+        [pageSize]="pageSize()"
+        [pageIndex]="currentPage()"
+        [pageSizeOptions]="[5, 10, 25, 50]"
+        (page)="onPageChange($event)"
+        showFirstLastButtons>
+      </mat-paginator>
+    }
+  </mat-card>
+</div>

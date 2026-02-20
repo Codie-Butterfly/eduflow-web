@@ -1,0 +1,43 @@
+<div class="auth-layout">
+  <div class="auth-container">
+    <div class="auth-brand">
+      <img src="assets/images/logo.png" alt="EduFlow" class="brand-logo">
+    </div>
+    <div class="auth-content">
+      <router-outlet></router-outlet>
+    </div>
+  </div>
+  <div class="auth-background">
+    <!-- Slideshow -->
+    <div class="slideshow">
+      @for (slide of slides; track slide; let i = $index) {
+        <div
+          class="slide"
+          [class.active]="currentSlide() === i"
+          [style.background-image]="'url(' + slide + ')'">
+        </div>
+      }
+    </div>
+    <!-- Blue overlay for text visibility -->
+    <div class="background-overlay"></div>
+    <div class="background-content">
+      <h2>Welcome to EduFlow</h2>
+      <p>Streamline your school's fee collection and academic management with our comprehensive platform.</p>
+      <ul class="feature-list">
+        <li>Easy fee payment and tracking</li>
+        <li>Real-time grade updates</li>
+        <li>Parent-teacher communication</li>
+        <li>Comprehensive reporting</li>
+      </ul>
+    </div>
+    <!-- Slide indicators -->
+    <div class="slide-indicators">
+      @for (slide of slides; track slide; let i = $index) {
+        <span
+          class="indicator"
+          [class.active]="currentSlide() === i">
+        </span>
+      }
+    </div>
+  </div>
+</div>

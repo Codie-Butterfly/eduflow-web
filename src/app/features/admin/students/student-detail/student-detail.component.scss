@@ -1,0 +1,279 @@
+@use 'styles/variables' as *;
+@use 'styles/mixins' as *;
+
+.student-detail {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.loading-container {
+  @include flex-center;
+  padding: $spacing-xxl;
+}
+
+.page-header {
+  @include flex-between;
+  flex-wrap: wrap;
+  gap: $spacing-md;
+  margin-bottom: $spacing-xl;
+
+  .header-left {
+    display: flex;
+    align-items: center;
+    gap: $spacing-md;
+  }
+
+  .back-btn {
+    margin-right: $spacing-sm;
+  }
+}
+
+.student-header {
+  display: flex;
+  align-items: center;
+  gap: $spacing-md;
+
+  .avatar {
+    @include flex-center;
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    background: $primary-color;
+    color: white;
+    font-size: $font-size-xxl;
+    font-weight: $font-weight-medium;
+  }
+
+  .header-info {
+    h1 {
+      margin: 0;
+      font-size: $font-size-xxl;
+    }
+
+    .meta {
+      display: flex;
+      align-items: center;
+      gap: $spacing-sm;
+      margin-top: $spacing-xs;
+    }
+
+    .student-id {
+      font-family: monospace;
+      font-size: $font-size-sm;
+      color: $text-secondary;
+      background: rgba(0, 0, 0, 0.04);
+      padding: $spacing-xs $spacing-sm;
+      border-radius: $border-radius-sm;
+    }
+  }
+}
+
+.header-actions {
+  display: flex;
+  gap: $spacing-sm;
+}
+
+.content-grid {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: $spacing-lg;
+
+  @include tablet {
+    grid-template-columns: 1fr;
+  }
+}
+
+.main-content {
+  mat-card {
+    margin-bottom: $spacing-lg;
+  }
+}
+
+.info-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: $spacing-lg;
+
+  @include mobile {
+    grid-template-columns: 1fr;
+  }
+}
+
+.info-item {
+  @include flex-column;
+  gap: $spacing-xs;
+
+  &.full-width {
+    grid-column: 1 / -1;
+  }
+
+  label {
+    font-size: $font-size-sm;
+    color: $text-secondary;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  span {
+    font-size: $font-size-base;
+    color: $text-primary;
+  }
+}
+
+.sidebar {
+  mat-card {
+    margin-bottom: $spacing-lg;
+  }
+}
+
+.parent-card {
+  display: flex;
+  gap: $spacing-md;
+
+  .parent-avatar {
+    @include flex-center;
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: rgba($primary-color, 0.1);
+    color: $primary-color;
+  }
+
+  .parent-info {
+    @include flex-column;
+    gap: $spacing-xs;
+
+    .name {
+      font-weight: $font-weight-medium;
+    }
+
+    .contact {
+      display: flex;
+      align-items: center;
+      gap: $spacing-xs;
+      font-size: $font-size-sm;
+      color: $text-secondary;
+      text-decoration: none;
+
+      mat-icon {
+        font-size: 16px;
+        width: 16px;
+        height: 16px;
+      }
+
+      &:hover {
+        color: $primary-color;
+      }
+    }
+  }
+}
+
+.no-data {
+  color: $text-secondary;
+  font-style: italic;
+  margin: 0;
+}
+
+.quick-actions {
+  @include flex-column;
+  gap: $spacing-sm;
+
+  button {
+    justify-content: flex-start;
+  }
+}
+
+// Fees Section Styles
+.fees-card {
+  mat-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+
+    .close-btn {
+      margin-left: auto;
+    }
+  }
+}
+
+.fees-loading {
+  @include flex-center;
+  gap: $spacing-sm;
+  padding: $spacing-lg;
+  color: $text-secondary;
+}
+
+.no-fees {
+  @include flex-center;
+  flex-direction: column;
+  gap: $spacing-sm;
+  padding: $spacing-xl;
+  color: $text-secondary;
+
+  mat-icon {
+    font-size: 48px;
+    width: 48px;
+    height: 48px;
+    opacity: 0.5;
+  }
+
+  p {
+    margin: 0;
+  }
+}
+
+.fee-summary {
+  display: flex;
+  gap: $spacing-lg;
+  padding: $spacing-md;
+  background: rgba(0, 0, 0, 0.02);
+  border-radius: $border-radius-md;
+  margin-bottom: $spacing-lg;
+
+  @include mobile {
+    flex-direction: column;
+    gap: $spacing-sm;
+  }
+
+  .summary-item {
+    flex: 1;
+    @include flex-column;
+    gap: $spacing-xs;
+
+    .label {
+      font-size: $font-size-sm;
+      color: $text-secondary;
+    }
+
+    .value {
+      font-size: $font-size-lg;
+      font-weight: $font-weight-bold;
+    }
+
+    &.paid .value {
+      color: $success-color;
+    }
+
+    &.balance .value {
+      color: $warning-color;
+    }
+  }
+}
+
+.fees-table {
+  width: 100%;
+
+  .fee-name {
+    @include flex-column;
+
+    small {
+      font-size: $font-size-xs;
+      color: $text-secondary;
+    }
+  }
+
+  .overdue {
+    color: $error-color;
+    font-weight: $font-weight-medium;
+  }
+}

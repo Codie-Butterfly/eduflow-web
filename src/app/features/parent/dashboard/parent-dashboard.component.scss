@@ -1,0 +1,231 @@
+@use 'styles/variables' as *;
+@use 'styles/mixins' as *;
+
+.parent-dashboard {
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.page-header {
+  margin-bottom: $spacing-lg;
+
+  h1 {
+    margin: 0;
+  }
+
+  p {
+    margin: $spacing-xs 0 0;
+  }
+}
+
+.loading-container {
+  @include flex-center;
+  min-height: 300px;
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: $spacing-md;
+  margin-bottom: $spacing-lg;
+
+  @include tablet {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  @include mobile {
+    grid-template-columns: 1fr;
+  }
+}
+
+.alert {
+  display: flex;
+  align-items: center;
+  gap: $spacing-md;
+  padding: $spacing-md;
+  border-radius: $border-radius-md;
+  margin-bottom: $spacing-lg;
+
+  mat-icon {
+    flex-shrink: 0;
+  }
+
+  span {
+    flex: 1;
+  }
+
+  &.alert-warning {
+    background: rgba($warning-color, 0.1);
+    border: 1px solid $warning-color;
+    color: darken($warning-color, 20%);
+
+    mat-icon {
+      color: $warning-color;
+    }
+  }
+}
+
+.section-header {
+  @include flex-between;
+  margin-bottom: $spacing-md;
+
+  h2 {
+    margin: 0;
+  }
+
+  a {
+    display: flex;
+    align-items: center;
+    gap: $spacing-xs;
+  }
+}
+
+.children-section {
+  margin-bottom: $spacing-xl;
+}
+
+.children-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+  gap: $spacing-md;
+
+  @include mobile {
+    grid-template-columns: 1fr;
+  }
+}
+
+.child-card {
+  .child-avatar {
+    @include flex-center;
+    width: 48px;
+    height: 48px;
+    background: $primary-color;
+    color: white;
+    border-radius: 50%;
+    font-weight: $font-weight-bold;
+    font-size: $font-size-lg;
+  }
+
+  mat-card-header {
+    margin-bottom: $spacing-md;
+  }
+
+  .fee-summary {
+    background: $background-color;
+    border-radius: $border-radius-md;
+    padding: $spacing-md;
+    margin-bottom: $spacing-md;
+
+    .fee-row {
+      display: flex;
+      justify-content: space-between;
+      padding: $spacing-xs 0;
+
+      &:not(:last-child) {
+        border-bottom: 1px solid $divider-color;
+      }
+
+      .label {
+        color: $text-secondary;
+      }
+
+      .value {
+        font-weight: $font-weight-medium;
+
+        &.paid {
+          color: $success-color;
+        }
+
+        &.has-balance {
+          color: $warning-color;
+          font-weight: $font-weight-bold;
+        }
+      }
+
+      &.balance {
+        padding-top: $spacing-sm;
+        margin-top: $spacing-xs;
+
+        .label {
+          font-weight: $font-weight-medium;
+        }
+      }
+    }
+  }
+
+  .status-row {
+    display: flex;
+    align-items: center;
+    gap: $spacing-sm;
+
+    .pending-count {
+      font-size: $font-size-sm;
+      color: $warning-color;
+    }
+  }
+
+  mat-card-actions {
+    display: flex;
+    gap: $spacing-sm;
+    padding: $spacing-md;
+  }
+}
+
+.empty-card {
+  mat-card-content {
+    @include flex-center;
+    @include flex-column;
+    padding: $spacing-xl;
+    text-align: center;
+
+    mat-icon {
+      font-size: 64px;
+      width: 64px;
+      height: 64px;
+      color: $text-disabled;
+      margin-bottom: $spacing-md;
+    }
+
+    p {
+      margin: $spacing-xs 0;
+    }
+  }
+}
+
+.quick-actions {
+  h2 {
+    margin: 0 0 $spacing-md;
+  }
+}
+
+.actions-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: $spacing-md;
+}
+
+.action-card {
+  @include flex-center;
+  @include flex-column;
+  padding: $spacing-lg;
+  cursor: pointer;
+  @include transition(all);
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: $shadow-md;
+  }
+
+  mat-icon {
+    font-size: 48px;
+    width: 48px;
+    height: 48px;
+    color: $primary-color;
+    margin-bottom: $spacing-sm;
+  }
+
+  span {
+    font-weight: $font-weight-medium;
+    color: $text-secondary;
+  }
+}

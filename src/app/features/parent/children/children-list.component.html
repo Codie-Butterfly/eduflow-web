@@ -1,0 +1,98 @@
+<div class="children-list">
+  <header class="page-header">
+    <div>
+      <h1>My Children</h1>
+      <p class="text-secondary">View fee status and make payments for your children</p>
+    </div>
+  </header>
+
+  @if (isLoading()) {
+    <div class="loading-container">
+      <mat-spinner diameter="40"></mat-spinner>
+    </div>
+  } @else {
+    <div class="children-grid">
+      @for (child of children(); track child.id) {
+        <mat-card class="child-card">
+          <div class="card-header">
+            <div class="avatar">{{ getInitials(child.fullName) }}</div>
+            <div class="info">
+              <h3>{{ child.fullName }}</h3>
+              <p>{{ child.studentId }}</p>
+            </div>
+            <mat-chip [color]="getStatusColor(child.balance)">
+              @if (child.balance === 0) {
+                Fully Paid
+              } @else {
+                Balance Due
+              }
+            </mat-chip>
+          </div>
+
+          <div class="card-body">
+            <div class="class-info">
+              <mat-icon>school</mat-icon>
+              <span>{{ child.currentClass }}</span>
+            </div>
+
+            <div class="progress-section">
+              <div class="progress-header">
+                <span>Payment Progress</span>
+                <span class="percentage">{{ getPaymentProgress(child.totalPaid, child.totalFees) }}%</span>
+              </div>
+              <div class="progress-bar">
+                <div class="progress-fill" [style.width.%]="getPaymentProgress(child.totalPaid, child.totalFees)"></div>
+              </div>
+            </div>
+
+            <div class="fee-details">
+              <div class="fee-item">
+                <span class="label">Total Fees</span>
+                <span class="value">{{ child.totalFees | currency:'ZMW':'symbol':'1.0-0' }}</span>
+              </div>
+              <div class="fee-item">
+                <span class="label">Paid</span>
+                <span class="value success">{{ child.totalPaid | currency:'ZMW':'symbol':'1.0-0' }}</span>
+              </div>
+              <div class="fee-item highlight">
+                <span class="label">Balance</span>
+                <span class="value" [class.warning]="child.balance > 0">
+                  {{ child.balance | currency:'ZMW':'symbol':'1.0-0' }}
+                </span>
+              </div>
+            </div>
+
+            @if (child.pendingFees > 0) {
+              <div class="pending-notice">
+                <mat-icon>info</mat-icon>
+                <span>{{ child.pendingFees }} pending fee(s) require attention</span>
+              </div>
+            }
+          </div>
+
+          <div class="card-actions">
+            <a mat-button [routerLink]="[child.id]">
+              <mat-icon>visibility</mat-icon>
+              View Details
+            </a>
+            @if (child.balance > 0) {
+              <a mat-raised-button color="primary" [routerLink]="[child.id]" [queryParams]="{pay: true}">
+                <mat-icon>payment</mat-icon>
+                Make Payment
+              </a>
+            }
+          </div>
+        </mat-card>
+      } @empty {
+        <mat-card class="empty-card">
+          <mat-card-content>
+            <mat-icon>people_outline</mat-icon>
+            <h3>No Children Found</h3>
+            <p>There are no children linked to your account.</p>
+            <p class="text-secondary">Please contact the school administration if this is an error.</p>
+          </mat-card-content>
+        </mat-card>
+      }
+    </div>
+  }
+</div>

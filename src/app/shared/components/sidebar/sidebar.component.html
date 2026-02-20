@@ -1,0 +1,22 @@
+<aside class="sidebar" [class.collapsed]="!isOpen()">
+  <nav class="nav-list">
+    @for (item of items(); track item.route) {
+      <a
+        class="nav-item"
+        [routerLink]="item.route"
+        routerLinkActive="active"
+        [routerLinkActiveOptions]="{ exact: item.route.endsWith('dashboard') }"
+        (click)="onItemClick()">
+        <mat-icon class="nav-icon">{{ item.icon }}</mat-icon>
+        <span class="nav-label">{{ item.label }}</span>
+        @if (item.badge) {
+          <span class="nav-badge">{{ item.badge }}</span>
+        }
+      </a>
+    }
+  </nav>
+
+  <div class="sidebar-footer">
+    <div class="version">v1.0.0</div>
+  </div>
+</aside>

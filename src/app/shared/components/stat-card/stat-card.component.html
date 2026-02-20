@@ -1,0 +1,25 @@
+<mat-card class="stat-card" [class]="'color-' + color()">
+  <mat-card-content>
+    <div class="stat-content">
+      <div class="stat-info">
+        <span class="stat-title">{{ title() }}</span>
+        <span class="stat-value">
+          @if (isCurrency()) {
+            {{ value() | currency:'ZMW':'symbol':'1.0-0' }}
+          } @else {
+            {{ value() }}
+          }
+        </span>
+        @if (trend() !== null) {
+          <span class="stat-trend" [class.positive]="trend()! > 0" [class.negative]="trend()! < 0">
+            <mat-icon>{{ trend()! > 0 ? 'trending_up' : trend()! < 0 ? 'trending_down' : 'trending_flat' }}</mat-icon>
+            {{ trend()! > 0 ? '+' : '' }}{{ trend() }}% {{ trendLabel() }}
+          </span>
+        }
+      </div>
+      <div class="stat-icon">
+        <mat-icon>{{ icon() }}</mat-icon>
+      </div>
+    </div>
+  </mat-card-content>
+</mat-card>

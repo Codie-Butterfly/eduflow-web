@@ -1,0 +1,137 @@
+<div class="student-dashboard">
+  @if (isLoading()) {
+    <div class="loading-container">
+      <mat-spinner diameter="40"></mat-spinner>
+    </div>
+  } @else {
+    <!-- Welcome Section -->
+    @if (profile(); as p) {
+      <header class="welcome-header">
+        <div class="avatar">{{ getInitials(p.fullName) }}</div>
+        <div class="info">
+          <h1>Welcome, {{ p.firstName }}!</h1>
+          <p>{{ p.currentClass?.name }} | {{ p.studentId }}</p>
+        </div>
+      </header>
+    }
+
+    <!-- Stats -->
+    @if (stats(); as s) {
+      <div class="stats-grid">
+        <app-stat-card
+          title="Total Fees"
+          [value]="'K' + s.totalFees.toLocaleString()"
+          icon="receipt"
+          color="primary">
+        </app-stat-card>
+        <app-stat-card
+          title="Amount Paid"
+          [value]="'K' + s.totalPaid.toLocaleString()"
+          icon="check_circle"
+          color="success">
+        </app-stat-card>
+        <app-stat-card
+          title="Balance Due"
+          [value]="'K' + s.balance.toLocaleString()"
+          icon="account_balance_wallet"
+          [color]="s.balance > 0 ? 'warning' : 'success'">
+        </app-stat-card>
+        <app-stat-card
+          title="Pending Fees"
+          [value]="s.pendingFees"
+          icon="pending_actions"
+          [color]="s.pendingFees > 0 ? 'warning' : 'success'">
+        </app-stat-card>
+      </div>
+
+      @if (s.overdueFees > 0) {
+        <div class="alert alert-warning">
+          <mat-icon>warning</mat-icon>
+          <span>You have {{ s.overdueFees }} overdue fee(s). Please notify your parent/guardian.</span>
+          <a mat-button color="warn" routerLink="/student/fees">View Details</a>
+        </div>
+      }
+    }
+
+    <!-- Profile Card -->
+    @if (profile(); as p) {
+      <div class="content-grid">
+        <mat-card class="profile-card">
+          <mat-card-header>
+            <mat-card-title>My Profile</mat-card-title>
+          </mat-card-header>
+          <mat-card-content>
+            <div class="profile-info">
+              <div class="info-row">
+                <span class="label">Student ID</span>
+                <span class="value">{{ p.studentId }}</span>
+              </div>
+              <div class="info-row">
+                <span class="label">Full Name</span>
+                <span class="value">{{ p.fullName }}</span>
+              </div>
+              <div class="info-row">
+                <span class="label">Class</span>
+                <span class="value">{{ p.currentClass?.name || 'Not Enrolled' }}</span>
+              </div>
+              <div class="info-row">
+                <span class="label">Email</span>
+                <span class="value">{{ p.email }}</span>
+              </div>
+              <div class="info-row">
+                <span class="label">Status</span>
+                <mat-chip [color]="p.status === 'ACTIVE' ? 'primary' : 'warn'" size="small">
+                  {{ p.status }}
+                </mat-chip>
+              </div>
+            </div>
+          </mat-card-content>
+        </mat-card>
+
+        <!-- Pending Fees -->
+        <mat-card class="fees-card">
+          <mat-card-header>
+            <mat-card-title>Pending Fees</mat-card-title>
+            <a mat-button color="primary" routerLink="/student/fees">View All</a>
+          </mat-card-header>
+          <mat-card-content>
+            @if (getPendingFees().length > 0) {
+              <div class="fees-list">
+                @for (fee of getPendingFees(); track fee.id) {
+                  <div class="fee-item">
+                    <div class="fee-info">
+                      <span class="fee-name">{{ fee.feeName }}</span>
+                      <span class="fee-due">Due: {{ fee.dueDate | date:'mediumDate' }}</span>
+                    </div>
+                    <div class="fee-amount">
+                      <span class="balance">{{ fee.balance | currency:'ZMW':'symbol':'1.0-0' }}</span>
+                      <mat-chip [color]="getStatusColor(fee.status)" size="small">
+                        {{ fee.status }}
+                      </mat-chip>
+                    </div>
+                  </div>
+                }
+              </div>
+            } @else {
+              <div class="no-fees">
+                <mat-icon>check_circle</mat-icon>
+                <p>All fees are paid!</p>
+              </div>
+            }
+          </mat-card-content>
+        </mat-card>
+      </div>
+    }
+
+    <!-- Quick Actions -->
+    <section class="quick-actions">
+      <h2>Quick Actions</h2>
+      <div class="actions-grid">
+        <mat-card class="action-card" routerLink="/student/fees">
+          <mat-icon>receipt_long</mat-icon>
+          <span>View All Fees</span>
+        </mat-card>
+      </div>
+    </section>
+  }
+</div>

@@ -1,0 +1,70 @@
+@use 'styles/variables' as *;
+
+.register-container {
+  width: 100%;
+  max-width: 400px;
+  margin: 0 auto;
+}
+
+.register-title {
+  font-size: 1.75rem;
+  font-weight: $font-weight-bold;
+  color: $text-primary;
+  margin: 0 0 $spacing-xs;
+  text-align: center;
+}
+
+.register-subtitle {
+  color: $text-secondary;
+  margin: 0 0 $spacing-lg;
+  text-align: center;
+}
+
+.register-form {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-sm;
+}
+
+.name-row {
+  display: flex;
+  gap: $spacing-sm;
+
+  .form-field {
+    flex: 1;
+  }
+}
+
+.form-field {
+  width: 100%;
+}
+
+.submit-button {
+  margin-top: $spacing-sm;
+  height: 48px;
+  font-size: $font-size-base;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: $spacing-xs;
+
+  .spinner {
+    display: inline-block;
+  }
+}
+
+.login-link {
+  text-align: center;
+  margin-top: $spacing-lg;
+  color: $text-secondary;
+
+  a {
+    color: $primary-color;
+    text-decoration: none;
+    font-weight: $font-weight-medium;
+
+    &:hover {
+      text-decoration: underline;
+    }
+  }
+}

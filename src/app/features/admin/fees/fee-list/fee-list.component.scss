@@ -1,0 +1,154 @@
+@use 'styles/variables' as *;
+@use 'styles/mixins' as *;
+
+.fee-list {
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.page-header {
+  @include flex-between;
+  flex-wrap: wrap;
+  gap: $spacing-md;
+  margin-bottom: $spacing-lg;
+
+  h1 {
+    margin: 0;
+  }
+
+  p {
+    margin: $spacing-xs 0 0;
+  }
+}
+
+.header-actions {
+  display: flex;
+  gap: $spacing-sm;
+}
+
+.tab-content {
+  padding: $spacing-lg 0;
+}
+
+.filters {
+  display: flex;
+  gap: $spacing-md;
+  margin-bottom: $spacing-md;
+
+  .year-field,
+  .status-field {
+    width: 180px;
+  }
+}
+
+.loading-container {
+  @include flex-center;
+  padding: $spacing-xxl;
+}
+
+.fees-table,
+.assignments-table {
+  width: 100%;
+}
+
+.fee-name {
+  @include flex-column;
+
+  .name {
+    font-weight: $font-weight-medium;
+  }
+
+  .description {
+    font-size: $font-size-sm;
+    color: $text-secondary;
+    @include truncate;
+    max-width: 300px;
+  }
+}
+
+.amount-cell {
+  font-weight: $font-weight-medium;
+  font-family: monospace;
+}
+
+.text-success {
+  color: $success-color;
+}
+
+.text-error {
+  color: $error-color;
+}
+
+.student-info,
+.fee-info {
+  @include flex-column;
+  gap: $spacing-xs;
+
+  .name {
+    font-weight: $font-weight-medium;
+  }
+
+  .id {
+    font-size: $font-size-sm;
+    color: $text-secondary;
+    font-family: monospace;
+  }
+}
+
+.fee-info {
+  .small-chip {
+    font-size: 10px;
+    min-height: 20px;
+    padding: 0 8px;
+  }
+}
+
+.amount-info {
+  @include flex-column;
+
+  .net {
+    font-weight: $font-weight-medium;
+  }
+
+  .discount {
+    font-size: $font-size-sm;
+    color: $success-color;
+  }
+}
+
+.no-data-message {
+  @include flex-column;
+  @include flex-center;
+  padding: $spacing-xxl;
+  color: $text-secondary;
+
+  mat-icon {
+    font-size: 48px;
+    width: 48px;
+    height: 48px;
+    margin-bottom: $spacing-md;
+  }
+
+  p {
+    margin: 0 0 $spacing-md;
+  }
+}
+
+::ng-deep {
+  .mat-mdc-row:hover {
+    background: rgba(0, 0, 0, 0.02);
+  }
+
+  .mat-mdc-header-cell {
+    font-weight: $font-weight-medium;
+    color: $text-secondary;
+  }
+
+  .mat-mdc-paginator {
+    border-top: 1px solid $divider-color;
+  }
+
+  .mat-mdc-tab-body-content {
+    overflow: hidden;
+  }
+}

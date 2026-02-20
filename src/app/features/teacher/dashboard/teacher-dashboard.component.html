@@ -1,0 +1,123 @@
+<div class="teacher-dashboard">
+  <header class="page-header">
+    <div>
+      <h1>Welcome, Teacher</h1>
+      <p class="text-secondary">{{ today | date:'EEEE, MMMM d, y' }}</p>
+    </div>
+  </header>
+
+  @if (isLoading()) {
+    <div class="loading-container">
+      <mat-spinner diameter="40"></mat-spinner>
+    </div>
+  } @else {
+    @if (stats(); as s) {
+      <div class="stats-grid">
+        <app-stat-card
+          title="My Classes"
+          [value]="s.totalClasses"
+          icon="class"
+          color="primary">
+        </app-stat-card>
+        <app-stat-card
+          title="Total Students"
+          [value]="s.totalStudents"
+          icon="people"
+          color="success">
+        </app-stat-card>
+        <app-stat-card
+          title="Attendance Marked"
+          [value]="s.todayAttendance + '/' + s.totalClasses"
+          icon="fact_check"
+          color="primary">
+        </app-stat-card>
+        <app-stat-card
+          title="Pending Attendance"
+          [value]="s.pendingAttendance"
+          icon="pending_actions"
+          [color]="s.pendingAttendance > 0 ? 'warning' : 'success'">
+        </app-stat-card>
+      </div>
+
+      @if (s.pendingAttendance > 0) {
+        <div class="alert alert-info">
+          <mat-icon>info</mat-icon>
+          <span>You have {{ s.pendingAttendance }} class(es) with pending attendance for today.</span>
+          <a mat-button color="primary" routerLink="/teacher/attendance">Mark Attendance</a>
+        </div>
+      }
+    }
+
+    <section class="classes-section">
+      <div class="section-header">
+        <h2>My Classes</h2>
+        <a mat-button color="primary" routerLink="/teacher/classes">
+          View All
+          <mat-icon>arrow_forward</mat-icon>
+        </a>
+      </div>
+
+      <div class="classes-grid">
+        @for (cls of classes(); track cls.id) {
+          <mat-card class="class-card">
+            <mat-card-header>
+              <div mat-card-avatar class="class-avatar">
+                <mat-icon>class</mat-icon>
+              </div>
+              <mat-card-title>{{ cls.name }}</mat-card-title>
+              <mat-card-subtitle>{{ cls.subject }}</mat-card-subtitle>
+            </mat-card-header>
+            <mat-card-content>
+              <div class="class-info">
+                <div class="info-item">
+                  <mat-icon>people</mat-icon>
+                  <span>{{ cls.studentCount }} students</span>
+                </div>
+                <div class="info-item">
+                  <mat-icon>schedule</mat-icon>
+                  <span>{{ cls.schedule }}</span>
+                </div>
+                <div class="info-item">
+                  <mat-icon>calendar_today</mat-icon>
+                  <span>{{ cls.academicYear }}</span>
+                </div>
+              </div>
+            </mat-card-content>
+            <mat-card-actions>
+              <a mat-button [routerLink]="['/teacher/classes', cls.id]">
+                <mat-icon>visibility</mat-icon>
+                View Class
+              </a>
+              <a mat-raised-button color="primary" [routerLink]="['/teacher/attendance']" [queryParams]="{classId: cls.id}">
+                <mat-icon>fact_check</mat-icon>
+                Take Attendance
+              </a>
+            </mat-card-actions>
+          </mat-card>
+        } @empty {
+          <mat-card class="empty-card">
+            <mat-card-content>
+              <mat-icon>class</mat-icon>
+              <p>No classes assigned to you.</p>
+              <p class="text-secondary">Please contact the administrator.</p>
+            </mat-card-content>
+          </mat-card>
+        }
+      </div>
+    </section>
+
+    <section class="quick-actions">
+      <h2>Quick Actions</h2>
+      <div class="actions-grid">
+        <mat-card class="action-card" routerLink="/teacher/attendance">
+          <mat-icon>fact_check</mat-icon>
+          <span>Mark Attendance</span>
+        </mat-card>
+        <mat-card class="action-card" routerLink="/teacher/classes">
+          <mat-icon>class</mat-icon>
+          <span>View Classes</span>
+        </mat-card>
+      </div>
+    </section>
+  }
+</div>

@@ -1,0 +1,138 @@
+<div class="parent-dashboard">
+  <header class="page-header">
+    <div>
+      <h1>Welcome, Parent</h1>
+      <p class="text-secondary">View your children's fees and payment status</p>
+    </div>
+  </header>
+
+  @if (isLoading()) {
+    <div class="loading-container">
+      <mat-spinner diameter="40"></mat-spinner>
+    </div>
+  } @else {
+    <!-- Stats Overview -->
+    @if (stats(); as s) {
+      <div class="stats-grid">
+        <app-stat-card
+          title="Total Children"
+          [value]="s.totalChildren"
+          icon="people"
+          color="primary">
+        </app-stat-card>
+        <app-stat-card
+          title="Total Fees"
+          [value]="'K' + s.totalFees.toLocaleString()"
+          icon="receipt"
+          color="success">
+        </app-stat-card>
+        <app-stat-card
+          title="Total Paid"
+          [value]="'K' + s.totalPaid.toLocaleString()"
+          icon="check_circle"
+          color="primary">
+        </app-stat-card>
+        <app-stat-card
+          title="Outstanding Balance"
+          [value]="'K' + s.totalBalance.toLocaleString()"
+          icon="account_balance_wallet"
+          [color]="s.totalBalance > 0 ? 'warning' : 'primary'">
+        </app-stat-card>
+      </div>
+
+      @if (s.overdueCount > 0) {
+        <div class="alert alert-warning">
+          <mat-icon>warning</mat-icon>
+          <span>You have {{ s.overdueCount }} overdue fee(s). Please make payment to avoid penalties.</span>
+          <a mat-button color="warn" routerLink="/parent/children">View Details</a>
+        </div>
+      }
+    }
+
+    <!-- Children Overview -->
+    <section class="children-section">
+      <div class="section-header">
+        <h2>My Children</h2>
+        <a mat-button color="primary" routerLink="/parent/children">
+          View All
+          <mat-icon>arrow_forward</mat-icon>
+        </a>
+      </div>
+
+      <div class="children-grid">
+        @for (child of children(); track child.id) {
+          <mat-card class="child-card">
+            <mat-card-header>
+              <div mat-card-avatar class="child-avatar">{{ getInitials(child.fullName) }}</div>
+              <mat-card-title>{{ child.fullName }}</mat-card-title>
+              <mat-card-subtitle>{{ child.studentId }} | {{ child.currentClass }}</mat-card-subtitle>
+            </mat-card-header>
+            <mat-card-content>
+              <div class="fee-summary">
+                <div class="fee-row">
+                  <span class="label">Total Fees:</span>
+                  <span class="value">{{ child.totalFees | currency:'ZMW':'symbol':'1.0-0' }}</span>
+                </div>
+                <div class="fee-row">
+                  <span class="label">Paid:</span>
+                  <span class="value paid">{{ child.totalPaid | currency:'ZMW':'symbol':'1.0-0' }}</span>
+                </div>
+                <div class="fee-row balance">
+                  <span class="label">Balance:</span>
+                  <span class="value" [class.has-balance]="child.balance > 0">
+                    {{ child.balance | currency:'ZMW':'symbol':'1.0-0' }}
+                  </span>
+                </div>
+              </div>
+
+              <div class="status-row">
+                <mat-chip [color]="getStatusColor(child.pendingFees, child.balance)">
+                  {{ getStatusLabel(child.balance) }}
+                </mat-chip>
+                @if (child.pendingFees > 0) {
+                  <span class="pending-count">{{ child.pendingFees }} pending fee(s)</span>
+                }
+              </div>
+            </mat-card-content>
+            <mat-card-actions>
+              <a mat-button color="primary" [routerLink]="['/parent/children', child.id]">
+                <mat-icon>visibility</mat-icon>
+                View Fees
+              </a>
+              @if (child.balance > 0) {
+                <a mat-raised-button color="primary" [routerLink]="['/parent/children', child.id]"
+                   [queryParams]="{pay: true}">
+                  <mat-icon>payment</mat-icon>
+                  Pay Now
+                </a>
+              }
+            </mat-card-actions>
+          </mat-card>
+        } @empty {
+          <mat-card class="empty-card">
+            <mat-card-content>
+              <mat-icon>people_outline</mat-icon>
+              <p>No children found linked to your account.</p>
+              <p class="text-secondary">Please contact the school administration.</p>
+            </mat-card-content>
+          </mat-card>
+        }
+      </div>
+    </section>
+
+    <!-- Quick Actions -->
+    <section class="quick-actions">
+      <h2>Quick Actions</h2>
+      <div class="actions-grid">
+        <mat-card class="action-card" routerLink="/parent/payments">
+          <mat-icon>receipt_long</mat-icon>
+          <span>Payment History</span>
+        </mat-card>
+        <mat-card class="action-card" routerLink="/parent/children">
+          <mat-icon>school</mat-icon>
+          <span>View All Children</span>
+        </mat-card>
+      </div>
+    </section>
+  }
+</div>
