@@ -1,0 +1,77 @@
+name: Build and Deploy EduFlow Web (Angular)
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    name: Build and Push Docker Image
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set Up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Build Angular App
+        run: npm run build -- --configuration=production
+
+      - name: Docker Login
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Build and Push Docker Image
+        env:
+          DOCKER_USER: ${{ secrets.DOCKER_USERNAME }}
+          IMAGE_TAG: ${{ github.sha }}
+        run: |
+          docker build -t ${DOCKER_USER}/eduflow-web:${IMAGE_TAG} -t ${DOCKER_USER}/eduflow-web:latest .
+          docker push ${DOCKER_USER}/eduflow-web:${IMAGE_TAG}
+          docker push ${DOCKER_USER}/eduflow-web:latest
+
+  deploy:
+    name: Deploy EduFlow Web to VPS
+    runs-on: ubuntu-latest
+    needs: build
+
+    steps:
+      - name: Install sshpass
+        run: sudo apt-get update && sudo apt-get install -y sshpass
+
+      - name: Deploy to VPS
+        env:
+          SCP_PASSWORD: ${{ secrets.SCP_PASSWORD }}
+          SCP_USERNAME: ${{ secrets.SCP_USERNAME }}
+          SERVER_IP: ${{ secrets.SERVER_IP }}
+          DOCKER_USER: ${{ secrets.DOCKER_USERNAME }}
+          DOCKER_PASS: ${{ secrets.DOCKER_PASSWORD }}
+        run: |
+          sshpass -p "${SCP_PASSWORD}" ssh -o StrictHostKeyChecking=no ${SCP_USERNAME}@${SERVER_IP} << EOF
+
+          echo "${DOCKER_PASS}" | docker login -u "${DOCKER_USER}" --password-stdin
+
+          docker pull ${DOCKER_USER}/eduflow-web:latest
+
+          docker stop eduflow-web || true
+          docker rm eduflow-web || true
+
+          docker run -d \
+            --name eduflow-web \
+            --network app-network \
+            --restart always \
+            -p 80:80 \
+            ${DOCKER_USER}/eduflow-web:latest
+
+          EOF
