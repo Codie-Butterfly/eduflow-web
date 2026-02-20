@@ -25,7 +25,7 @@ export interface CreateClassRequest {
   academicYear: string;
   capacity?: number;
   classTeacherId?: number;
-  subjects?: string[];
+  subjectIds?: number[];
   description?: string;
 }
 

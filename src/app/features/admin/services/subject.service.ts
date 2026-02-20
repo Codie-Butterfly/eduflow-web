@@ -77,7 +77,23 @@ export class SubjectService {
   }
 
   getAllSubjects(): Observable<Subject[]> {
-    return this.http.get<Subject[]>(`${this.baseUrl}/all`).pipe(
+    // Fetch all subjects using paginated endpoint with large size
+    const params = new HttpParams()
+      .set('page', '0')
+      .set('size', '100');
+
+    return this.http.get<any>(this.baseUrl, { params }).pipe(
+      map(response => {
+        // Handle paginated response
+        if (response.content) {
+          return response.content.filter((s: Subject) => s.active !== false);
+        }
+        // Handle array response
+        if (Array.isArray(response)) {
+          return response.filter((s: Subject) => s.active !== false);
+        }
+        return [];
+      }),
       catchError(() => of(this.mockSubjects.filter(s => s.active)))
     );
   }

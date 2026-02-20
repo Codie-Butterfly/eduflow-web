@@ -16,6 +16,7 @@ import { SchoolClass, Subject } from '../../../../core/models';
 import { NotificationService } from '../../../../core/services';
 import { ClassService } from '../../services/class.service';
 import { SubjectService } from '../../services/subject.service';
+import { StaffService, StaffMember } from '../../services/staff.service';
 
 @Component({
   selector: 'app-class-form',
@@ -43,6 +44,7 @@ export class ClassFormComponent implements OnInit {
   private router = inject(Router);
   private classService = inject(ClassService);
   private subjectService = inject(SubjectService);
+  private staffService = inject(StaffService);
   private notification = inject(NotificationService);
 
   classForm!: FormGroup;
@@ -52,6 +54,7 @@ export class ClassFormComponent implements OnInit {
   classId = signal<number | null>(null);
 
   availableSubjects = signal<Subject[]>([]);
+  availableTeachers = signal<StaffMember[]>([]);
   selectedSubjectIds = signal<number[]>([]);
 
   grades = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
@@ -61,6 +64,7 @@ export class ClassFormComponent implements OnInit {
   ngOnInit(): void {
     this.initForm();
     this.loadSubjects();
+    this.loadTeachers();
     this.checkEditMode();
   }
 
@@ -71,6 +75,7 @@ export class ClassFormComponent implements OnInit {
       section: [''],
       academicYear: ['2024', [Validators.required]],
       capacity: [null, [Validators.min(1), Validators.max(100)]],
+      classTeacherId: [null],
       description: ['', [Validators.maxLength(500)]],
       active: [true],
       subjectIds: [[]]
@@ -88,6 +93,17 @@ export class ClassFormComponent implements OnInit {
       },
       error: () => {
         console.error('Failed to load subjects');
+      }
+    });
+  }
+
+  private loadTeachers(): void {
+    this.staffService.getTeachers().subscribe({
+      next: (teachers) => {
+        this.availableTeachers.set(teachers);
+      },
+      error: () => {
+        console.error('Failed to load teachers');
       }
     });
   }
@@ -133,6 +149,7 @@ export class ClassFormComponent implements OnInit {
       section: cls.section,
       academicYear: cls.academicYear,
       capacity: cls.capacity,
+      classTeacherId: cls.classTeacher?.id || null,
       description: cls.description,
       active: cls.active !== false
     });
@@ -168,10 +185,11 @@ export class ClassFormComponent implements OnInit {
     const data = {
       name: formValue.name,
       grade: formValue.grade,
-      section: formValue.section,
+      section: formValue.section || null,
       academicYear: formValue.academicYear,
-      capacity: formValue.capacity,
-      description: formValue.description,
+      capacity: formValue.capacity || null,
+      classTeacherId: formValue.classTeacherId || null,
+      description: formValue.description || null,
       active: formValue.active,
       subjectIds: formValue.subjectIds || []
     };

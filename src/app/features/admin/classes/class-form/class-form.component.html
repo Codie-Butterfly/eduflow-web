@@ -83,15 +83,28 @@
               }
             </mat-form-field>
 
-            @if (isEditMode()) {
+            <mat-form-field appearance="outline" class="form-field">
+              <mat-label>Class Teacher</mat-label>
+              <mat-select formControlName="classTeacherId">
+                <mat-option [value]="null">No Class Teacher</mat-option>
+                @for (teacher of availableTeachers(); track teacher.id) {
+                  <mat-option [value]="teacher.id">{{ teacher.fullName }}</mat-option>
+                }
+              </mat-select>
+              <mat-hint>Select the class teacher</mat-hint>
+            </mat-form-field>
+          </div>
+
+          @if (isEditMode()) {
+            <div class="form-row">
               <div class="form-field toggle-field">
                 <mat-slide-toggle formControlName="active" color="primary">
                   Active Class
                 </mat-slide-toggle>
                 <small class="hint">Inactive classes won't accept new enrollments</small>
               </div>
-            }
-          </div>
+            </div>
+          }
 
           <mat-form-field appearance="outline" class="form-field full-width">
             <mat-label>Description</mat-label>
