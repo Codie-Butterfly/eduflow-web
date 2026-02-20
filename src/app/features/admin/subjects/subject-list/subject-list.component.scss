@@ -1,0 +1,92 @@
+@use 'styles/variables' as *;
+@use 'styles/mixins' as *;
+
+.subject-list {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.page-header {
+  @include flex-between;
+  flex-wrap: wrap;
+  gap: $spacing-md;
+  margin-bottom: $spacing-xl;
+}
+
+.text-secondary {
+  color: $text-secondary;
+}
+
+.filter-card {
+  margin-bottom: $spacing-lg;
+
+  .search-box {
+    display: flex;
+    gap: $spacing-md;
+    align-items: flex-start;
+
+    .search-field {
+      flex: 1;
+      max-width: 400px;
+    }
+  }
+}
+
+.loading-container {
+  @include flex-center;
+  padding: $spacing-xxl;
+}
+
+.empty-state {
+  @include flex-center;
+  flex-direction: column;
+  padding: $spacing-xxl;
+  text-align: center;
+
+  mat-icon {
+    font-size: 64px;
+    width: 64px;
+    height: 64px;
+    color: $text-secondary;
+    margin-bottom: $spacing-md;
+  }
+
+  h3 {
+    margin: 0 0 $spacing-sm 0;
+  }
+
+  p {
+    color: $text-secondary;
+    margin-bottom: $spacing-lg;
+  }
+}
+
+.subjects-table {
+  width: 100%;
+
+  .subject-code {
+    font-family: monospace;
+    font-weight: $font-weight-medium;
+    background: rgba(0, 0, 0, 0.04);
+    padding: $spacing-xs $spacing-sm;
+    border-radius: $border-radius-sm;
+  }
+
+  .subject-info {
+    @include flex-column;
+
+    .subject-name {
+      font-weight: $font-weight-medium;
+    }
+
+    small {
+      color: $text-secondary;
+      font-size: $font-size-xs;
+    }
+  }
+
+  .action-buttons {
+    display: flex;
+    gap: $spacing-xs;
+  }
+}

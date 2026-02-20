@@ -1,0 +1,114 @@
+<div class="subject-list">
+  <header class="page-header">
+    <div>
+      <h1>Subjects</h1>
+      <p class="text-secondary">Manage school subjects and curriculum</p>
+    </div>
+    <a mat-raised-button color="primary" routerLink="/admin/subjects/new">
+      <mat-icon>add</mat-icon>
+      Add Subject
+    </a>
+  </header>
+
+  <mat-card class="filter-card">
+    <mat-card-content>
+      <div class="search-box">
+        <mat-form-field appearance="outline" class="search-field">
+          <mat-label>Search subjects</mat-label>
+          <input matInput [(ngModel)]="searchQuery" (keyup.enter)="onSearch()" placeholder="Search by name or code...">
+          <mat-icon matPrefix>search</mat-icon>
+          @if (searchQuery) {
+            <button mat-icon-button matSuffix (click)="clearSearch()">
+              <mat-icon>close</mat-icon>
+            </button>
+          }
+        </mat-form-field>
+        <button mat-raised-button color="primary" (click)="onSearch()">Search</button>
+      </div>
+    </mat-card-content>
+  </mat-card>
+
+  <mat-card>
+    @if (isLoading()) {
+      <div class="loading-container">
+        <mat-spinner diameter="40"></mat-spinner>
+      </div>
+    } @else if (subjects().length === 0) {
+      <div class="empty-state">
+        <mat-icon>menu_book</mat-icon>
+        <h3>No Subjects Found</h3>
+        <p>Get started by creating your first subject.</p>
+        <a mat-raised-button color="primary" routerLink="/admin/subjects/new">
+          <mat-icon>add</mat-icon>
+          Add Subject
+        </a>
+      </div>
+    } @else {
+      <table mat-table [dataSource]="subjects()" class="subjects-table">
+        <ng-container matColumnDef="code">
+          <th mat-header-cell *matHeaderCellDef>Code</th>
+          <td mat-cell *matCellDef="let subject">
+            <span class="subject-code">{{ subject.code }}</span>
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="name">
+          <th mat-header-cell *matHeaderCellDef>Name</th>
+          <td mat-cell *matCellDef="let subject">
+            <div class="subject-info">
+              <span class="subject-name">{{ subject.name }}</span>
+              @if (subject.description) {
+                <small>{{ subject.description }}</small>
+              }
+            </div>
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="department">
+          <th mat-header-cell *matHeaderCellDef>Department</th>
+          <td mat-cell *matCellDef="let subject">{{ subject.department || '-' }}</td>
+        </ng-container>
+
+        <ng-container matColumnDef="credits">
+          <th mat-header-cell *matHeaderCellDef>Credits</th>
+          <td mat-cell *matCellDef="let subject">{{ subject.credits || '-' }}</td>
+        </ng-container>
+
+        <ng-container matColumnDef="status">
+          <th mat-header-cell *matHeaderCellDef>Status</th>
+          <td mat-cell *matCellDef="let subject">
+            <mat-chip [color]="subject.active ? 'primary' : 'accent'" selected>
+              {{ subject.active ? 'Active' : 'Inactive' }}
+            </mat-chip>
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="actions">
+          <th mat-header-cell *matHeaderCellDef>Actions</th>
+          <td mat-cell *matCellDef="let subject">
+            <div class="action-buttons">
+              <a mat-icon-button [routerLink]="['/admin/subjects', subject.id, 'edit']" matTooltip="Edit">
+                <mat-icon>edit</mat-icon>
+              </a>
+              <button mat-icon-button color="warn" (click)="deleteSubject(subject)" matTooltip="Delete">
+                <mat-icon>delete</mat-icon>
+              </button>
+            </div>
+          </td>
+        </ng-container>
+
+        <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+        <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+      </table>
+
+      <mat-paginator
+        [length]="totalElements()"
+        [pageSize]="pageSize()"
+        [pageIndex]="currentPage()"
+        [pageSizeOptions]="[5, 10, 25, 50]"
+        (page)="onPageChange($event)"
+        showFirstLastButtons>
+      </mat-paginator>
+    }
+  </mat-card>
+</div>

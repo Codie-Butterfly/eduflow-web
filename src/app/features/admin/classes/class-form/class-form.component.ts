@@ -11,12 +11,11 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { MatChipsModule } from '@angular/material/chips';
-import { COMMA, ENTER } from '@angular/cdk/keycodes';
-import { MatChipInputEvent } from '@angular/material/chips';
 
-import { SchoolClass } from '../../../../core/models';
+import { SchoolClass, Subject } from '../../../../core/models';
 import { NotificationService } from '../../../../core/services';
 import { ClassService } from '../../services/class.service';
+import { SubjectService } from '../../services/subject.service';
 
 @Component({
   selector: 'app-class-form',
@@ -43,6 +42,7 @@ export class ClassFormComponent implements OnInit {
   private route = inject(ActivatedRoute);
   private router = inject(Router);
   private classService = inject(ClassService);
+  private subjectService = inject(SubjectService);
   private notification = inject(NotificationService);
 
   classForm!: FormGroup;
@@ -50,9 +50,9 @@ export class ClassFormComponent implements OnInit {
   isLoading = signal(false);
   isSaving = signal(false);
   classId = signal<number | null>(null);
-  subjects = signal<string[]>([]);
 
-  readonly separatorKeyCodes = [ENTER, COMMA] as const;
+  availableSubjects = signal<Subject[]>([]);
+  selectedSubjectIds = signal<number[]>([]);
 
   grades = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
   sections = ['A', 'B', 'C', 'D', 'E'];
@@ -60,6 +60,7 @@ export class ClassFormComponent implements OnInit {
 
   ngOnInit(): void {
     this.initForm();
+    this.loadSubjects();
     this.checkEditMode();
   }
 
@@ -71,12 +72,24 @@ export class ClassFormComponent implements OnInit {
       academicYear: ['2024', [Validators.required]],
       capacity: [null, [Validators.min(1), Validators.max(100)]],
       description: ['', [Validators.maxLength(500)]],
-      active: [true]
+      active: [true],
+      subjectIds: [[]]
     });
 
     // Auto-generate name when grade and section change
     this.classForm.get('grade')?.valueChanges.subscribe(() => this.updateClassName());
     this.classForm.get('section')?.valueChanges.subscribe(() => this.updateClassName());
+  }
+
+  private loadSubjects(): void {
+    this.subjectService.getAllSubjects().subscribe({
+      next: (subjects) => {
+        this.availableSubjects.set(subjects);
+      },
+      error: () => {
+        console.error('Failed to load subjects');
+      }
+    });
   }
 
   private updateClassName(): void {
@@ -121,21 +134,26 @@ export class ClassFormComponent implements OnInit {
       academicYear: cls.academicYear,
       capacity: cls.capacity,
       description: cls.description,
-      active: cls.active
+      active: cls.active !== false
     });
-    this.subjects.set(cls.subjects || []);
-  }
 
-  addSubject(event: MatChipInputEvent): void {
-    const value = (event.value || '').trim();
-    if (value) {
-      this.subjects.update(subjects => [...subjects, value]);
+    // Handle subjects - they might be IDs or names
+    if (cls.subjects && cls.subjects.length > 0) {
+      // If subjects are objects with IDs
+      if (typeof cls.subjects[0] === 'object') {
+        const ids = (cls.subjects as any[]).map(s => s.id);
+        this.classForm.get('subjectIds')?.setValue(ids);
+      } else {
+        // If subjects are names, try to match with available subjects
+        const subjectNames = cls.subjects as string[];
+        this.subjectService.getAllSubjects().subscribe(allSubjects => {
+          const ids = allSubjects
+            .filter(s => subjectNames.includes(s.name))
+            .map(s => s.id);
+          this.classForm.get('subjectIds')?.setValue(ids);
+        });
+      }
     }
-    event.chipInput.clear();
-  }
-
-  removeSubject(subject: string): void {
-    this.subjects.update(subjects => subjects.filter(s => s !== subject));
   }
 
   onSubmit(): void {
@@ -148,8 +166,14 @@ export class ClassFormComponent implements OnInit {
     const formValue = this.classForm.value;
 
     const data = {
-      ...formValue,
-      subjects: this.subjects()
+      name: formValue.name,
+      grade: formValue.grade,
+      section: formValue.section,
+      academicYear: formValue.academicYear,
+      capacity: formValue.capacity,
+      description: formValue.description,
+      active: formValue.active,
+      subjectIds: formValue.subjectIds || []
     };
 
     if (this.isEditMode()) {
@@ -165,8 +189,9 @@ export class ClassFormComponent implements OnInit {
         this.notification.success('Class created successfully');
         this.router.navigate(['/admin/classes']);
       },
-      error: () => {
+      error: (err) => {
         this.isSaving.set(false);
+        console.error('Create class error:', err);
         this.notification.error('Failed to create class');
       }
     });
@@ -178,8 +203,9 @@ export class ClassFormComponent implements OnInit {
         this.notification.success('Class updated successfully');
         this.router.navigate(['/admin/classes']);
       },
-      error: () => {
+      error: (err) => {
         this.isSaving.set(false);
+        console.error('Update class error:', err);
         this.notification.error('Failed to update class');
       }
     });

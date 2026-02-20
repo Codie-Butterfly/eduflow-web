@@ -1,0 +1,103 @@
+<div class="subject-form">
+  <header class="page-header">
+    <div>
+      <h1>{{ isEditMode() ? 'Edit Subject' : 'Add New Subject' }}</h1>
+      <p class="text-secondary">{{ isEditMode() ? 'Update subject information' : 'Create a new subject for the curriculum' }}</p>
+    </div>
+    <a mat-button routerLink="/admin/subjects">
+      <mat-icon>arrow_back</mat-icon>
+      Back to Subjects
+    </a>
+  </header>
+
+  @if (isLoading()) {
+    <div class="loading-container">
+      <mat-spinner diameter="40"></mat-spinner>
+    </div>
+  } @else {
+    <form [formGroup]="subjectForm" (ngSubmit)="onSubmit()">
+      <mat-card>
+        <mat-card-header>
+          <mat-card-title>Subject Information</mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+          <div class="form-row">
+            <mat-form-field appearance="outline" class="form-field">
+              <mat-label>Subject Name</mat-label>
+              <input matInput formControlName="name" placeholder="e.g., Mathematics">
+              @if (name?.hasError('required') && name?.touched) {
+                <mat-error>Subject name is required</mat-error>
+              }
+              @if (name?.hasError('minlength')) {
+                <mat-error>Minimum 2 characters</mat-error>
+              }
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="form-field">
+              <mat-label>Subject Code</mat-label>
+              <input matInput formControlName="code" placeholder="e.g., MATH" style="text-transform: uppercase;">
+              <mat-hint>Use uppercase letters and numbers only</mat-hint>
+              @if (code?.hasError('required') && code?.touched) {
+                <mat-error>Subject code is required</mat-error>
+              }
+              @if (code?.hasError('pattern')) {
+                <mat-error>Only uppercase letters and numbers allowed</mat-error>
+              }
+            </mat-form-field>
+          </div>
+
+          <div class="form-row">
+            <mat-form-field appearance="outline" class="form-field">
+              <mat-label>Department</mat-label>
+              <mat-select formControlName="department">
+                <mat-option value="">Select department</mat-option>
+                @for (dept of departments; track dept) {
+                  <mat-option [value]="dept">{{ dept }}</mat-option>
+                }
+              </mat-select>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="form-field">
+              <mat-label>Credits</mat-label>
+              <input matInput type="number" formControlName="credits" placeholder="e.g., 3">
+              @if (credits?.hasError('min')) {
+                <mat-error>Credits must be at least 1</mat-error>
+              }
+              @if (credits?.hasError('max')) {
+                <mat-error>Credits cannot exceed 10</mat-error>
+              }
+            </mat-form-field>
+          </div>
+
+          <mat-form-field appearance="outline" class="form-field full-width">
+            <mat-label>Description</mat-label>
+            <textarea matInput formControlName="description" rows="3"
+              placeholder="Brief description of the subject"></textarea>
+          </mat-form-field>
+
+          @if (isEditMode()) {
+            <div class="toggle-field">
+              <mat-slide-toggle formControlName="active" color="primary">
+                Active Subject
+              </mat-slide-toggle>
+              <small class="hint">Inactive subjects won't be available for class assignment</small>
+            </div>
+          }
+        </mat-card-content>
+      </mat-card>
+
+      <div class="form-actions">
+        <button mat-button type="button" routerLink="/admin/subjects">Cancel</button>
+        <button mat-raised-button color="primary" type="submit" [disabled]="isSaving()">
+          @if (isSaving()) {
+            <mat-spinner diameter="20"></mat-spinner>
+            <span>Saving...</span>
+          } @else {
+            <mat-icon>save</mat-icon>
+            <span>{{ isEditMode() ? 'Update Subject' : 'Create Subject' }}</span>
+          }
+        </button>
+      </div>
+    </form>
+  }
+</div>

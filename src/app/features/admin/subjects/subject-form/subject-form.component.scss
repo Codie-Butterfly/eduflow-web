@@ -1,7 +1,7 @@
 @use 'styles/variables' as *;
 @use 'styles/mixins' as *;
 
-.class-form {
+.subject-form {
   max-width: 800px;
   margin: 0 auto;
 }
@@ -48,32 +48,12 @@ mat-card {
 .toggle-field {
   display: flex;
   flex-direction: column;
-  justify-content: center;
   gap: $spacing-xs;
-  padding-top: $spacing-sm;
+  padding-top: $spacing-md;
 
   .hint {
     color: $text-secondary;
     font-size: $font-size-xs;
-  }
-}
-
-.no-subjects-hint {
-  display: flex;
-  align-items: center;
-  gap: $spacing-sm;
-  color: $text-secondary;
-  font-size: $font-size-sm;
-  margin-top: $spacing-sm;
-
-  mat-icon {
-    font-size: 18px;
-    width: 18px;
-    height: 18px;
-  }
-
-  a {
-    color: $primary-color;
   }
 }
 

@@ -1,0 +1,245 @@
+@use 'styles/variables' as *;
+@use 'styles/mixins' as *;
+
+.class-detail {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.loading-container {
+  @include flex-center;
+  padding: $spacing-xxl;
+
+  &.small {
+    padding: $spacing-lg;
+  }
+}
+
+.page-header {
+  @include flex-between;
+  flex-wrap: wrap;
+  gap: $spacing-md;
+  margin-bottom: $spacing-xl;
+
+  .header-left {
+    display: flex;
+    align-items: center;
+    gap: $spacing-md;
+  }
+
+  .back-btn {
+    margin-right: $spacing-sm;
+  }
+}
+
+.class-header {
+  display: flex;
+  align-items: center;
+  gap: $spacing-md;
+
+  .class-icon {
+    @include flex-center;
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    background: $primary-color;
+    color: white;
+
+    mat-icon {
+      font-size: 32px;
+      width: 32px;
+      height: 32px;
+    }
+  }
+
+  .header-info {
+    h1 {
+      margin: 0;
+      font-size: $font-size-xxl;
+    }
+
+    .meta {
+      display: flex;
+      align-items: center;
+      gap: $spacing-sm;
+      margin-top: $spacing-xs;
+
+      .academic-year {
+        color: $text-secondary;
+        font-size: $font-size-sm;
+      }
+    }
+  }
+}
+
+.header-actions {
+  display: flex;
+  gap: $spacing-sm;
+}
+
+.content-grid {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: $spacing-lg;
+
+  @include tablet {
+    grid-template-columns: 1fr;
+  }
+}
+
+.main-content {
+  mat-card {
+    margin-bottom: $spacing-lg;
+  }
+}
+
+.info-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: $spacing-lg;
+
+  @include mobile {
+    grid-template-columns: 1fr;
+  }
+}
+
+.info-item {
+  @include flex-column;
+  gap: $spacing-xs;
+
+  &.full-width {
+    grid-column: 1 / -1;
+  }
+
+  label {
+    font-size: $font-size-sm;
+    color: $text-secondary;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  span {
+    font-size: $font-size-base;
+    color: $text-primary;
+  }
+}
+
+.empty-state {
+  @include flex-center;
+  flex-direction: column;
+  padding: $spacing-xl;
+  color: $text-secondary;
+
+  mat-icon {
+    font-size: 48px;
+    width: 48px;
+    height: 48px;
+    margin-bottom: $spacing-sm;
+  }
+
+  p {
+    margin: 0;
+  }
+}
+
+.students-table {
+  width: 100%;
+
+  .student-link {
+    color: $primary-color;
+    text-decoration: none;
+    font-weight: $font-weight-medium;
+
+    &:hover {
+      text-decoration: underline;
+    }
+  }
+}
+
+.sidebar {
+  mat-card {
+    margin-bottom: $spacing-lg;
+  }
+}
+
+.teacher-card {
+  display: flex;
+  gap: $spacing-md;
+
+  .teacher-avatar {
+    @include flex-center;
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: rgba($primary-color, 0.1);
+    color: $primary-color;
+  }
+
+  .teacher-info {
+    @include flex-column;
+    gap: $spacing-xs;
+
+    .name {
+      font-weight: $font-weight-medium;
+    }
+
+    .contact {
+      display: flex;
+      align-items: center;
+      gap: $spacing-xs;
+      font-size: $font-size-sm;
+      color: $text-secondary;
+      text-decoration: none;
+
+      mat-icon {
+        font-size: 16px;
+        width: 16px;
+        height: 16px;
+      }
+
+      &:hover {
+        color: $primary-color;
+      }
+    }
+  }
+}
+
+.subjects-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $spacing-sm;
+}
+
+.no-data {
+  color: $text-secondary;
+  font-style: italic;
+  margin: 0;
+}
+
+.capacity-info {
+  .capacity-bar {
+    height: 8px;
+    background: rgba(0, 0, 0, 0.1);
+    border-radius: 4px;
+    overflow: hidden;
+    margin-bottom: $spacing-sm;
+
+    .capacity-fill {
+      height: 100%;
+      background: $primary-color;
+      border-radius: 4px;
+      transition: width 0.3s ease;
+    }
+  }
+
+  .capacity-text {
+    display: flex;
+    justify-content: space-between;
+    font-size: $font-size-sm;
+    color: $text-secondary;
+
+    .percentage {
+      font-weight: $font-weight-medium;
+    }
+  }
+}

@@ -39,11 +39,28 @@ export const ADMIN_ROUTES: Routes = [
       },
       {
         path: ':id',
-        loadComponent: () => import('./classes/class-list/class-list.component').then(m => m.ClassListComponent)
+        loadComponent: () => import('./classes/class-detail/class-detail.component').then(m => m.ClassDetailComponent)
       },
       {
         path: ':id/edit',
         loadComponent: () => import('./classes/class-form/class-form.component').then(m => m.ClassFormComponent)
+      }
+    ]
+  },
+  {
+    path: 'subjects',
+    children: [
+      {
+        path: '',
+        loadComponent: () => import('./subjects/subject-list/subject-list.component').then(m => m.SubjectListComponent)
+      },
+      {
+        path: 'new',
+        loadComponent: () => import('./subjects/subject-form/subject-form.component').then(m => m.SubjectFormComponent)
+      },
+      {
+        path: ':id/edit',
+        loadComponent: () => import('./subjects/subject-form/subject-form.component').then(m => m.SubjectFormComponent)
       }
     ]
   },

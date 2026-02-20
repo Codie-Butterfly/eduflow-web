@@ -5,3 +5,4 @@ export * from './student.model';
 export * from './fee.model';
 export * from './payment.model';
 export * from './class.model';
+export * from './subject.model';

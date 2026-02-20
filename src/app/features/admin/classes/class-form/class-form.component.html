@@ -104,27 +104,27 @@
       <mat-card>
         <mat-card-header>
           <mat-card-title>Subjects</mat-card-title>
-          <mat-card-subtitle>Add subjects taught in this class</mat-card-subtitle>
+          <mat-card-subtitle>Select subjects taught in this class</mat-card-subtitle>
         </mat-card-header>
         <mat-card-content>
           <mat-form-field appearance="outline" class="form-field full-width">
-            <mat-label>Subjects</mat-label>
-            <mat-chip-grid #chipGrid>
-              @for (subject of subjects(); track subject) {
-                <mat-chip-row (removed)="removeSubject(subject)">
-                  {{ subject }}
-                  <button matChipRemove>
-                    <mat-icon>cancel</mat-icon>
-                  </button>
-                </mat-chip-row>
+            <mat-label>Select Subjects</mat-label>
+            <mat-select formControlName="subjectIds" multiple>
+              @for (subject of availableSubjects(); track subject.id) {
+                <mat-option [value]="subject.id">
+                  {{ subject.name }} ({{ subject.code }})
+                </mat-option>
               }
-              <input placeholder="Add subject..."
-                [matChipInputFor]="chipGrid"
-                [matChipInputSeparatorKeyCodes]="separatorKeyCodes"
-                (matChipInputTokenEnd)="addSubject($event)">
-            </mat-chip-grid>
-            <mat-hint>Type a subject and press Enter to add</mat-hint>
+            </mat-select>
+            <mat-hint>Select one or more subjects for this class</mat-hint>
           </mat-form-field>
+
+          @if (availableSubjects().length === 0) {
+            <p class="no-subjects-hint">
+              <mat-icon>info</mat-icon>
+              No subjects available. <a routerLink="/admin/subjects/new">Create subjects</a> first.
+            </p>
+          }
         </mat-card-content>
       </mat-card>
 
