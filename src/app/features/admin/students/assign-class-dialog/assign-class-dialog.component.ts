@@ -38,6 +38,11 @@ export interface AssignClassDialogData {
           <mat-spinner diameter="30"></mat-spinner>
           <span>Loading classes...</span>
         </div>
+      } @else if (classes().length === 0) {
+        <div class="no-classes">
+          <mat-icon>warning</mat-icon>
+          <p>No classes available. Please create classes first.</p>
+        </div>
       } @else {
         <mat-form-field appearance="outline" class="full-width">
           <mat-label>Select Class</mat-label>
@@ -98,6 +103,25 @@ export interface AssignClassDialogData {
     mat-dialog-content {
       min-width: 350px;
     }
+    .no-classes {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      padding: 20px 0;
+      color: #f57c00;
+      text-align: center;
+
+      mat-icon {
+        font-size: 36px;
+        width: 36px;
+        height: 36px;
+      }
+
+      p {
+        margin: 0;
+      }
+    }
   `]
 })
 export class AssignClassDialogComponent implements OnInit {
@@ -117,11 +141,14 @@ export class AssignClassDialogComponent implements OnInit {
   private loadClasses(): void {
     this.classService.getClasses(0, 100).subscribe({
       next: (response) => {
-        // Filter to only show active classes
-        this.classes.set(response.content.filter(c => c.active));
+        // Filter to only show active classes (include if active is true or not set)
+        const activeClasses = response.content.filter(c => c.active !== false);
+        this.classes.set(activeClasses);
         this.isLoading.set(false);
+        console.log('Loaded classes:', activeClasses);
       },
-      error: () => {
+      error: (err) => {
+        console.error('Failed to load classes:', err);
         this.isLoading.set(false);
       }
     });
