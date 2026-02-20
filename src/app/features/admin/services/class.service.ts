@@ -92,7 +92,13 @@ export class ClassService {
     }
 
     return this.http.get<any>(this.baseUrl, { params }).pipe(
-      map(response => this.transformPagedResponse<SchoolClass>(response)),
+      map(response => {
+        const paged = this.transformPagedResponse<any>(response);
+        return {
+          ...paged,
+          content: paged.content.map((c: any) => this.transformClass(c))
+        };
+      }),
       catchError(() => of(this.getMockClasses(page, size, academicYear, grade)))
     );
   }
@@ -182,6 +188,7 @@ export class ClassService {
   }
 
   private transformClass(data: any): SchoolClass {
+    const teacher = data.classTeacher || data.class_teacher;
     return {
       id: data.id,
       name: data.name,
@@ -190,13 +197,27 @@ export class ClassService {
       academicYear: data.academicYear || data.academic_year,
       capacity: data.capacity,
       studentCount: data.studentCount || data.student_count,
-      classTeacher: data.classTeacher || data.class_teacher,
-      subjects: data.subjects,
+      classTeacher: teacher ? {
+        id: teacher.id,
+        name: teacher.name || teacher.fullName || `${teacher.firstName} ${teacher.lastName}`,
+        email: teacher.email
+      } : undefined,
+      subjects: this.transformSubjects(data.subjects),
       description: data.description,
       active: data.active ?? true,
       createdAt: data.createdAt || data.created_at,
       updatedAt: data.updatedAt || data.updated_at
     };
+  }
+
+  private transformSubjects(subjects: any): string[] | undefined {
+    if (!subjects || subjects.length === 0) return undefined;
+    // If subjects are objects, extract names
+    if (typeof subjects[0] === 'object') {
+      return subjects.map((s: any) => s.name);
+    }
+    // If subjects are already strings
+    return subjects;
   }
 
   private transformPagedResponse<T>(response: any): PagedResponse<T> {
