@@ -16,7 +16,7 @@ import { SchoolClass, Subject } from '../../../../core/models';
 import { NotificationService } from '../../../../core/services';
 import { ClassService } from '../../services/class.service';
 import { SubjectService } from '../../services/subject.service';
-import { StaffService, StaffMember } from '../../services/staff.service';
+import { StaffService, Teacher } from '../../services/staff.service';
 
 @Component({
   selector: 'app-class-form',
@@ -54,7 +54,7 @@ export class ClassFormComponent implements OnInit {
   classId = signal<number | null>(null);
 
   availableSubjects = signal<Subject[]>([]);
-  availableTeachers = signal<StaffMember[]>([]);
+  availableTeachers = signal<Teacher[]>([]);
   selectedSubjectIds = signal<number[]>([]);
 
   grades = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
