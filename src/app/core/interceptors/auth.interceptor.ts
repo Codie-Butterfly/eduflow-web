@@ -18,12 +18,16 @@ export const authInterceptor: HttpInterceptorFn = (req: HttpRequest<unknown>, ne
   const token = authService.getAccessToken();
   let authReq = req;
 
+  console.log('Auth interceptor - URL:', req.url, 'Token exists:', !!token);
+
   if (token) {
     authReq = req.clone({
       setHeaders: {
         Authorization: `Bearer ${token}`
       }
     });
+  } else {
+    console.warn('No auth token available for request:', req.url);
   }
 
   return next(authReq).pipe(
