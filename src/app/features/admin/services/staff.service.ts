@@ -63,18 +63,47 @@ export class StaffService {
 
   // List all teachers
   getTeachers(): Observable<Teacher[]> {
+    console.log('Fetching teachers from:', this.baseUrl);
     return this.http.get<any>(this.baseUrl).pipe(
       map(response => {
+        console.log('Teachers API response:', response);
+        // Handle paginated response
         if (response.content) {
-          return response.content;
+          return response.content.map((t: any) => this.transformTeacher(t));
         }
+        // Handle array response
         if (Array.isArray(response)) {
-          return response;
+          return response.map((t: any) => this.transformTeacher(t));
         }
         return [];
       }),
-      catchError(() => of(this.mockTeachers.filter(t => t.active)))
+      catchError((error) => {
+        console.error('Failed to fetch teachers:', error);
+        return of(this.mockTeachers.filter(t => t.active));
+      })
     );
+  }
+
+  private transformTeacher(data: any): Teacher {
+    return {
+      id: data.id,
+      employeeId: data.employeeId || data.employee_id,
+      firstName: data.firstName || data.first_name,
+      lastName: data.lastName || data.last_name,
+      fullName: data.fullName || data.full_name || data.name || `${data.firstName || data.first_name} ${data.lastName || data.last_name}`,
+      email: data.email,
+      phone: data.phone,
+      gender: data.gender,
+      dateOfBirth: data.dateOfBirth || data.date_of_birth,
+      hireDate: data.hireDate || data.hire_date,
+      department: data.department,
+      qualification: data.qualification,
+      specialization: data.specialization,
+      subjects: data.subjects,
+      active: data.active ?? true,
+      createdAt: data.createdAt || data.created_at,
+      updatedAt: data.updatedAt || data.updated_at
+    };
   }
 
   // Get teacher by ID
