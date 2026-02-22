@@ -150,13 +150,13 @@ export class TeacherFormComponent implements OnInit {
       firstName: formValue.firstName,
       lastName: formValue.lastName,
       email: formValue.email,
-      phone: formValue.phone || null,
-      gender: formValue.gender || null,
-      dateOfBirth: formValue.dateOfBirth ? this.formatDate(formValue.dateOfBirth) : null,
-      hireDate: formValue.hireDate ? this.formatDate(formValue.hireDate) : null,
-      department: formValue.department || null,
-      qualification: formValue.qualification || null,
-      specialization: formValue.specialization || null,
+      phone: formValue.phone || undefined,
+      gender: formValue.gender || undefined,
+      dateOfBirth: formValue.dateOfBirth ? this.formatDate(formValue.dateOfBirth) : undefined,
+      hireDate: formValue.hireDate ? this.formatDate(formValue.hireDate) : undefined,
+      department: formValue.department || undefined,
+      qualification: formValue.qualification || undefined,
+      specialization: formValue.specialization || undefined,
       subjectIds: formValue.subjectIds || []
     };
 
