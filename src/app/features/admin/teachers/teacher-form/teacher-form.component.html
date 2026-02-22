@@ -82,6 +82,11 @@
             </mat-form-field>
           </div>
 
+          <mat-form-field appearance="outline" class="form-field full-width">
+            <mat-label>Address</mat-label>
+            <textarea matInput formControlName="address" rows="2" placeholder="Enter address"></textarea>
+          </mat-form-field>
+
           @if (isEditMode()) {
             <div class="form-row">
               <div class="form-field toggle-field">

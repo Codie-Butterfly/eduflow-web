@@ -64,6 +64,10 @@
                   <span>{{ t.dateOfBirth | date:'mediumDate' }}</span>
                 </div>
               }
+              <div class="info-item full-width">
+                <label>Address</label>
+                <span>{{ t.address || 'Not provided' }}</span>
+              </div>
             </div>
           </mat-card-content>
         </mat-card>

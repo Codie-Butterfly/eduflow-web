@@ -15,6 +15,7 @@ export interface Teacher {
   gender?: string;
   dateOfBirth?: string;
   hireDate?: string;
+  address?: string;
   department?: string;
   qualification?: string;
   specialization?: string;
@@ -32,6 +33,7 @@ export interface CreateTeacherRequest {
   gender?: string;
   dateOfBirth?: string;
   hireDate?: string;
+  address?: string;
   department?: string;
   qualification?: string;
   specialization?: string;
