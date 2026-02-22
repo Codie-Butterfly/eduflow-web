@@ -119,21 +119,26 @@ export class ClassFormComponent implements OnInit {
     const current = this.currentClassTeacher();
     if (current) {
       const teachers = this.availableTeachers();
-      const exists = teachers.some(t => t.id === current.id);
-      if (!exists) {
+      const existingIndex = teachers.findIndex(t => t.id === current.id);
+
+      const currentTeacherData = {
+        id: current.id,
+        employeeId: '',
+        firstName: '',
+        lastName: '',
+        fullName: current.name,
+        email: current.email || '',
+        active: true
+      };
+
+      if (existingIndex >= 0) {
+        // Replace existing teacher with real data (in case mock data has wrong name)
+        const updatedTeachers = [...teachers];
+        updatedTeachers[existingIndex] = currentTeacherData;
+        this.availableTeachers.set(updatedTeachers);
+      } else {
         // Add current teacher to the list
-        this.availableTeachers.set([
-          {
-            id: current.id,
-            employeeId: '',
-            firstName: '',
-            lastName: '',
-            fullName: current.name,
-            email: current.email || '',
-            active: true
-          },
-          ...teachers
-        ]);
+        this.availableTeachers.set([currentTeacherData, ...teachers]);
       }
     }
   }
