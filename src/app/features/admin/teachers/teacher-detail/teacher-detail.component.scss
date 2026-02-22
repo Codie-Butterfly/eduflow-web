@@ -1,0 +1,156 @@
+@use 'styles/variables' as *;
+@use 'styles/mixins' as *;
+
+.teacher-detail {
+  padding: $spacing-lg;
+}
+
+.loading-container {
+  @include flex-center;
+  padding: $spacing-xxl;
+}
+
+.page-header {
+  @include flex-between;
+  flex-wrap: wrap;
+  gap: $spacing-md;
+  margin-bottom: $spacing-xl;
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: $spacing-md;
+}
+
+.back-btn {
+  margin-right: $spacing-sm;
+}
+
+.teacher-header {
+  display: flex;
+  align-items: center;
+  gap: $spacing-md;
+}
+
+.avatar {
+  @include flex-center;
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: $primary-color;
+  color: white;
+  font-size: $font-size-xl;
+  font-weight: 600;
+}
+
+.header-info {
+  h1 {
+    margin: 0;
+    font-size: $font-size-xl;
+  }
+
+  .meta {
+    display: flex;
+    align-items: center;
+    gap: $spacing-sm;
+    margin-top: $spacing-xs;
+  }
+
+  .employee-id {
+    color: $text-secondary;
+    font-size: $font-size-sm;
+  }
+}
+
+.header-actions {
+  display: flex;
+  gap: $spacing-sm;
+}
+
+.content-grid {
+  display: grid;
+  grid-template-columns: 1fr 350px;
+  gap: $spacing-lg;
+
+  @include tablet {
+    grid-template-columns: 1fr;
+  }
+}
+
+.main-content {
+  mat-card {
+    margin-bottom: $spacing-lg;
+  }
+}
+
+.info-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: $spacing-lg;
+
+  @include mobile {
+    grid-template-columns: 1fr;
+  }
+}
+
+.info-item {
+  label {
+    display: block;
+    font-size: $font-size-xs;
+    color: $text-secondary;
+    margin-bottom: $spacing-xs;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  span {
+    font-size: $font-size-md;
+    color: $text-primary;
+  }
+
+  &.full-width {
+    grid-column: 1 / -1;
+  }
+}
+
+.sidebar {
+  mat-card {
+    margin-bottom: $spacing-lg;
+  }
+}
+
+.subjects-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $spacing-sm;
+}
+
+.no-data {
+  color: $text-secondary;
+  font-style: italic;
+}
+
+.contact-list {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-md;
+}
+
+.contact-item {
+  display: flex;
+  align-items: center;
+  gap: $spacing-sm;
+  color: $primary-color;
+  text-decoration: none;
+
+  mat-icon {
+    font-size: 20px;
+    width: 20px;
+    height: 20px;
+  }
+
+  &:hover {
+    text-decoration: underline;
+  }
+}

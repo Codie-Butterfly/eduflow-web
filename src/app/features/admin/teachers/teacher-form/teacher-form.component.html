@@ -1,0 +1,170 @@
+<div class="teacher-form">
+  <header class="page-header">
+    <div>
+      <h1>{{ isEditMode() ? 'Edit Teacher' : 'Add New Teacher' }}</h1>
+      <p class="text-secondary">{{ isEditMode() ? 'Update teacher information' : 'Add a new teacher to the school' }}</p>
+    </div>
+    <a mat-button routerLink="/admin/teachers">
+      <mat-icon>arrow_back</mat-icon>
+      Back to Teachers
+    </a>
+  </header>
+
+  @if (isLoading()) {
+    <div class="loading-container">
+      <mat-spinner diameter="40"></mat-spinner>
+    </div>
+  } @else {
+    <form [formGroup]="teacherForm" (ngSubmit)="onSubmit()">
+      <mat-card>
+        <mat-card-header>
+          <mat-card-title>Personal Information</mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+          <div class="form-row">
+            <mat-form-field appearance="outline" class="form-field">
+              <mat-label>First Name</mat-label>
+              <input matInput formControlName="firstName" placeholder="Enter first name">
+              @if (firstName?.hasError('required') && firstName?.touched) {
+                <mat-error>First name is required</mat-error>
+              }
+              @if (firstName?.hasError('minlength')) {
+                <mat-error>Minimum 2 characters</mat-error>
+              }
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="form-field">
+              <mat-label>Last Name</mat-label>
+              <input matInput formControlName="lastName" placeholder="Enter last name">
+              @if (lastName?.hasError('required') && lastName?.touched) {
+                <mat-error>Last name is required</mat-error>
+              }
+              @if (lastName?.hasError('minlength')) {
+                <mat-error>Minimum 2 characters</mat-error>
+              }
+            </mat-form-field>
+          </div>
+
+          <div class="form-row">
+            <mat-form-field appearance="outline" class="form-field">
+              <mat-label>Email</mat-label>
+              <input matInput formControlName="email" placeholder="Enter email address" type="email">
+              @if (email?.hasError('required') && email?.touched) {
+                <mat-error>Email is required</mat-error>
+              }
+              @if (email?.hasError('email')) {
+                <mat-error>Invalid email format</mat-error>
+              }
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="form-field">
+              <mat-label>Phone</mat-label>
+              <input matInput formControlName="phone" placeholder="+263...">
+            </mat-form-field>
+          </div>
+
+          <div class="form-row">
+            <mat-form-field appearance="outline" class="form-field">
+              <mat-label>Gender</mat-label>
+              <mat-select formControlName="gender">
+                <mat-option value="">Select Gender</mat-option>
+                @for (g of genders; track g) {
+                  <mat-option [value]="g">{{ g | titlecase }}</mat-option>
+                }
+              </mat-select>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="form-field">
+              <mat-label>Date of Birth</mat-label>
+              <input matInput [matDatepicker]="dobPicker" formControlName="dateOfBirth">
+              <mat-datepicker-toggle matSuffix [for]="dobPicker"></mat-datepicker-toggle>
+              <mat-datepicker #dobPicker></mat-datepicker>
+            </mat-form-field>
+          </div>
+
+          @if (isEditMode()) {
+            <div class="form-row">
+              <div class="form-field toggle-field">
+                <mat-slide-toggle formControlName="active" color="primary">
+                  Active Teacher
+                </mat-slide-toggle>
+                <small class="hint">Inactive teachers cannot be assigned to classes</small>
+              </div>
+            </div>
+          }
+        </mat-card-content>
+      </mat-card>
+
+      <mat-card>
+        <mat-card-header>
+          <mat-card-title>Professional Information</mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+          <div class="form-row">
+            <mat-form-field appearance="outline" class="form-field">
+              <mat-label>Department</mat-label>
+              <mat-select formControlName="department">
+                <mat-option value="">Select Department</mat-option>
+                @for (dept of departments; track dept) {
+                  <mat-option [value]="dept">{{ dept }}</mat-option>
+                }
+              </mat-select>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="form-field">
+              <mat-label>Hire Date</mat-label>
+              <input matInput [matDatepicker]="hirePicker" formControlName="hireDate">
+              <mat-datepicker-toggle matSuffix [for]="hirePicker"></mat-datepicker-toggle>
+              <mat-datepicker #hirePicker></mat-datepicker>
+            </mat-form-field>
+          </div>
+
+          <div class="form-row">
+            <mat-form-field appearance="outline" class="form-field">
+              <mat-label>Qualification</mat-label>
+              <input matInput formControlName="qualification" placeholder="e.g., B.Ed Mathematics">
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="form-field">
+              <mat-label>Specialization</mat-label>
+              <input matInput formControlName="specialization" placeholder="e.g., Advanced Calculus">
+            </mat-form-field>
+          </div>
+        </mat-card-content>
+      </mat-card>
+
+      <mat-card>
+        <mat-card-header>
+          <mat-card-title>Subjects</mat-card-title>
+          <mat-card-subtitle>Assign subjects this teacher can teach</mat-card-subtitle>
+        </mat-card-header>
+        <mat-card-content>
+          <mat-form-field appearance="outline" class="form-field full-width">
+            <mat-label>Select Subjects</mat-label>
+            <mat-select formControlName="subjectIds" multiple>
+              @for (subject of availableSubjects(); track subject.id) {
+                <mat-option [value]="subject.id">
+                  {{ subject.name }} ({{ subject.code }})
+                </mat-option>
+              }
+            </mat-select>
+            <mat-hint>Select one or more subjects</mat-hint>
+          </mat-form-field>
+        </mat-card-content>
+      </mat-card>
+
+      <div class="form-actions">
+        <button mat-button type="button" routerLink="/admin/teachers">Cancel</button>
+        <button mat-raised-button color="primary" type="submit" [disabled]="isSaving()">
+          @if (isSaving()) {
+            <mat-spinner diameter="20"></mat-spinner>
+            <span>Saving...</span>
+          } @else {
+            <mat-icon>save</mat-icon>
+            <span>{{ isEditMode() ? 'Update Teacher' : 'Create Teacher' }}</span>
+          }
+        </button>
+      </div>
+    </form>
+  }
+</div>

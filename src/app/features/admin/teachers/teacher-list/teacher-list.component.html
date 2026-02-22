@@ -1,0 +1,124 @@
+<div class="teacher-list">
+  <header class="page-header">
+    <div>
+      <h1>Teachers</h1>
+      <p class="text-secondary">Manage school teachers and staff</p>
+    </div>
+    <a mat-raised-button color="primary" routerLink="/admin/teachers/new">
+      <mat-icon>add</mat-icon>
+      Add Teacher
+    </a>
+  </header>
+
+  <mat-card class="filter-card">
+    <mat-card-content>
+      <div class="search-container">
+        <mat-form-field appearance="outline" class="search-field">
+          <mat-label>Search teachers</mat-label>
+          <input matInput [(ngModel)]="searchQuery" (input)="onSearch()" placeholder="Search by name, ID, email...">
+          <mat-icon matPrefix>search</mat-icon>
+          @if (searchQuery) {
+            <button matSuffix mat-icon-button (click)="clearSearch()">
+              <mat-icon>clear</mat-icon>
+            </button>
+          }
+        </mat-form-field>
+      </div>
+    </mat-card-content>
+  </mat-card>
+
+  <mat-card>
+    @if (isLoading()) {
+      <div class="loading-container">
+        <mat-spinner diameter="40"></mat-spinner>
+      </div>
+    } @else if (filteredTeachers().length === 0) {
+      <div class="empty-state">
+        <mat-icon>person_off</mat-icon>
+        @if (searchQuery) {
+          <h3>No Teachers Found</h3>
+          <p>No teachers match your search criteria.</p>
+          <button mat-stroked-button (click)="clearSearch()">Clear Search</button>
+        } @else {
+          <h3>No Teachers Yet</h3>
+          <p>Get started by adding your first teacher.</p>
+          <a mat-raised-button color="primary" routerLink="/admin/teachers/new">
+            <mat-icon>add</mat-icon>
+            Add Teacher
+          </a>
+        }
+      </div>
+    } @else {
+      <table mat-table [dataSource]="filteredTeachers()" class="teachers-table">
+        <ng-container matColumnDef="employeeId">
+          <th mat-header-cell *matHeaderCellDef>Employee ID</th>
+          <td mat-cell *matCellDef="let teacher">{{ teacher.employeeId || 'N/A' }}</td>
+        </ng-container>
+
+        <ng-container matColumnDef="name">
+          <th mat-header-cell *matHeaderCellDef>Name</th>
+          <td mat-cell *matCellDef="let teacher">
+            <div class="teacher-info">
+              <span class="teacher-name">{{ teacher.fullName }}</span>
+              @if (teacher.qualification) {
+                <small>{{ teacher.qualification }}</small>
+              }
+            </div>
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="email">
+          <th mat-header-cell *matHeaderCellDef>Email</th>
+          <td mat-cell *matCellDef="let teacher">{{ teacher.email || 'N/A' }}</td>
+        </ng-container>
+
+        <ng-container matColumnDef="department">
+          <th mat-header-cell *matHeaderCellDef>Department</th>
+          <td mat-cell *matCellDef="let teacher">
+            @if (teacher.department) {
+              <mat-chip>{{ teacher.department }}</mat-chip>
+            } @else {
+              <span class="text-secondary">Not assigned</span>
+            }
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="subjects">
+          <th mat-header-cell *matHeaderCellDef>Subjects</th>
+          <td mat-cell *matCellDef="let teacher">
+            <span class="subjects-text">{{ getSubjectNames(teacher) }}</span>
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="status">
+          <th mat-header-cell *matHeaderCellDef>Status</th>
+          <td mat-cell *matCellDef="let teacher">
+            <mat-chip [color]="teacher.active ? 'primary' : 'accent'" selected>
+              {{ teacher.active ? 'Active' : 'Inactive' }}
+            </mat-chip>
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="actions">
+          <th mat-header-cell *matHeaderCellDef>Actions</th>
+          <td mat-cell *matCellDef="let teacher">
+            <div class="action-buttons">
+              <a mat-icon-button [routerLink]="['/admin/teachers', teacher.id]" matTooltip="View Details">
+                <mat-icon>visibility</mat-icon>
+              </a>
+              <a mat-icon-button [routerLink]="['/admin/teachers', teacher.id, 'edit']" matTooltip="Edit">
+                <mat-icon>edit</mat-icon>
+              </a>
+              <button mat-icon-button color="warn" (click)="deleteTeacher(teacher)" matTooltip="Deactivate">
+                <mat-icon>person_off</mat-icon>
+              </button>
+            </div>
+          </td>
+        </ng-container>
+
+        <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+        <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+      </table>
+    }
+  </mat-card>
+</div>

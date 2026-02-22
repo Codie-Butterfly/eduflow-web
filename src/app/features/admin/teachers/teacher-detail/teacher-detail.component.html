@@ -1,0 +1,146 @@
+<div class="teacher-detail">
+  @if (isLoading()) {
+    <div class="loading-container">
+      <mat-spinner diameter="40"></mat-spinner>
+    </div>
+  } @else if (teacher(); as t) {
+    <header class="page-header">
+      <div class="header-left">
+        <a mat-icon-button routerLink="/admin/teachers" class="back-btn">
+          <mat-icon>arrow_back</mat-icon>
+        </a>
+        <div class="teacher-header">
+          <div class="avatar">{{ t.firstName[0] }}{{ t.lastName[0] }}</div>
+          <div class="header-info">
+            <h1>{{ t.fullName }}</h1>
+            <div class="meta">
+              <span class="employee-id">{{ t.employeeId || 'No ID' }}</span>
+              <mat-chip [color]="t.active ? 'primary' : 'accent'" selected>
+                {{ t.active ? 'Active' : 'Inactive' }}
+              </mat-chip>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="header-actions">
+        <button mat-stroked-button [routerLink]="['/admin/teachers', t.id, 'edit']">
+          <mat-icon>edit</mat-icon>
+          Edit
+        </button>
+        <button mat-stroked-button color="warn" (click)="deleteTeacher()">
+          <mat-icon>person_off</mat-icon>
+          Deactivate
+        </button>
+      </div>
+    </header>
+
+    <div class="content-grid">
+      <div class="main-content">
+        <mat-card>
+          <mat-card-header>
+            <mat-card-title>Personal Information</mat-card-title>
+          </mat-card-header>
+          <mat-card-content>
+            <div class="info-grid">
+              <div class="info-item">
+                <label>Full Name</label>
+                <span>{{ t.fullName }}</span>
+              </div>
+              <div class="info-item">
+                <label>Email</label>
+                <span>{{ t.email || 'Not provided' }}</span>
+              </div>
+              <div class="info-item">
+                <label>Phone</label>
+                <span>{{ t.phone || 'Not provided' }}</span>
+              </div>
+              <div class="info-item">
+                <label>Gender</label>
+                <span>{{ t.gender | titlecase }}</span>
+              </div>
+              @if (t.dateOfBirth) {
+                <div class="info-item">
+                  <label>Date of Birth</label>
+                  <span>{{ t.dateOfBirth | date:'mediumDate' }}</span>
+                </div>
+              }
+            </div>
+          </mat-card-content>
+        </mat-card>
+
+        <mat-card>
+          <mat-card-header>
+            <mat-card-title>Professional Information</mat-card-title>
+          </mat-card-header>
+          <mat-card-content>
+            <div class="info-grid">
+              <div class="info-item">
+                <label>Employee ID</label>
+                <span>{{ t.employeeId || 'Not assigned' }}</span>
+              </div>
+              <div class="info-item">
+                <label>Department</label>
+                <span>{{ t.department || 'Not assigned' }}</span>
+              </div>
+              <div class="info-item">
+                <label>Qualification</label>
+                <span>{{ t.qualification || 'Not provided' }}</span>
+              </div>
+              <div class="info-item">
+                <label>Specialization</label>
+                <span>{{ t.specialization || 'Not provided' }}</span>
+              </div>
+              @if (t.hireDate) {
+                <div class="info-item">
+                  <label>Hire Date</label>
+                  <span>{{ t.hireDate | date:'mediumDate' }}</span>
+                </div>
+              }
+            </div>
+          </mat-card-content>
+        </mat-card>
+      </div>
+
+      <div class="sidebar">
+        <mat-card>
+          <mat-card-header>
+            <mat-card-title>Subjects</mat-card-title>
+          </mat-card-header>
+          <mat-card-content>
+            @if (t.subjects && t.subjects.length > 0) {
+              <div class="subjects-list">
+                @for (subject of t.subjects; track subject.id) {
+                  <mat-chip>{{ subject.name }}</mat-chip>
+                }
+              </div>
+            } @else {
+              <p class="no-data">No subjects assigned</p>
+            }
+          </mat-card-content>
+        </mat-card>
+
+        <mat-card>
+          <mat-card-header>
+            <mat-card-title>Contact</mat-card-title>
+          </mat-card-header>
+          <mat-card-content>
+            <div class="contact-list">
+              @if (t.email) {
+                <a href="mailto:{{ t.email }}" class="contact-item">
+                  <mat-icon>email</mat-icon>
+                  <span>{{ t.email }}</span>
+                </a>
+              }
+              @if (t.phone) {
+                <a href="tel:{{ t.phone }}" class="contact-item">
+                  <mat-icon>phone</mat-icon>
+                  <span>{{ t.phone }}</span>
+                </a>
+              }
+            </div>
+          </mat-card-content>
+        </mat-card>
+      </div>
+    </div>
+  }
+</div>

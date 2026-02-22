@@ -27,6 +27,27 @@ export const ADMIN_ROUTES: Routes = [
     ]
   },
   {
+    path: 'teachers',
+    children: [
+      {
+        path: '',
+        loadComponent: () => import('./teachers/teacher-list/teacher-list.component').then(m => m.TeacherListComponent)
+      },
+      {
+        path: 'new',
+        loadComponent: () => import('./teachers/teacher-form/teacher-form.component').then(m => m.TeacherFormComponent)
+      },
+      {
+        path: ':id',
+        loadComponent: () => import('./teachers/teacher-detail/teacher-detail.component').then(m => m.TeacherDetailComponent)
+      },
+      {
+        path: ':id/edit',
+        loadComponent: () => import('./teachers/teacher-form/teacher-form.component').then(m => m.TeacherFormComponent)
+      }
+    ]
+  },
+  {
     path: 'classes',
     children: [
       {

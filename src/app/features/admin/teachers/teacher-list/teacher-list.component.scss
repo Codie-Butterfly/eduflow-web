@@ -1,0 +1,95 @@
+@use 'styles/variables' as *;
+@use 'styles/mixins' as *;
+
+.teacher-list {
+  padding: $spacing-lg;
+}
+
+.page-header {
+  @include flex-between;
+  flex-wrap: wrap;
+  gap: $spacing-md;
+  margin-bottom: $spacing-xl;
+}
+
+.text-secondary {
+  color: $text-secondary;
+}
+
+.filter-card {
+  margin-bottom: $spacing-lg;
+}
+
+.search-container {
+  display: flex;
+  gap: $spacing-md;
+}
+
+.search-field {
+  flex: 1;
+  max-width: 400px;
+}
+
+.loading-container {
+  @include flex-center;
+  padding: $spacing-xxl;
+}
+
+.empty-state {
+  @include flex-center;
+  flex-direction: column;
+  padding: $spacing-xxl;
+  text-align: center;
+
+  mat-icon {
+    font-size: 64px;
+    width: 64px;
+    height: 64px;
+    color: $text-secondary;
+    margin-bottom: $spacing-md;
+  }
+
+  h3 {
+    margin: 0 0 $spacing-sm;
+    color: $text-primary;
+  }
+
+  p {
+    color: $text-secondary;
+    margin-bottom: $spacing-lg;
+  }
+}
+
+.teachers-table {
+  width: 100%;
+}
+
+.teacher-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+
+  .teacher-name {
+    font-weight: 500;
+  }
+
+  small {
+    color: $text-secondary;
+    font-size: $font-size-xs;
+  }
+}
+
+.subjects-text {
+  font-size: $font-size-sm;
+  color: $text-secondary;
+  max-width: 200px;
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.action-buttons {
+  display: flex;
+  gap: $spacing-xs;
+}
