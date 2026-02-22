@@ -113,9 +113,20 @@ export class StudentService {
       params = params.set('status', status);
     }
 
+    console.log('Fetching students with params:', { page, size, search, status });
     return this.http.get<any>(this.baseUrl, { params }).pipe(
-      map(response => this.transformPagedResponse<Student>(response)),
-      catchError(() => of(this.getMockStudents(page, size, search, status)))
+      map(response => {
+        console.log('Students API response:', response);
+        const paged = this.transformPagedResponse<any>(response);
+        return {
+          ...paged,
+          content: paged.content.map((s: any) => this.transformStudent(s))
+        };
+      }),
+      catchError((error) => {
+        console.error('Students API error:', error);
+        return of(this.getMockStudents(page, size, search, status));
+      })
     );
   }
 
