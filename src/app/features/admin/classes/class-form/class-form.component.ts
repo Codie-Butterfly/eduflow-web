@@ -56,6 +56,8 @@ export class ClassFormComponent implements OnInit {
   availableSubjects = signal<Subject[]>([]);
   availableTeachers = signal<Teacher[]>([]);
   selectedSubjectIds = signal<number[]>([]);
+  teachersLoadError = signal(false);
+  currentClassTeacher = signal<{id: number; name: string; email?: string} | null>(null);
 
   grades = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
   sections = ['A', 'B', 'C', 'D', 'E'];
@@ -101,11 +103,39 @@ export class ClassFormComponent implements OnInit {
     this.staffService.getTeachers().subscribe({
       next: (teachers) => {
         this.availableTeachers.set(teachers);
+        this.teachersLoadError.set(false);
+        this.addCurrentTeacherIfMissing();
       },
       error: () => {
         console.error('Failed to load teachers');
+        this.teachersLoadError.set(true);
+        // If loading failed, at least show the current class teacher
+        this.addCurrentTeacherIfMissing();
       }
     });
+  }
+
+  private addCurrentTeacherIfMissing(): void {
+    const current = this.currentClassTeacher();
+    if (current) {
+      const teachers = this.availableTeachers();
+      const exists = teachers.some(t => t.id === current.id);
+      if (!exists) {
+        // Add current teacher to the list
+        this.availableTeachers.set([
+          {
+            id: current.id,
+            employeeId: '',
+            firstName: '',
+            lastName: '',
+            fullName: current.name,
+            email: current.email || '',
+            active: true
+          },
+          ...teachers
+        ]);
+      }
+    }
   }
 
   private updateClassName(): void {
@@ -143,6 +173,12 @@ export class ClassFormComponent implements OnInit {
   }
 
   private populateForm(cls: SchoolClass): void {
+    // Save current class teacher for the dropdown
+    if (cls.classTeacher) {
+      this.currentClassTeacher.set(cls.classTeacher);
+      this.addCurrentTeacherIfMissing();
+    }
+
     this.classForm.patchValue({
       name: cls.name,
       grade: cls.grade,

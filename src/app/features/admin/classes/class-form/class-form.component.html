@@ -91,7 +91,11 @@
                   <mat-option [value]="teacher.id">{{ teacher.fullName }}</mat-option>
                 }
               </mat-select>
-              <mat-hint>Select the class teacher</mat-hint>
+              @if (teachersLoadError() && availableTeachers().length <= 1) {
+                <mat-hint class="warn-hint">Could not load teachers list</mat-hint>
+              } @else {
+                <mat-hint>Select the class teacher</mat-hint>
+              }
             </mat-form-field>
           </div>
 

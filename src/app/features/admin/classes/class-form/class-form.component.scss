@@ -58,6 +58,10 @@ mat-card {
   }
 }
 
+.warn-hint {
+  color: $warning-color !important;
+}
+
 .no-subjects-hint {
   display: flex;
   align-items: center;
