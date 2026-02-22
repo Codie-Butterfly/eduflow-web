@@ -21,6 +21,7 @@ import { Fee, Student, ClassSummary, FEE_CATEGORIES } from '../../../../core/mod
 import { NotificationService } from '../../../../core/services';
 import { FeeService } from '../../services/fee.service';
 import { StudentService } from '../../services/student.service';
+import { ClassService } from '../../services/class.service';
 
 @Component({
   selector: 'app-fee-assignment',
@@ -53,6 +54,7 @@ export class FeeAssignmentComponent implements OnInit {
   private router = inject(Router);
   private feeService = inject(FeeService);
   private studentService = inject(StudentService);
+  private classService = inject(ClassService);
   private notification = inject(NotificationService);
 
   assignmentForm!: FormGroup;
@@ -66,13 +68,7 @@ export class FeeAssignmentComponent implements OnInit {
   assignmentType: 'students' | 'classes' = 'students';
   studentSelection = new SelectionModel<number>(true, []);
 
-  // Mock classes for now
-  classes: ClassSummary[] = [
-    { id: 1, name: 'Grade 8A', grade: 8, academicYear: '2024' },
-    { id: 2, name: 'Grade 7B', grade: 7, academicYear: '2024' },
-    { id: 3, name: 'Grade 9A', grade: 9, academicYear: '2024' },
-    { id: 4, name: 'Grade 10A', grade: 10, academicYear: '2024' }
-  ];
+  classes = signal<ClassSummary[]>([]);
   classSelection = new SelectionModel<number>(true, []);
 
   minDate = new Date();
@@ -82,6 +78,7 @@ export class FeeAssignmentComponent implements OnInit {
     this.initForm();
     this.loadFees();
     this.loadStudents();
+    this.loadClasses();
   }
 
   private initForm(): void {
@@ -102,9 +99,11 @@ export class FeeAssignmentComponent implements OnInit {
   private loadFees(): void {
     this.feeService.getFees(0, 100).subscribe({
       next: (response) => {
+        console.log('Fee assignment - Fees loaded:', response.content);
         this.fees.set(response.content.filter(f => f.active));
       },
-      error: () => {
+      error: (err) => {
+        console.error('Fee assignment - Failed to load fees:', err);
         this.notification.error('Failed to load fees');
       }
     });
@@ -113,10 +112,33 @@ export class FeeAssignmentComponent implements OnInit {
   private loadStudents(): void {
     this.studentService.getStudents(0, 100).subscribe({
       next: (response) => {
+        console.log('Fee assignment - Students loaded:', response.content);
         this.students.set(response.content.filter(s => s.status === 'ACTIVE'));
       },
-      error: () => {
+      error: (err) => {
+        console.error('Fee assignment - Failed to load students:', err);
         this.notification.error('Failed to load students');
+      }
+    });
+  }
+
+  private loadClasses(): void {
+    this.classService.getClasses(0, 100).subscribe({
+      next: (response) => {
+        console.log('Fee assignment - Classes loaded:', response.content);
+        const classSummaries: ClassSummary[] = response.content
+          .filter(c => c.active)
+          .map(c => ({
+            id: c.id,
+            name: c.name,
+            grade: c.grade,
+            academicYear: c.academicYear
+          }));
+        this.classes.set(classSummaries);
+      },
+      error: (err) => {
+        console.error('Fee assignment - Failed to load classes:', err);
+        this.notification.error('Failed to load classes');
       }
     });
   }
@@ -144,10 +166,10 @@ export class FeeAssignmentComponent implements OnInit {
   }
 
   selectAllClasses(): void {
-    if (this.classSelection.selected.length === this.classes.length) {
+    if (this.classSelection.selected.length === this.classes().length) {
       this.classSelection.clear();
     } else {
-      this.classes.forEach(c => this.classSelection.select(c.id));
+      this.classes().forEach(c => this.classSelection.select(c.id));
     }
   }
 

@@ -119,15 +119,15 @@
             <div class="selection-list">
               <div class="list-header">
                 <mat-checkbox
-                  [checked]="classSelection.selected.length === classes.length && classes.length > 0"
-                  [indeterminate]="classSelection.selected.length > 0 && classSelection.selected.length < classes.length"
+                  [checked]="classSelection.selected.length === classes().length && classes().length > 0"
+                  [indeterminate]="classSelection.selected.length > 0 && classSelection.selected.length < classes().length"
                   (change)="selectAllClasses()">
-                  Select All ({{ classes.length }})
+                  Select All ({{ classes().length }})
                 </mat-checkbox>
                 <span class="selection-count">{{ classSelection.selected.length }} selected</span>
               </div>
               <div class="list-items">
-                @for (cls of classes; track cls.id) {
+                @for (cls of classes(); track cls.id) {
                   <mat-checkbox
                     [checked]="classSelection.isSelected(cls.id)"
                     (change)="toggleClass(cls.id)"

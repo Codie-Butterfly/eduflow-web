@@ -127,9 +127,16 @@ export class FeeService {
       params = params.set('academicYear', academicYear);
     }
 
+    console.log('Fetching fees with params:', { page, size, academicYear });
     return this.http.get<any>(this.baseUrl, { params }).pipe(
-      map(response => this.transformPagedResponse<Fee>(response)),
-      catchError(() => of(this.getMockFees(page, size, academicYear)))
+      map(response => {
+        console.log('Fees API response:', response);
+        return this.transformPagedResponse<Fee>(response);
+      }),
+      catchError((error) => {
+        console.error('Fees API error:', error);
+        return of(this.getMockFees(page, size, academicYear));
+      })
     );
   }
 
@@ -204,9 +211,14 @@ export class FeeService {
       params = params.set('status', status);
     }
 
+    console.log('Fetching fee assignments with params:', { page, size, status });
     return this.http.get<any>(`${this.baseUrl}/assignments`, { params }).pipe(
-      map(response => this.transformPagedResponse<StudentFee>(response)),
-      catchError(() => {
+      map(response => {
+        console.log('Fee assignments API response:', response);
+        return this.transformPagedResponse<StudentFee>(response);
+      }),
+      catchError((error) => {
+        console.error('Fee assignments API error:', error);
         let filtered = [...this.mockStudentFees];
         if (status) {
           filtered = filtered.filter(f => f.status === status);

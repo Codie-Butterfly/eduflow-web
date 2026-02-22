@@ -91,15 +91,20 @@ export class ClassService {
       params = params.set('grade', grade.toString());
     }
 
+    console.log('Fetching classes with params:', { page, size, academicYear, grade });
     return this.http.get<any>(this.baseUrl, { params }).pipe(
       map(response => {
+        console.log('Classes API response:', response);
         const paged = this.transformPagedResponse<any>(response);
         return {
           ...paged,
           content: paged.content.map((c: any) => this.transformClass(c))
         };
       }),
-      catchError(() => of(this.getMockClasses(page, size, academicYear, grade)))
+      catchError((error) => {
+        console.error('Classes API error:', error);
+        return of(this.getMockClasses(page, size, academicYear, grade));
+      })
     );
   }
 
