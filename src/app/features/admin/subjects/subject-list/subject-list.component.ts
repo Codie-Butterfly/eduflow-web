@@ -13,6 +13,7 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
+import { debounceTime, distinctUntilChanged, Subject as RxSubject } from 'rxjs';
 
 import { Subject } from '../../../../core/models';
 import { NotificationService } from '../../../../core/services';
@@ -53,11 +54,23 @@ export class SubjectListComponent implements OnInit {
   currentPage = signal(0);
 
   searchQuery = '';
+  private searchSubject = new RxSubject<string>();
 
   displayedColumns = ['code', 'name', 'department', 'credits', 'status', 'actions'];
 
   ngOnInit(): void {
     this.loadSubjects();
+    this.setupSearch();
+  }
+
+  private setupSearch(): void {
+    this.searchSubject.pipe(
+      debounceTime(300),
+      distinctUntilChanged()
+    ).subscribe(() => {
+      this.currentPage.set(0);
+      this.loadSubjects();
+    });
   }
 
   loadSubjects(): void {
@@ -87,8 +100,7 @@ export class SubjectListComponent implements OnInit {
   }
 
   onSearch(): void {
-    this.currentPage.set(0);
-    this.loadSubjects();
+    this.searchSubject.next(this.searchQuery);
   }
 
   clearSearch(): void {

@@ -43,9 +43,16 @@ export class SubjectService {
       params = params.set('search', search);
     }
 
+    console.log('Fetching subjects with params:', { page, size, search });
     return this.http.get<any>(this.baseUrl, { params }).pipe(
-      map(response => this.transformPagedResponse<Subject>(response)),
-      catchError(() => of(this.getMockSubjects(page, size, search)))
+      map(response => {
+        console.log('Subjects API response:', response);
+        return this.transformPagedResponse<Subject>(response);
+      }),
+      catchError((error) => {
+        console.error('Subjects API error:', error);
+        return of(this.getMockSubjects(page, size, search));
+      })
     );
   }
 

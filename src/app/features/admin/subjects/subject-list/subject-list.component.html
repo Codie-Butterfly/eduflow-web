@@ -15,7 +15,7 @@
       <div class="search-box">
         <mat-form-field appearance="outline" class="search-field">
           <mat-label>Search subjects</mat-label>
-          <input matInput [(ngModel)]="searchQuery" (keyup.enter)="onSearch()" placeholder="Search by name or code...">
+          <input matInput [(ngModel)]="searchQuery" (ngModelChange)="onSearch()" placeholder="Search by name or code...">
           <mat-icon matPrefix>search</mat-icon>
           @if (searchQuery) {
             <button mat-icon-button matSuffix (click)="clearSearch()">
@@ -23,7 +23,6 @@
             </button>
           }
         </mat-form-field>
-        <button mat-raised-button color="primary" (click)="onSearch()">Search</button>
       </div>
     </mat-card-content>
   </mat-card>
