@@ -12,7 +12,8 @@ import {
   ApplyDiscountRequest,
   WaiveFeeRequest,
   PagedResponse,
-  MessageResponse
+  MessageResponse,
+  Payment
 } from '../../../core/models';
 
 @Injectable({
@@ -248,6 +249,55 @@ export class FeeService {
 
   waiveFee(assignmentId: number, data: WaiveFeeRequest): Observable<StudentFee> {
     return this.http.post<StudentFee>(`${this.baseUrl}/assignment/${assignmentId}/waive`, data);
+  }
+
+  // Payment operations
+  getPayments(page: number = 0, size: number = 10, status?: string): Observable<PagedResponse<Payment>> {
+    const paymentsUrl = `${environment.apiUrl}/v1/admin/payments`;
+    let params = new HttpParams()
+      .set('page', page.toString())
+      .set('size', size.toString())
+      .set('sort', 'paidAt,desc');
+
+    if (status) {
+      params = params.set('status', status);
+    }
+
+    console.log('Fetching payments with params:', { page, size, status });
+    return this.http.get<any>(paymentsUrl, { params }).pipe(
+      map(response => {
+        console.log('Payments API response:', response);
+        return this.transformPagedResponse<Payment>(response);
+      }),
+      catchError((error) => {
+        console.error('Payments API error:', error);
+        return of({
+          content: [],
+          page: 0,
+          size: 10,
+          totalElements: 0,
+          totalPages: 0,
+          first: true,
+          last: true
+        });
+      })
+    );
+  }
+
+  getRecentPayments(limit: number = 10): Observable<Payment[]> {
+    const paymentsUrl = `${environment.apiUrl}/v1/admin/payments`;
+    const params = new HttpParams()
+      .set('page', '0')
+      .set('size', limit.toString())
+      .set('sort', 'paidAt,desc');
+
+    return this.http.get<any>(paymentsUrl, { params }).pipe(
+      map(response => {
+        const content = response.content || response.data || response || [];
+        return Array.isArray(content) ? content : [];
+      }),
+      catchError(() => of([]))
+    );
   }
 
   private transformPagedResponse<T>(response: any): PagedResponse<T> {

@@ -5,6 +5,10 @@
       <p class="text-secondary">Manage student fee payments and balances</p>
     </div>
     <div class="header-actions">
+      <button mat-button (click)="refreshData()" [disabled]="pendingLoading()">
+        <mat-icon>refresh</mat-icon>
+        Refresh
+      </button>
       <a mat-raised-button color="primary" routerLink="/admin/fees/assign">
         <mat-icon>assignment</mat-icon>
         Assign Fees
@@ -70,7 +74,7 @@
                     <div class="avatar">{{ payment.studentName.split(' ')[0][0] }}{{ payment.studentName.split(' ')[1]?.[0] || '' }}</div>
                     <div class="details">
                       <span class="name">{{ payment.studentName }}</span>
-                      <small>{{ payment.studentCode }} &bull; {{ payment.feeCount }} fee(s)</small>
+                      <small>{{ payment.studentCode }} &bull; {{ payment.feeCount }} fee(s) &bull; {{ payment.paymentCount }} payment(s)</small>
                     </div>
                   </div>
                 </td>
@@ -190,7 +194,7 @@
                     <div class="avatar">{{ payment.studentName.split(' ')[0][0] }}{{ payment.studentName.split(' ')[1]?.[0] || '' }}</div>
                     <div class="details">
                       <span class="name">{{ payment.studentName }}</span>
-                      <small>{{ payment.studentCode }} &bull; {{ payment.feeCount }} fee(s)</small>
+                      <small>{{ payment.studentCode }} &bull; {{ payment.feeCount }} fee(s) &bull; {{ payment.paymentCount }} payment(s)</small>
                     </div>
                   </div>
                 </td>

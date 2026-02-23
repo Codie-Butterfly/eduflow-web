@@ -15,8 +15,9 @@ import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatTabsModule } from '@angular/material/tabs';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
+import { forkJoin } from 'rxjs';
 
-import { StudentFee } from '../../../../core/models';
+import { StudentFee, Payment } from '../../../../core/models';
 import { NotificationService } from '../../../../core/services';
 import { FeeService } from '../../services/fee.service';
 
@@ -30,8 +31,11 @@ export interface StudentPaymentSummary {
   balance: number;
   dueDate: Date | null;
   feeCount: number;
+  paymentCount: number;
+  lastPaymentDate: Date | null;
   status: 'PAID' | 'PARTIAL' | 'PENDING' | 'OVERDUE';
   fees: StudentFee[];
+  payments: Payment[];
 }
 
 @Component({
@@ -81,6 +85,10 @@ export class PaymentListComponent implements OnInit {
   allPageSize = signal(10);
   allCurrentPage = signal(0);
 
+  // Raw data
+  allFeeAssignments = signal<StudentFee[]>([]);
+  allPaymentRecords = signal<Payment[]>([]);
+
   // Filters
   statusFilter = '';
   searchQuery = '';
@@ -103,62 +111,62 @@ export class PaymentListComponent implements OnInit {
   selectedTabIndex = 0;
 
   ngOnInit(): void {
-    this.loadPendingPayments();
-    this.loadSummaryStats();
+    this.loadAllData();
   }
 
-  onTabChange(index: number): void {
-    this.selectedTabIndex = index;
-    if (index === 0) {
-      this.loadPendingPayments();
-    } else {
-      this.loadAllPayments();
-    }
-  }
-
-  // Load pending/partial/overdue payments (aggregated by student)
-  loadPendingPayments(): void {
+  // Load data from both tables
+  loadAllData(): void {
     this.pendingLoading.set(true);
 
-    this.feeService.getAllStudentFees(0, 1000, 'PENDING,PARTIAL,OVERDUE').subscribe({
-      next: (response) => {
-        console.log('Pending fees loaded:', response);
-        const aggregated = this.aggregateByStudent(response.content);
-        this.pendingPayments.set(aggregated);
-        this.pendingTotalElements.set(aggregated.length);
+    forkJoin({
+      feeAssignments: this.feeService.getAllStudentFees(0, 1000),
+      payments: this.feeService.getPayments(0, 1000)
+    }).subscribe({
+      next: (results) => {
+        console.log('Fee assignments loaded:', results.feeAssignments);
+        console.log('Payments loaded:', results.payments);
+
+        this.allFeeAssignments.set(results.feeAssignments.content);
+        this.allPaymentRecords.set(results.payments.content);
+
+        // Process and aggregate data
+        this.processData();
         this.pendingLoading.set(false);
       },
       error: (err) => {
-        console.error('Failed to load pending fees:', err);
+        console.error('Failed to load data:', err);
         this.pendingLoading.set(false);
-        this.notification.error('Failed to load pending payments');
+        this.notification.error('Failed to load payment data');
       }
     });
   }
 
-  // Load all payments (aggregated by student)
-  loadAllPayments(): void {
-    this.allLoading.set(true);
+  private processData(): void {
+    const feeAssignments = this.allFeeAssignments();
+    const payments = this.allPaymentRecords();
 
-    this.feeService.getAllStudentFees(0, 1000).subscribe({
-      next: (response) => {
-        console.log('All fees loaded:', response);
-        const aggregated = this.aggregateByStudent(response.content);
-        this.allPayments.set(aggregated);
-        this.applyAllPaymentsFilter();
-        this.allLoading.set(false);
-      },
-      error: (err) => {
-        console.error('Failed to load fees:', err);
-        this.allLoading.set(false);
-        this.notification.error('Failed to load payments');
-      }
-    });
+    // Aggregate by student combining both data sources
+    const aggregated = this.aggregateByStudent(feeAssignments, payments);
+
+    // Set all payments
+    this.allPayments.set(aggregated);
+
+    // Filter for pending (students with balance > 0)
+    const pending = aggregated.filter(s => s.balance > 0);
+    this.pendingPayments.set(pending);
+    this.pendingTotalElements.set(pending.length);
+
+    // Calculate summary stats
+    this.calculateSummaryStats(aggregated);
+
+    // Apply filters for "All" tab
+    this.applyAllPaymentsFilter();
   }
 
-  private aggregateByStudent(fees: StudentFee[]): StudentPaymentSummary[] {
+  private aggregateByStudent(fees: StudentFee[], payments: Payment[]): StudentPaymentSummary[] {
     const studentMap = new Map<number, StudentPaymentSummary>();
 
+    // Process fee assignments
     fees.forEach(fee => {
       const studentId = fee.student?.id;
       if (!studentId) return;
@@ -173,8 +181,11 @@ export class PaymentListComponent implements OnInit {
           balance: 0,
           dueDate: null,
           feeCount: 0,
+          paymentCount: 0,
+          lastPaymentDate: null,
           status: 'PAID',
-          fees: []
+          fees: [],
+          payments: []
         });
       }
 
@@ -192,6 +203,41 @@ export class PaymentListComponent implements OnInit {
           summary.dueDate = feeDueDate;
         }
       }
+
+      // Add payments from fee assignment
+      if (fee.payments && fee.payments.length > 0) {
+        summary.paymentCount += fee.payments.length;
+      }
+    });
+
+    // Process standalone payments (from payments table)
+    payments.forEach(payment => {
+      const studentId = payment.studentFee?.studentId;
+      if (!studentId) return;
+
+      // Try to find student by studentFee info
+      const studentNumId = this.findStudentIdByCode(studentMap, studentId);
+      if (studentNumId && studentMap.has(studentNumId)) {
+        const summary = studentMap.get(studentNumId)!;
+
+        // Check if this payment is not already counted in fee assignments
+        const alreadyCounted = summary.fees.some(fee =>
+          fee.payments?.some(p => p.id === payment.id)
+        );
+
+        if (!alreadyCounted) {
+          summary.payments.push(payment);
+          summary.paymentCount++;
+
+          // Track last payment date
+          if (payment.paidAt) {
+            const paymentDate = new Date(payment.paidAt);
+            if (!summary.lastPaymentDate || paymentDate > summary.lastPaymentDate) {
+              summary.lastPaymentDate = paymentDate;
+            }
+          }
+        }
+      }
     });
 
     // Calculate status for each student
@@ -201,6 +247,15 @@ export class PaymentListComponent implements OnInit {
 
     // Sort by balance descending (students owing most first)
     return Array.from(studentMap.values()).sort((a, b) => b.balance - a.balance);
+  }
+
+  private findStudentIdByCode(studentMap: Map<number, StudentPaymentSummary>, studentCode: string): number | null {
+    for (const [id, summary] of studentMap) {
+      if (summary.studentCode === studentCode) {
+        return id;
+      }
+    }
+    return null;
   }
 
   private calculateStatus(summary: StudentPaymentSummary): 'PAID' | 'PARTIAL' | 'PENDING' | 'OVERDUE' {
@@ -227,27 +282,29 @@ export class PaymentListComponent implements OnInit {
     return 'PENDING';
   }
 
-  loadSummaryStats(): void {
-    this.feeService.getAllStudentFees(0, 1000).subscribe({
-      next: (response) => {
-        const fees = response.content;
-        let outstanding = 0;
-        let collected = 0;
-        let overdue = 0;
+  private calculateSummaryStats(summaries: StudentPaymentSummary[]): void {
+    let outstanding = 0;
+    let collected = 0;
+    let overdue = 0;
 
-        fees.forEach(fee => {
-          outstanding += fee.balance || 0;
-          collected += fee.amountPaid || 0;
-          if (fee.status === 'OVERDUE') {
-            overdue++;
-          }
-        });
-
-        this.totalOutstanding.set(outstanding);
-        this.totalCollected.set(collected);
-        this.overdueCount.set(overdue);
+    summaries.forEach(s => {
+      outstanding += s.balance;
+      collected += s.totalPaid;
+      if (s.status === 'OVERDUE') {
+        overdue++;
       }
     });
+
+    this.totalOutstanding.set(outstanding);
+    this.totalCollected.set(collected);
+    this.overdueCount.set(overdue);
+  }
+
+  onTabChange(index: number): void {
+    this.selectedTabIndex = index;
+    if (index === 1 && this.allFilteredPayments().length === 0) {
+      this.applyAllPaymentsFilter();
+    }
   }
 
   applyAllPaymentsFilter(): void {
@@ -332,5 +389,9 @@ export class PaymentListComponent implements OnInit {
     const start = this.pendingCurrentPage() * this.pendingPageSize();
     const end = start + this.pendingPageSize();
     return this.pendingPayments().slice(start, end);
+  }
+
+  refreshData(): void {
+    this.loadAllData();
   }
 }
