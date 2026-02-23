@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, signal, OnInit } from '@angular/core';
 import { CommonModule, DatePipe, CurrencyPipe } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { MatCardModule } from '@angular/material/card';
@@ -6,18 +6,11 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatTableModule } from '@angular/material/table';
 import { MatChipsModule } from '@angular/material/chips';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 
 import { AuthService } from '../../../core/services';
 import { StatCardComponent } from '../../../shared/components/stat-card/stat-card.component';
-
-interface RecentPayment {
-  id: number;
-  studentName: string;
-  amount: number;
-  method: string;
-  status: 'completed' | 'pending' | 'failed';
-  date: Date;
-}
+import { DashboardService, DashboardStats, RecentPayment } from '../services/dashboard.service';
 
 @Component({
   selector: 'app-admin-dashboard',
@@ -30,6 +23,7 @@ interface RecentPayment {
     MatIconModule,
     MatTableModule,
     MatChipsModule,
+    MatProgressSpinnerModule,
     DatePipe,
     CurrencyPipe,
     StatCardComponent
@@ -37,28 +31,73 @@ interface RecentPayment {
   templateUrl: './dashboard.component.html',
   styleUrl: './dashboard.component.scss'
 })
-export class DashboardComponent {
+export class DashboardComponent implements OnInit {
   private authService = inject(AuthService);
+  private dashboardService = inject(DashboardService);
 
   currentUser = this.authService.currentUser;
 
-  // Mock data for dashboard
-  stats = {
-    totalStudents: 1234,
-    totalTeachers: 56,
-    feesCollected: 2450000,
-    outstandingFees: 850000
-  };
+  // Loading states
+  statsLoading = signal(true);
+  paymentsLoading = signal(true);
 
-  recentPayments: RecentPayment[] = [
-    { id: 1, studentName: 'John Mwanza', amount: 5000, method: 'Mobile Money', status: 'completed', date: new Date() },
-    { id: 2, studentName: 'Mary Banda', amount: 3500, method: 'Bank Transfer', status: 'completed', date: new Date(Date.now() - 86400000) },
-    { id: 3, studentName: 'Peter Phiri', amount: 2500, method: 'Cash', status: 'pending', date: new Date(Date.now() - 172800000) },
-    { id: 4, studentName: 'Sarah Tembo', amount: 5000, method: 'Mobile Money', status: 'completed', date: new Date(Date.now() - 259200000) },
-    { id: 5, studentName: 'James Zulu', amount: 4000, method: 'Card', status: 'failed', date: new Date(Date.now() - 345600000) }
-  ];
+  // Data from API
+  stats = signal<DashboardStats>({
+    totalStudents: 0,
+    totalTeachers: 0,
+    totalClasses: 0,
+    feesCollected: 0,
+    outstandingFees: 0,
+    totalFeesDue: 0,
+    collectionRate: 0
+  });
+
+  recentPayments = signal<RecentPayment[]>([]);
 
   displayedColumns = ['studentName', 'amount', 'method', 'status', 'date'];
+
+  ngOnInit(): void {
+    this.loadDashboardData();
+  }
+
+  private loadDashboardData(): void {
+    this.loadStats();
+    this.loadRecentPayments();
+  }
+
+  private loadStats(): void {
+    this.statsLoading.set(true);
+    this.dashboardService.getDashboardStats().subscribe({
+      next: (data) => {
+        console.log('Dashboard stats loaded:', data);
+        this.stats.set(data);
+        this.statsLoading.set(false);
+      },
+      error: (err) => {
+        console.error('Failed to load dashboard stats:', err);
+        this.statsLoading.set(false);
+      }
+    });
+  }
+
+  private loadRecentPayments(): void {
+    this.paymentsLoading.set(true);
+    this.dashboardService.getRecentPayments(5).subscribe({
+      next: (payments) => {
+        console.log('Recent payments loaded:', payments);
+        this.recentPayments.set(payments);
+        this.paymentsLoading.set(false);
+      },
+      error: (err) => {
+        console.error('Failed to load recent payments:', err);
+        this.paymentsLoading.set(false);
+      }
+    });
+  }
+
+  refreshData(): void {
+    this.loadDashboardData();
+  }
 
   getStatusColor(status: string): string {
     switch (status) {

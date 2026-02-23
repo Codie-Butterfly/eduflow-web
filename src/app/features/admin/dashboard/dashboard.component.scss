@@ -27,6 +27,16 @@
   gap: $spacing-sm;
 }
 
+.stats-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: $spacing-md;
+  padding: $spacing-xl;
+  color: $text-secondary;
+  margin-bottom: $spacing-xl;
+}
+
 .stats-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
@@ -60,6 +70,48 @@
 
   .payments-table {
     width: 100%;
+  }
+
+  .loading-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: $spacing-xl;
+  }
+
+  .empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: $spacing-xl;
+    color: $text-secondary;
+
+    mat-icon {
+      font-size: 48px;
+      width: 48px;
+      height: 48px;
+      margin-bottom: $spacing-md;
+      opacity: 0.5;
+    }
+
+    p {
+      margin: 0;
+    }
+  }
+
+  .student-info {
+    display: flex;
+    flex-direction: column;
+
+    .name {
+      font-weight: $font-weight-medium;
+    }
+
+    .fee-name {
+      color: $text-secondary;
+      font-size: $font-size-sm;
+    }
   }
 }
 

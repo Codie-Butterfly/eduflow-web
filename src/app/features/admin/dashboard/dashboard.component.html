@@ -5,6 +5,10 @@
       <p class="text-secondary">Here's what's happening with your school today.</p>
     </div>
     <div class="header-actions">
+      <button mat-button (click)="refreshData()" [disabled]="statsLoading() || paymentsLoading()">
+        <mat-icon>refresh</mat-icon>
+        Refresh
+      </button>
       <button mat-raised-button color="primary" routerLink="/admin/students/new">
         <mat-icon>add</mat-icon>
         Add Student
@@ -12,41 +16,44 @@
     </div>
   </header>
 
-  <div class="stats-grid">
-    <app-stat-card
-      title="Total Students"
-      [value]="stats.totalStudents"
-      icon="school"
-      [trend]="12"
-      color="primary">
-    </app-stat-card>
+  @if (statsLoading()) {
+    <div class="stats-loading">
+      <mat-spinner diameter="30"></mat-spinner>
+      <span>Loading statistics...</span>
+    </div>
+  } @else {
+    <div class="stats-grid">
+      <app-stat-card
+        title="Total Students"
+        [value]="stats().totalStudents"
+        icon="school"
+        color="primary">
+      </app-stat-card>
 
-    <app-stat-card
-      title="Total Teachers"
-      [value]="stats.totalTeachers"
-      icon="person"
-      [trend]="5"
-      color="success">
-    </app-stat-card>
+      <app-stat-card
+        title="Total Teachers"
+        [value]="stats().totalTeachers"
+        icon="person"
+        color="success">
+      </app-stat-card>
 
-    <app-stat-card
-      title="Fees Collected"
-      [value]="stats.feesCollected"
-      icon="payments"
-      [trend]="8"
-      color="primary"
-      [isCurrency]="true">
-    </app-stat-card>
+      <app-stat-card
+        title="Fees Collected"
+        [value]="stats().feesCollected"
+        icon="payments"
+        color="primary"
+        [isCurrency]="true">
+      </app-stat-card>
 
-    <app-stat-card
-      title="Outstanding Fees"
-      [value]="stats.outstandingFees"
-      icon="warning"
-      [trend]="-3"
-      color="warning"
-      [isCurrency]="true">
-    </app-stat-card>
-  </div>
+      <app-stat-card
+        title="Outstanding Fees"
+        [value]="stats().outstandingFees"
+        icon="warning"
+        color="warning"
+        [isCurrency]="true">
+      </app-stat-card>
+    </div>
+  }
 
   <div class="content-grid">
     <mat-card class="recent-payments">
@@ -55,39 +62,57 @@
         <button mat-button color="primary" routerLink="/admin/payments">View All</button>
       </mat-card-header>
       <mat-card-content>
-        <table mat-table [dataSource]="recentPayments" class="payments-table">
-          <ng-container matColumnDef="studentName">
-            <th mat-header-cell *matHeaderCellDef>Student</th>
-            <td mat-cell *matCellDef="let payment">{{ payment.studentName }}</td>
-          </ng-container>
+        @if (paymentsLoading()) {
+          <div class="loading-container">
+            <mat-spinner diameter="30"></mat-spinner>
+          </div>
+        } @else if (recentPayments().length === 0) {
+          <div class="empty-state">
+            <mat-icon>payments</mat-icon>
+            <p>No recent payments found</p>
+          </div>
+        } @else {
+          <table mat-table [dataSource]="recentPayments()" class="payments-table">
+            <ng-container matColumnDef="studentName">
+              <th mat-header-cell *matHeaderCellDef>Student</th>
+              <td mat-cell *matCellDef="let payment">
+                <div class="student-info">
+                  <span class="name">{{ payment.studentName }}</span>
+                  @if (payment.feeName) {
+                    <small class="fee-name">{{ payment.feeName }}</small>
+                  }
+                </div>
+              </td>
+            </ng-container>
 
-          <ng-container matColumnDef="amount">
-            <th mat-header-cell *matHeaderCellDef>Amount</th>
-            <td mat-cell *matCellDef="let payment">{{ payment.amount | currency:'ZMW':'symbol':'1.0-0' }}</td>
-          </ng-container>
+            <ng-container matColumnDef="amount">
+              <th mat-header-cell *matHeaderCellDef>Amount</th>
+              <td mat-cell *matCellDef="let payment">{{ payment.amount | currency:'ZMW':'symbol':'1.0-0' }}</td>
+            </ng-container>
 
-          <ng-container matColumnDef="method">
-            <th mat-header-cell *matHeaderCellDef>Method</th>
-            <td mat-cell *matCellDef="let payment">{{ payment.method }}</td>
-          </ng-container>
+            <ng-container matColumnDef="method">
+              <th mat-header-cell *matHeaderCellDef>Method</th>
+              <td mat-cell *matCellDef="let payment">{{ payment.method }}</td>
+            </ng-container>
 
-          <ng-container matColumnDef="status">
-            <th mat-header-cell *matHeaderCellDef>Status</th>
-            <td mat-cell *matCellDef="let payment">
-              <mat-chip [color]="getStatusColor(payment.status)" selected>
-                {{ payment.status }}
-              </mat-chip>
-            </td>
-          </ng-container>
+            <ng-container matColumnDef="status">
+              <th mat-header-cell *matHeaderCellDef>Status</th>
+              <td mat-cell *matCellDef="let payment">
+                <mat-chip [color]="getStatusColor(payment.status)" selected>
+                  {{ payment.status }}
+                </mat-chip>
+              </td>
+            </ng-container>
 
-          <ng-container matColumnDef="date">
-            <th mat-header-cell *matHeaderCellDef>Date</th>
-            <td mat-cell *matCellDef="let payment">{{ payment.date | date:'mediumDate' }}</td>
-          </ng-container>
+            <ng-container matColumnDef="date">
+              <th mat-header-cell *matHeaderCellDef>Date</th>
+              <td mat-cell *matCellDef="let payment">{{ payment.date | date:'mediumDate' }}</td>
+            </ng-container>
 
-          <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-          <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
-        </table>
+            <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+            <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+          </table>
+        }
       </mat-card-content>
     </mat-card>
 
