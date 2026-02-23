@@ -69,7 +69,7 @@ export class FeeListComponent implements OnInit {
   assignmentColumns = ['student', 'fee', 'amount', 'paid', 'balance', 'status', 'actions'];
 
   categories = FEE_CATEGORIES;
-  academicYears = ['2024', '2023', '2022'];
+  academicYears = ['2022', '2023', '2024', '2025', '2026', '2027', '2028', '2029', '2030', '2031', '2032', '2033', '2034', '2035'];
   statusOptions = [
     { value: '', label: 'All Statuses' },
     { value: 'PENDING', label: 'Pending' },

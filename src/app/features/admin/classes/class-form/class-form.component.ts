@@ -61,7 +61,7 @@ export class ClassFormComponent implements OnInit {
 
   grades = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
   sections = ['A', 'B', 'C', 'D', 'E'];
-  academicYears = ['2024', '2025', '2026'];
+  academicYears = ['2022', '2023', '2024', '2025', '2026', '2027', '2028', '2029', '2030', '2031', '2032', '2033', '2034', '2035'];
 
   ngOnInit(): void {
     this.initForm();
