@@ -2,13 +2,9 @@
   <header class="page-header">
     <div>
       <h1>Payments</h1>
-      <p class="text-secondary">View student fee balances and manage payments</p>
+      <p class="text-secondary">Manage student fee payments and balances</p>
     </div>
     <div class="header-actions">
-      <button mat-button (click)="refreshData()" [disabled]="isLoading()">
-        <mat-icon>refresh</mat-icon>
-        Refresh
-      </button>
       <a mat-raised-button color="primary" routerLink="/admin/fees/assign">
         <mat-icon>assignment</mat-icon>
         Assign Fees
@@ -22,7 +18,7 @@
       <div class="card-content">
         <mat-icon>account_balance_wallet</mat-icon>
         <div class="info">
-          <span class="label">Total Outstanding</span>
+          <span class="label">Outstanding Balance</span>
           <span class="value">{{ totalOutstanding() | currency:'ZMW':'symbol':'1.0-0' }}</span>
         </div>
       </div>
@@ -38,161 +34,248 @@
       </div>
     </mat-card>
 
-    <mat-card class="summary-card students">
+    <mat-card class="summary-card overdue">
       <div class="card-content">
-        <mat-icon>people</mat-icon>
+        <mat-icon>warning</mat-icon>
         <div class="info">
-          <span class="label">Students with Balance</span>
-          <span class="value">{{ studentsWithBalance() }}</span>
+          <span class="label">Overdue Fees</span>
+          <span class="value">{{ overdueCount() }}</span>
         </div>
       </div>
     </mat-card>
   </div>
 
-  <!-- Filters -->
-  <mat-card class="filter-card">
-    <mat-card-content>
-      <div class="filter-row">
-        <mat-form-field appearance="outline" class="search-field">
-          <mat-label>Search students</mat-label>
-          <input matInput [(ngModel)]="searchQuery" (ngModelChange)="onSearch()" placeholder="Search by name or ID...">
-          <mat-icon matPrefix>search</mat-icon>
-          @if (searchQuery) {
-            <button mat-icon-button matSuffix (click)="clearSearch()">
-              <mat-icon>close</mat-icon>
-            </button>
-          }
-        </mat-form-field>
-
-        <mat-form-field appearance="outline" class="status-filter">
-          <mat-label>Filter by Status</mat-label>
-          <mat-select [(ngModel)]="statusFilter" (selectionChange)="onStatusFilterChange()">
-            @for (option of statusOptions; track option.value) {
-              <mat-option [value]="option.value">{{ option.label }}</mat-option>
-            }
-          </mat-select>
-        </mat-form-field>
-      </div>
-    </mat-card-content>
-  </mat-card>
-
-  <!-- Payments Table -->
+  <!-- Tabs -->
   <mat-card>
-    @if (isLoading()) {
-      <div class="loading-container">
-        <mat-spinner diameter="40"></mat-spinner>
-      </div>
-    } @else if (filteredPayments().length === 0) {
-      <div class="empty-state">
-        <mat-icon>check_circle</mat-icon>
-        <h3>No Payments Found</h3>
-        <p>
-          @if (statusFilter || searchQuery) {
-            No students match the current filters.
+    <mat-tab-group (selectedIndexChange)="onTabChange($event)" [selectedIndex]="selectedTabIndex">
+      <!-- Pending Payments Tab -->
+      <mat-tab label="Pending Payments">
+        <div class="tab-content">
+          @if (pendingLoading()) {
+            <div class="loading-container">
+              <mat-spinner diameter="40"></mat-spinner>
+            </div>
+          } @else if (pendingPayments().length === 0) {
+            <div class="empty-state">
+              <mat-icon>check_circle</mat-icon>
+              <h3>No Pending Payments</h3>
+              <p>All students are up to date with their payments.</p>
+            </div>
           } @else {
-            No fee assignments have been made yet.
+            <table mat-table [dataSource]="getPaginatedPendingPayments()" class="payments-table">
+              <ng-container matColumnDef="student">
+                <th mat-header-cell *matHeaderCellDef>Student</th>
+                <td mat-cell *matCellDef="let payment">
+                  <div class="student-info">
+                    <div class="avatar">{{ payment.studentName.split(' ')[0][0] }}{{ payment.studentName.split(' ')[1]?.[0] || '' }}</div>
+                    <div class="details">
+                      <span class="name">{{ payment.studentName }}</span>
+                      <small>{{ payment.studentCode }} &bull; {{ payment.feeCount }} fee(s)</small>
+                    </div>
+                  </div>
+                </td>
+              </ng-container>
+
+              <ng-container matColumnDef="dueDate">
+                <th mat-header-cell *matHeaderCellDef>Due Date</th>
+                <td mat-cell *matCellDef="let payment" [class.overdue]="isOverdue(payment)">
+                  @if (payment.dueDate) {
+                    {{ payment.dueDate | date:'mediumDate' }}
+                    @if (isOverdue(payment)) {
+                      <small class="overdue-text">{{ getDaysOverdue(payment) }} days overdue</small>
+                    }
+                  } @else {
+                    -
+                  }
+                </td>
+              </ng-container>
+
+              <ng-container matColumnDef="amount">
+                <th mat-header-cell *matHeaderCellDef>Total Amount</th>
+                <td mat-cell *matCellDef="let payment">{{ payment.totalAmount | currency:'ZMW':'symbol':'1.0-0' }}</td>
+              </ng-container>
+
+              <ng-container matColumnDef="paid">
+                <th mat-header-cell *matHeaderCellDef>Paid</th>
+                <td mat-cell *matCellDef="let payment">{{ payment.totalPaid | currency:'ZMW':'symbol':'1.0-0' }}</td>
+              </ng-container>
+
+              <ng-container matColumnDef="balance">
+                <th mat-header-cell *matHeaderCellDef>Balance</th>
+                <td mat-cell *matCellDef="let payment" class="balance-cell">
+                  <span class="highlight">{{ payment.balance | currency:'ZMW':'symbol':'1.0-0' }}</span>
+                </td>
+              </ng-container>
+
+              <ng-container matColumnDef="status">
+                <th mat-header-cell *matHeaderCellDef>Status</th>
+                <td mat-cell *matCellDef="let payment">
+                  <mat-chip [color]="getStatusColor(payment.status)" selected>
+                    {{ payment.status | lowercase }}
+                  </mat-chip>
+                </td>
+              </ng-container>
+
+              <ng-container matColumnDef="actions">
+                <th mat-header-cell *matHeaderCellDef>Actions</th>
+                <td mat-cell *matCellDef="let payment">
+                  <div class="action-buttons">
+                    <button mat-icon-button color="primary" (click)="viewStudentDetails(payment)" matTooltip="View Details">
+                      <mat-icon>visibility</mat-icon>
+                    </button>
+                    <button mat-icon-button color="accent" (click)="recordPayment(payment)" matTooltip="Record Payment">
+                      <mat-icon>add_card</mat-icon>
+                    </button>
+                    @if (isOverdue(payment)) {
+                      <button mat-icon-button color="warn" (click)="sendReminder(payment)" matTooltip="Send Reminder">
+                        <mat-icon>notifications</mat-icon>
+                      </button>
+                    }
+                  </div>
+                </td>
+              </ng-container>
+
+              <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+              <tr mat-row *matRowDef="let row; columns: displayedColumns;" [class.overdue-row]="isOverdue(row)"></tr>
+            </table>
+
+            <mat-paginator
+              [length]="pendingTotalElements()"
+              [pageSize]="pendingPageSize()"
+              [pageIndex]="pendingCurrentPage()"
+              [pageSizeOptions]="[5, 10, 25, 50]"
+              (page)="onPendingPageChange($event)"
+              showFirstLastButtons>
+            </mat-paginator>
           }
-        </p>
-        @if (statusFilter || searchQuery) {
-          <button mat-stroked-button (click)="statusFilter = ''; searchQuery = ''; applyFilters()">
-            Clear Filters
-          </button>
-        }
-      </div>
-    } @else {
-      <table mat-table [dataSource]="filteredPayments()" class="payments-table">
-        <ng-container matColumnDef="student">
-          <th mat-header-cell *matHeaderCellDef>Student</th>
-          <td mat-cell *matCellDef="let payment">
-            <div class="student-info">
-              <div class="avatar">{{ payment.studentName.split(' ')[0][0] }}{{ payment.studentName.split(' ')[1]?.[0] || '' }}</div>
-              <div class="details">
-                <span class="name">{{ payment.studentName }}</span>
-                <small>{{ payment.studentCode }} &bull; {{ payment.feeCount }} fee(s)</small>
-              </div>
+        </div>
+      </mat-tab>
+
+      <!-- All Payments Tab -->
+      <mat-tab label="All Payments">
+        <div class="tab-content">
+          <div class="filter-row">
+            <mat-form-field appearance="outline" class="search-field">
+              <mat-label>Search students</mat-label>
+              <input matInput [(ngModel)]="searchQuery" (ngModelChange)="onSearch()" placeholder="Search by name or ID...">
+              <mat-icon matPrefix>search</mat-icon>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="status-filter">
+              <mat-label>Filter by Status</mat-label>
+              <mat-select [(ngModel)]="statusFilter" (selectionChange)="onStatusFilterChange()">
+                @for (option of statusOptions; track option.value) {
+                  <mat-option [value]="option.value">{{ option.label }}</mat-option>
+                }
+              </mat-select>
+            </mat-form-field>
+          </div>
+
+          @if (allLoading()) {
+            <div class="loading-container">
+              <mat-spinner diameter="40"></mat-spinner>
             </div>
-          </td>
-        </ng-container>
-
-        <ng-container matColumnDef="dueDate">
-          <th mat-header-cell *matHeaderCellDef>Due Date</th>
-          <td mat-cell *matCellDef="let payment" [class.overdue]="isOverdue(payment)">
-            @if (payment.dueDate) {
-              {{ payment.dueDate | date:'mediumDate' }}
-              @if (isOverdue(payment) && payment.balance > 0) {
-                <small class="overdue-text">Overdue</small>
-              } @else if (getDaysUntilDue(payment) <= 7 && getDaysUntilDue(payment) > 0 && payment.balance > 0) {
-                <small class="due-soon">Due in {{ getDaysUntilDue(payment) }} days</small>
-              }
-            } @else {
-              <span class="no-date">-</span>
-            }
-          </td>
-        </ng-container>
-
-        <ng-container matColumnDef="amount">
-          <th mat-header-cell *matHeaderCellDef>Total Amount</th>
-          <td mat-cell *matCellDef="let payment">{{ payment.totalAmount | currency:'ZMW':'symbol':'1.0-0' }}</td>
-        </ng-container>
-
-        <ng-container matColumnDef="paid">
-          <th mat-header-cell *matHeaderCellDef>Paid</th>
-          <td mat-cell *matCellDef="let payment">{{ payment.totalPaid | currency:'ZMW':'symbol':'1.0-0' }}</td>
-        </ng-container>
-
-        <ng-container matColumnDef="balance">
-          <th mat-header-cell *matHeaderCellDef>Balance</th>
-          <td mat-cell *matCellDef="let payment" class="balance-cell">
-            <span [class.highlight]="payment.balance > 0" [class.paid]="payment.balance <= 0">
-              {{ payment.balance | currency:'ZMW':'symbol':'1.0-0' }}
-            </span>
-          </td>
-        </ng-container>
-
-        <ng-container matColumnDef="status">
-          <th mat-header-cell *matHeaderCellDef>Status</th>
-          <td mat-cell *matCellDef="let payment">
-            <mat-chip [color]="getStatusColor(payment.status)" selected>
-              {{ payment.status | lowercase }}
-            </mat-chip>
-          </td>
-        </ng-container>
-
-        <ng-container matColumnDef="actions">
-          <th mat-header-cell *matHeaderCellDef>Actions</th>
-          <td mat-cell *matCellDef="let payment">
-            <div class="action-buttons">
-              <button mat-icon-button color="primary" (click)="viewStudentDetails(payment)" matTooltip="View Details">
-                <mat-icon>visibility</mat-icon>
-              </button>
-              @if (payment.balance > 0) {
-                <button mat-icon-button color="accent" (click)="recordPayment(payment)" matTooltip="Record Payment">
-                  <mat-icon>add_card</mat-icon>
-                </button>
-              }
-              @if (isOverdue(payment)) {
-                <button mat-icon-button color="warn" (click)="sendReminder(payment)" matTooltip="Send Reminder">
-                  <mat-icon>notifications</mat-icon>
-                </button>
-              }
+          } @else if (allFilteredPayments().length === 0) {
+            <div class="empty-state">
+              <mat-icon>receipt_long</mat-icon>
+              <h3>No Payments Found</h3>
+              <p>No students match the current filters.</p>
             </div>
-          </td>
-        </ng-container>
+          } @else {
+            <table mat-table [dataSource]="allFilteredPayments()" class="payments-table">
+              <ng-container matColumnDef="student">
+                <th mat-header-cell *matHeaderCellDef>Student</th>
+                <td mat-cell *matCellDef="let payment">
+                  <div class="student-info">
+                    <div class="avatar">{{ payment.studentName.split(' ')[0][0] }}{{ payment.studentName.split(' ')[1]?.[0] || '' }}</div>
+                    <div class="details">
+                      <span class="name">{{ payment.studentName }}</span>
+                      <small>{{ payment.studentCode }} &bull; {{ payment.feeCount }} fee(s)</small>
+                    </div>
+                  </div>
+                </td>
+              </ng-container>
 
-        <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-        <tr mat-row *matRowDef="let row; columns: displayedColumns;"
-            [class.overdue-row]="isOverdue(row)"
-            [class.paid-row]="row.status === 'PAID'"></tr>
-      </table>
+              <ng-container matColumnDef="dueDate">
+                <th mat-header-cell *matHeaderCellDef>Due Date</th>
+                <td mat-cell *matCellDef="let payment" [class.overdue]="isOverdue(payment)">
+                  @if (payment.dueDate) {
+                    {{ payment.dueDate | date:'mediumDate' }}
+                    @if (isOverdue(payment) && payment.balance > 0) {
+                      <small class="overdue-text">{{ getDaysOverdue(payment) }} days overdue</small>
+                    }
+                  } @else {
+                    -
+                  }
+                </td>
+              </ng-container>
 
-      <mat-paginator
-        [length]="totalElements()"
-        [pageSize]="pageSize()"
-        [pageIndex]="currentPage()"
-        [pageSizeOptions]="[5, 10, 25, 50]"
-        (page)="onPageChange($event)"
-        showFirstLastButtons>
-      </mat-paginator>
-    }
+              <ng-container matColumnDef="amount">
+                <th mat-header-cell *matHeaderCellDef>Total Amount</th>
+                <td mat-cell *matCellDef="let payment">{{ payment.totalAmount | currency:'ZMW':'symbol':'1.0-0' }}</td>
+              </ng-container>
+
+              <ng-container matColumnDef="paid">
+                <th mat-header-cell *matHeaderCellDef>Paid</th>
+                <td mat-cell *matCellDef="let payment">{{ payment.totalPaid | currency:'ZMW':'symbol':'1.0-0' }}</td>
+              </ng-container>
+
+              <ng-container matColumnDef="balance">
+                <th mat-header-cell *matHeaderCellDef>Balance</th>
+                <td mat-cell *matCellDef="let payment" class="balance-cell">
+                  <span [class.highlight]="payment.balance > 0" [class.paid]="payment.balance <= 0">
+                    {{ payment.balance | currency:'ZMW':'symbol':'1.0-0' }}
+                  </span>
+                </td>
+              </ng-container>
+
+              <ng-container matColumnDef="status">
+                <th mat-header-cell *matHeaderCellDef>Status</th>
+                <td mat-cell *matCellDef="let payment">
+                  <mat-chip [color]="getStatusColor(payment.status)" selected>
+                    {{ payment.status | lowercase }}
+                  </mat-chip>
+                </td>
+              </ng-container>
+
+              <ng-container matColumnDef="actions">
+                <th mat-header-cell *matHeaderCellDef>Actions</th>
+                <td mat-cell *matCellDef="let payment">
+                  <div class="action-buttons">
+                    <button mat-icon-button color="primary" (click)="viewStudentDetails(payment)" matTooltip="View Details">
+                      <mat-icon>visibility</mat-icon>
+                    </button>
+                    @if (payment.balance > 0) {
+                      <button mat-icon-button color="accent" (click)="recordPayment(payment)" matTooltip="Record Payment">
+                        <mat-icon>add_card</mat-icon>
+                      </button>
+                    }
+                    @if (isOverdue(payment)) {
+                      <button mat-icon-button color="warn" (click)="sendReminder(payment)" matTooltip="Send Reminder">
+                        <mat-icon>notifications</mat-icon>
+                      </button>
+                    }
+                  </div>
+                </td>
+              </ng-container>
+
+              <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+              <tr mat-row *matRowDef="let row; columns: displayedColumns;"
+                  [class.overdue-row]="isOverdue(row)"
+                  [class.paid-row]="row.status === 'PAID'"></tr>
+            </table>
+
+            <mat-paginator
+              [length]="allTotalElements()"
+              [pageSize]="allPageSize()"
+              [pageIndex]="allCurrentPage()"
+              [pageSizeOptions]="[5, 10, 25, 50]"
+              (page)="onAllPageChange($event)"
+              showFirstLastButtons>
+            </mat-paginator>
+          }
+        </div>
+      </mat-tab>
+    </mat-tab-group>
   </mat-card>
 </div>

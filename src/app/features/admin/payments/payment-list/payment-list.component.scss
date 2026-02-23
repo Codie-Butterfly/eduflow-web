@@ -90,34 +90,35 @@
     }
   }
 
-  &.students {
+  &.overdue {
     mat-icon {
-      background: rgba($primary-color, 0.1);
-      color: $primary-color;
+      background: rgba($error-color, 0.1);
+      color: $error-color;
     }
     .value {
-      color: $primary-color;
+      color: $error-color;
     }
   }
 }
 
-// Filter Card
-.filter-card {
+// Tab Content
+.tab-content {
+  padding: $spacing-lg 0;
+}
+
+.filter-row {
+  display: flex;
+  gap: $spacing-md;
   margin-bottom: $spacing-lg;
+  flex-wrap: wrap;
 
-  .filter-row {
-    display: flex;
-    gap: $spacing-md;
-    flex-wrap: wrap;
+  .search-field {
+    flex: 1;
+    min-width: 250px;
+  }
 
-    .search-field {
-      flex: 1;
-      min-width: 250px;
-    }
-
-    .status-filter {
-      min-width: 180px;
-    }
+  .status-filter {
+    min-width: 180px;
   }
 }
 
@@ -177,18 +178,7 @@
       display: block;
       font-size: $font-size-xs;
       font-weight: $font-weight-medium;
-      color: $error-color;
     }
-
-    .due-soon {
-      display: block;
-      font-size: $font-size-xs;
-      color: $warning-color;
-    }
-  }
-
-  .no-date {
-    color: $text-secondary;
   }
 
   .overdue-row {
@@ -236,7 +226,7 @@
   }
 
   p {
-    margin: 0 0 $spacing-md;
+    margin: 0;
   }
 }
 
@@ -252,4 +242,8 @@
 
 ::ng-deep .mat-mdc-row:hover {
   background: rgba(0, 0, 0, 0.02);
+}
+
+::ng-deep .mat-mdc-tab-body-content {
+  overflow: visible;
 }
