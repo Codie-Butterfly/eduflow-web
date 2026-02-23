@@ -58,7 +58,7 @@ export class ClassListComponent implements OnInit {
   displayedColumns = ['name', 'grade', 'teacher', 'students', 'status', 'actions'];
 
   academicYears = ['2024', '2023', '2022'];
-  grades = [7, 8, 9, 10, 11, 12];
+  grades = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
 
   ngOnInit(): void {
     this.loadClasses();
