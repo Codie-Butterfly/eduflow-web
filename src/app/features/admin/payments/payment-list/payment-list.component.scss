@@ -90,53 +90,82 @@
     }
   }
 
-  &.overdue {
+  &.students {
     mat-icon {
-      background: rgba($error-color, 0.1);
-      color: $error-color;
+      background: rgba($primary-color, 0.1);
+      color: $primary-color;
     }
     .value {
-      color: $error-color;
+      color: $primary-color;
     }
   }
 }
 
-// Tab Content
-.tab-content {
-  padding: $spacing-lg 0;
-}
-
-.filter-row {
-  display: flex;
-  gap: $spacing-md;
+// Filter Card
+.filter-card {
   margin-bottom: $spacing-lg;
 
-  .status-filter {
-    min-width: 200px;
+  .filter-row {
+    display: flex;
+    gap: $spacing-md;
+    flex-wrap: wrap;
+
+    .search-field {
+      flex: 1;
+      min-width: 250px;
+    }
+
+    .status-filter {
+      min-width: 180px;
+    }
   }
 }
 
 // Table Styles
-.fees-table {
+.payments-table {
   width: 100%;
 
-  .student-info, .fee-info {
+  .student-info {
     display: flex;
-    flex-direction: column;
+    align-items: center;
+    gap: $spacing-md;
 
-    .name {
+    .avatar {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, $primary-color, darken($primary-color, 10%));
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
       font-weight: $font-weight-medium;
+      font-size: $font-size-sm;
     }
 
-    small {
-      color: $text-secondary;
-      font-size: $font-size-sm;
+    .details {
+      display: flex;
+      flex-direction: column;
+
+      .name {
+        font-weight: $font-weight-medium;
+      }
+
+      small {
+        color: $text-secondary;
+        font-size: $font-size-sm;
+      }
     }
   }
 
   .balance-cell {
     .highlight {
       color: $warning-color;
+      font-weight: $font-weight-bold;
+    }
+
+    .paid {
+      color: $success-color;
       font-weight: $font-weight-medium;
     }
   }
@@ -148,11 +177,26 @@
       display: block;
       font-size: $font-size-xs;
       font-weight: $font-weight-medium;
+      color: $error-color;
     }
+
+    .due-soon {
+      display: block;
+      font-size: $font-size-xs;
+      color: $warning-color;
+    }
+  }
+
+  .no-date {
+    color: $text-secondary;
   }
 
   .overdue-row {
     background: rgba($error-color, 0.05);
+  }
+
+  .paid-row {
+    background: rgba($success-color, 0.03);
   }
 }
 
@@ -192,7 +236,7 @@
   }
 
   p {
-    margin: 0;
+    margin: 0 0 $spacing-md;
   }
 }
 
@@ -208,8 +252,4 @@
 
 ::ng-deep .mat-mdc-row:hover {
   background: rgba(0, 0, 0, 0.02);
-}
-
-::ng-deep .mat-mdc-tab-body-content {
-  overflow: visible;
 }

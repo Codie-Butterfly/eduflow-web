@@ -1,6 +1,6 @@
 import { Component, inject, signal, OnInit } from '@angular/core';
 import { CommonModule, CurrencyPipe, DatePipe } from '@angular/common';
-import { RouterLink } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { MatCardModule } from '@angular/material/card';
 import { MatTableModule } from '@angular/material/table';
@@ -13,12 +13,25 @@ import { MatInputModule } from '@angular/material/input';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 import { MatTooltipModule } from '@angular/material/tooltip';
-import { MatTabsModule } from '@angular/material/tabs';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 
-import { StudentFee, FEE_CATEGORIES } from '../../../../core/models';
+import { StudentFee } from '../../../../core/models';
 import { NotificationService } from '../../../../core/services';
 import { FeeService } from '../../services/fee.service';
+
+// Aggregated student payment summary
+export interface StudentPaymentSummary {
+  studentId: number;
+  studentCode: string;
+  studentName: string;
+  totalAmount: number;
+  totalPaid: number;
+  balance: number;
+  dueDate: Date | null;
+  feeCount: number;
+  status: 'PAID' | 'PARTIAL' | 'PENDING' | 'OVERDUE';
+  fees: StudentFee[];
+}
 
 @Component({
   selector: 'app-payment-list',
@@ -38,7 +51,6 @@ import { FeeService } from '../../services/fee.service';
     MatProgressSpinnerModule,
     MatPaginatorModule,
     MatTooltipModule,
-    MatTabsModule,
     MatDialogModule,
     CurrencyPipe,
     DatePipe
@@ -49,21 +61,18 @@ import { FeeService } from '../../services/fee.service';
 export class PaymentListComponent implements OnInit {
   private feeService = inject(FeeService);
   private notification = inject(NotificationService);
+  private router = inject(Router);
   private dialog = inject(MatDialog);
 
-  // Pending fees tab
-  pendingFees = signal<StudentFee[]>([]);
-  pendingLoading = signal(true);
-  pendingTotalElements = signal(0);
-  pendingPageSize = signal(10);
-  pendingCurrentPage = signal(0);
+  // Student payment summaries
+  studentPayments = signal<StudentPaymentSummary[]>([]);
+  filteredPayments = signal<StudentPaymentSummary[]>([]);
+  isLoading = signal(true);
 
-  // All fees tab
-  allFees = signal<StudentFee[]>([]);
-  allLoading = signal(false);
-  allTotalElements = signal(0);
-  allPageSize = signal(10);
-  allCurrentPage = signal(0);
+  // Pagination
+  totalElements = signal(0);
+  pageSize = signal(10);
+  currentPage = signal(0);
 
   // Filters
   statusFilter = '';
@@ -72,131 +81,178 @@ export class PaymentListComponent implements OnInit {
   // Summary stats
   totalOutstanding = signal(0);
   totalCollected = signal(0);
-  overdueCount = signal(0);
+  studentsWithBalance = signal(0);
 
-  displayedColumns = ['student', 'fee', 'dueDate', 'amount', 'paid', 'balance', 'status', 'actions'];
-  categories = FEE_CATEGORIES;
+  displayedColumns = ['student', 'dueDate', 'amount', 'paid', 'balance', 'status', 'actions'];
 
   statusOptions = [
-    { value: '', label: 'All Statuses' },
+    { value: '', label: 'All Students' },
     { value: 'PENDING', label: 'Pending' },
     { value: 'PARTIAL', label: 'Partial' },
     { value: 'OVERDUE', label: 'Overdue' },
-    { value: 'PAID', label: 'Paid' },
-    { value: 'WAIVED', label: 'Waived' }
+    { value: 'PAID', label: 'Paid' }
   ];
 
-  selectedTabIndex = 0;
-
   ngOnInit(): void {
-    this.loadPendingFees();
-    this.loadSummaryStats();
+    this.loadPayments();
   }
 
-  onTabChange(index: number): void {
-    this.selectedTabIndex = index;
-    if (index === 0) {
-      this.loadPendingFees();
-    } else {
-      this.loadAllFees();
-    }
-  }
+  loadPayments(): void {
+    this.isLoading.set(true);
 
-  // Load pending/partial/overdue fees
-  loadPendingFees(): void {
-    this.pendingLoading.set(true);
-
-    // Fetch fees with pending status (PENDING, PARTIAL, OVERDUE)
-    this.feeService.getAllStudentFees(
-      this.pendingCurrentPage(),
-      this.pendingPageSize(),
-      'PENDING,PARTIAL,OVERDUE'
-    ).subscribe({
-      next: (response) => {
-        console.log('Pending fees loaded:', response);
-        this.pendingFees.set(response.content);
-        this.pendingTotalElements.set(response.totalElements);
-        this.pendingLoading.set(false);
-      },
-      error: (err) => {
-        console.error('Failed to load pending fees:', err);
-        this.pendingLoading.set(false);
-        this.notification.error('Failed to load pending fees');
-      }
-    });
-  }
-
-  // Load all fees with optional status filter
-  loadAllFees(): void {
-    this.allLoading.set(true);
-
-    this.feeService.getAllStudentFees(
-      this.allCurrentPage(),
-      this.allPageSize(),
-      this.statusFilter || undefined
-    ).subscribe({
+    // Fetch all fee assignments
+    this.feeService.getAllStudentFees(0, 1000).subscribe({
       next: (response) => {
         console.log('All fees loaded:', response);
-        this.allFees.set(response.content);
-        this.allTotalElements.set(response.totalElements);
-        this.allLoading.set(false);
+        const aggregated = this.aggregateByStudent(response.content);
+        this.studentPayments.set(aggregated);
+        this.calculateSummaryStats(aggregated);
+        this.applyFilters();
+        this.isLoading.set(false);
       },
       error: (err) => {
         console.error('Failed to load fees:', err);
-        this.allLoading.set(false);
-        this.notification.error('Failed to load fee assignments');
+        this.isLoading.set(false);
+        this.notification.error('Failed to load payments');
       }
     });
   }
 
-  loadSummaryStats(): void {
-    // Calculate summary from pending fees
-    this.feeService.getAllStudentFees(0, 1000, 'PENDING,PARTIAL,OVERDUE').subscribe({
-      next: (response) => {
-        const fees = response.content;
-        let outstanding = 0;
-        let overdue = 0;
+  private aggregateByStudent(fees: StudentFee[]): StudentPaymentSummary[] {
+    const studentMap = new Map<number, StudentPaymentSummary>();
 
-        fees.forEach(fee => {
-          outstanding += fee.balance || 0;
-          if (fee.status === 'OVERDUE') {
-            overdue++;
-          }
+    fees.forEach(fee => {
+      const studentId = fee.student?.id;
+      if (!studentId) return;
+
+      if (!studentMap.has(studentId)) {
+        studentMap.set(studentId, {
+          studentId: studentId,
+          studentCode: fee.student?.studentId || '',
+          studentName: fee.student?.fullName || 'Unknown',
+          totalAmount: 0,
+          totalPaid: 0,
+          balance: 0,
+          dueDate: null,
+          feeCount: 0,
+          status: 'PAID',
+          fees: []
         });
+      }
 
-        this.totalOutstanding.set(outstanding);
-        this.overdueCount.set(overdue);
+      const summary = studentMap.get(studentId)!;
+      summary.totalAmount += fee.netAmount || 0;
+      summary.totalPaid += fee.amountPaid || 0;
+      summary.balance += fee.balance || 0;
+      summary.feeCount++;
+      summary.fees.push(fee);
+
+      // Track the furthest (latest) due date
+      if (fee.dueDate) {
+        const feeDueDate = new Date(fee.dueDate);
+        if (!summary.dueDate || feeDueDate > summary.dueDate) {
+          summary.dueDate = feeDueDate;
+        }
       }
     });
 
-    // Get total collected
-    this.feeService.getAllStudentFees(0, 1000, 'PAID').subscribe({
-      next: (response) => {
-        const fees = response.content;
-        let collected = 0;
-        fees.forEach(fee => {
-          collected += fee.amountPaid || 0;
-        });
-        this.totalCollected.set(collected);
+    // Calculate status for each student
+    studentMap.forEach(summary => {
+      summary.status = this.calculateStatus(summary);
+    });
+
+    // Sort by balance descending (students owing most first)
+    return Array.from(studentMap.values()).sort((a, b) => b.balance - a.balance);
+  }
+
+  private calculateStatus(summary: StudentPaymentSummary): 'PAID' | 'PARTIAL' | 'PENDING' | 'OVERDUE' {
+    if (summary.balance <= 0) {
+      return 'PAID';
+    }
+
+    // Check if any fee is overdue
+    const hasOverdue = summary.fees.some(fee => {
+      if (fee.status === 'OVERDUE') return true;
+      if (fee.dueDate && fee.balance > 0) {
+        return new Date(fee.dueDate) < new Date();
+      }
+      return false;
+    });
+
+    if (hasOverdue) {
+      return 'OVERDUE';
+    }
+
+    if (summary.totalPaid > 0) {
+      return 'PARTIAL';
+    }
+
+    return 'PENDING';
+  }
+
+  private calculateSummaryStats(summaries: StudentPaymentSummary[]): void {
+    let outstanding = 0;
+    let collected = 0;
+    let withBalance = 0;
+
+    summaries.forEach(s => {
+      outstanding += s.balance;
+      collected += s.totalPaid;
+      if (s.balance > 0) {
+        withBalance++;
       }
     });
+
+    this.totalOutstanding.set(outstanding);
+    this.totalCollected.set(collected);
+    this.studentsWithBalance.set(withBalance);
   }
 
-  onPendingPageChange(event: PageEvent): void {
-    this.pendingCurrentPage.set(event.pageIndex);
-    this.pendingPageSize.set(event.pageSize);
-    this.loadPendingFees();
+  applyFilters(): void {
+    let filtered = this.studentPayments();
+
+    // Apply status filter
+    if (this.statusFilter) {
+      filtered = filtered.filter(s => s.status === this.statusFilter);
+    }
+
+    // Apply search filter
+    if (this.searchQuery) {
+      const query = this.searchQuery.toLowerCase();
+      filtered = filtered.filter(s =>
+        s.studentName.toLowerCase().includes(query) ||
+        s.studentCode.toLowerCase().includes(query)
+      );
+    }
+
+    this.totalElements.set(filtered.length);
+
+    // Apply pagination
+    const start = this.currentPage() * this.pageSize();
+    const end = start + this.pageSize();
+    this.filteredPayments.set(filtered.slice(start, end));
   }
 
-  onAllPageChange(event: PageEvent): void {
-    this.allCurrentPage.set(event.pageIndex);
-    this.allPageSize.set(event.pageSize);
-    this.loadAllFees();
+  onPageChange(event: PageEvent): void {
+    this.currentPage.set(event.pageIndex);
+    this.pageSize.set(event.pageSize);
+    this.applyFilters();
   }
 
   onStatusFilterChange(): void {
-    this.allCurrentPage.set(0);
-    this.loadAllFees();
+    this.currentPage.set(0);
+    this.applyFilters();
+  }
+
+  onSearch(): void {
+    this.currentPage.set(0);
+    this.applyFilters();
+  }
+
+  clearSearch(): void {
+    this.searchQuery = '';
+    this.currentPage.set(0);
+    this.applyFilters();
   }
 
   getStatusColor(status: string): string {
@@ -205,46 +261,37 @@ export class PaymentListComponent implements OnInit {
       case 'PARTIAL': return 'accent';
       case 'PENDING': return 'primary';
       case 'OVERDUE': return 'warn';
-      case 'WAIVED': return 'accent';
       default: return 'primary';
     }
   }
 
-  getCategoryLabel(category: string): string {
-    return this.categories.find(c => c.value === category)?.label || category;
+  viewStudentDetails(summary: StudentPaymentSummary): void {
+    this.router.navigate(['/admin/students', summary.studentId]);
   }
 
-  recordPayment(fee: StudentFee): void {
+  recordPayment(summary: StudentPaymentSummary): void {
     // TODO: Open payment dialog
     this.notification.info('Payment recording feature coming soon');
   }
 
-  viewStudent(fee: StudentFee): void {
-    // Navigate to student detail
-    if (fee.student?.id) {
-      window.location.href = `/admin/students/${fee.student.id}`;
-    }
-  }
-
-  sendReminder(fee: StudentFee): void {
+  sendReminder(summary: StudentPaymentSummary): void {
     // TODO: Send payment reminder
     this.notification.info('Payment reminder feature coming soon');
   }
 
-  isOverdue(fee: StudentFee): boolean {
-    if (fee.status === 'OVERDUE') return true;
-    if (fee.dueDate && fee.balance > 0) {
-      return new Date(fee.dueDate) < new Date();
-    }
-    return false;
+  isOverdue(summary: StudentPaymentSummary): boolean {
+    return summary.status === 'OVERDUE';
   }
 
-  getDaysOverdue(fee: StudentFee): number {
-    if (!fee.dueDate) return 0;
-    const dueDate = new Date(fee.dueDate);
+  getDaysUntilDue(summary: StudentPaymentSummary): number {
+    if (!summary.dueDate) return 0;
     const today = new Date();
-    const diffTime = today.getTime() - dueDate.getTime();
+    const diffTime = summary.dueDate.getTime() - today.getTime();
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-    return diffDays > 0 ? diffDays : 0;
+    return diffDays;
+  }
+
+  refreshData(): void {
+    this.loadPayments();
   }
 }
