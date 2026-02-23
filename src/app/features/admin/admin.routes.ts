@@ -107,6 +107,10 @@ export const ADMIN_ROUTES: Routes = [
     ]
   },
   {
+    path: 'payments',
+    loadComponent: () => import('./payments/payment-list/payment-list.component').then(m => m.PaymentListComponent)
+  },
+  {
     path: '',
     redirectTo: 'dashboard',
     pathMatch: 'full'

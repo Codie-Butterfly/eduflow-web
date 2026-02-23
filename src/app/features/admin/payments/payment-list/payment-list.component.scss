@@ -1,0 +1,215 @@
+@use 'styles/variables' as *;
+@use 'styles/mixins' as *;
+
+.payment-list {
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.page-header {
+  @include flex-between;
+  flex-wrap: wrap;
+  gap: $spacing-md;
+  margin-bottom: $spacing-xl;
+
+  h1 {
+    margin: 0;
+    font-size: $font-size-xxl;
+  }
+
+  p {
+    margin: $spacing-xs 0 0;
+  }
+}
+
+.header-actions {
+  display: flex;
+  gap: $spacing-sm;
+}
+
+// Summary Cards
+.summary-cards {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: $spacing-lg;
+  margin-bottom: $spacing-xl;
+
+  @include tablet {
+    grid-template-columns: 1fr;
+  }
+}
+
+.summary-card {
+  .card-content {
+    display: flex;
+    align-items: center;
+    gap: $spacing-md;
+    padding: $spacing-md;
+  }
+
+  mat-icon {
+    font-size: 40px;
+    width: 40px;
+    height: 40px;
+    padding: $spacing-sm;
+    border-radius: $border-radius-md;
+  }
+
+  .info {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .label {
+    font-size: $font-size-sm;
+    color: $text-secondary;
+  }
+
+  .value {
+    font-size: $font-size-xl;
+    font-weight: $font-weight-bold;
+  }
+
+  &.outstanding {
+    mat-icon {
+      background: rgba($warning-color, 0.1);
+      color: $warning-color;
+    }
+    .value {
+      color: $warning-color;
+    }
+  }
+
+  &.collected {
+    mat-icon {
+      background: rgba($success-color, 0.1);
+      color: $success-color;
+    }
+    .value {
+      color: $success-color;
+    }
+  }
+
+  &.overdue {
+    mat-icon {
+      background: rgba($error-color, 0.1);
+      color: $error-color;
+    }
+    .value {
+      color: $error-color;
+    }
+  }
+}
+
+// Tab Content
+.tab-content {
+  padding: $spacing-lg 0;
+}
+
+.filter-row {
+  display: flex;
+  gap: $spacing-md;
+  margin-bottom: $spacing-lg;
+
+  .status-filter {
+    min-width: 200px;
+  }
+}
+
+// Table Styles
+.fees-table {
+  width: 100%;
+
+  .student-info, .fee-info {
+    display: flex;
+    flex-direction: column;
+
+    .name {
+      font-weight: $font-weight-medium;
+    }
+
+    small {
+      color: $text-secondary;
+      font-size: $font-size-sm;
+    }
+  }
+
+  .balance-cell {
+    .highlight {
+      color: $warning-color;
+      font-weight: $font-weight-medium;
+    }
+  }
+
+  td.overdue {
+    color: $error-color;
+
+    .overdue-text {
+      display: block;
+      font-size: $font-size-xs;
+      font-weight: $font-weight-medium;
+    }
+  }
+
+  .overdue-row {
+    background: rgba($error-color, 0.05);
+  }
+}
+
+.action-buttons {
+  display: flex;
+  gap: $spacing-xs;
+}
+
+// Loading & Empty States
+.loading-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: $spacing-xxl;
+}
+
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: $spacing-xxl;
+  text-align: center;
+  color: $text-secondary;
+
+  mat-icon {
+    font-size: 64px;
+    width: 64px;
+    height: 64px;
+    margin-bottom: $spacing-md;
+    opacity: 0.5;
+  }
+
+  h3 {
+    margin: 0 0 $spacing-xs;
+    color: $text-primary;
+  }
+
+  p {
+    margin: 0;
+  }
+}
+
+// Table overrides
+::ng-deep .mat-mdc-table {
+  background: transparent;
+}
+
+::ng-deep .mat-mdc-header-cell {
+  font-weight: $font-weight-medium;
+  color: $text-secondary;
+}
+
+::ng-deep .mat-mdc-row:hover {
+  background: rgba(0, 0, 0, 0.02);
+}
+
+::ng-deep .mat-mdc-tab-body-content {
+  overflow: visible;
+}
