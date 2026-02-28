@@ -77,7 +77,11 @@ export interface PaymentSummary {
 export interface StudentInfo {
   id: number;
   studentId: string;
+  firstName?: string;
+  lastName?: string;
   fullName: string;
+  email?: string;
+  className?: string;
 }
 
 export interface FeeInfo {

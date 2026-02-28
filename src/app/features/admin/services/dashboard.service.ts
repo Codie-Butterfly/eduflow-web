@@ -19,6 +19,7 @@ export interface RecentPayment {
   id: number;
   studentName: string;
   studentId: string;
+  className?: string;
   amount: number;
   amountPaid?: number;
   balance?: number;
@@ -26,6 +27,8 @@ export interface RecentPayment {
   status: 'completed' | 'pending' | 'failed';
   date: Date;
   feeName?: string;
+  category?: string;
+  academicYear?: string;
 }
 
 @Injectable({
@@ -141,19 +144,39 @@ export class DashboardService {
   }
 
   private transformFeeAssignment(data: any): RecentPayment {
-    const status = (data.status || 'PENDING').toLowerCase();
+    const status = (data.status || 'PENDING').toUpperCase();
+
+    // Map status to display status
+    let displayStatus: 'completed' | 'pending' | 'failed' = 'pending';
+    if (status === 'PAID') {
+      displayStatus = 'completed';
+    } else if (status === 'OVERDUE') {
+      displayStatus = 'failed';
+    } else if (status === 'PARTIAL' || status === 'PENDING') {
+      displayStatus = 'pending';
+    }
+
+    // Get the latest payment method if there are payments
+    let paymentMethod = '-';
+    if (data.payments && data.payments.length > 0) {
+      const latestPayment = data.payments[data.payments.length - 1];
+      paymentMethod = this.getPaymentMethodLabel(latestPayment.paymentMethod);
+    }
 
     return {
       id: data.id,
-      studentName: data.student?.fullName || data.studentName || 'Unknown',
-      studentId: data.student?.studentId || data.studentId || '',
+      studentName: data.student?.fullName || `${data.student?.firstName || ''} ${data.student?.lastName || ''}`.trim() || 'Unknown',
+      studentId: data.student?.studentId || '',
+      className: data.student?.className || '',
       amount: data.netAmount || data.amount || 0,
       amountPaid: data.amountPaid || 0,
       balance: data.balance || 0,
-      method: '-',
-      status: status === 'paid' ? 'completed' : status === 'overdue' ? 'failed' : 'pending',
-      date: new Date(data.dueDate || data.createdAt || new Date()),
-      feeName: data.feeName || data.fee?.name || ''
+      method: paymentMethod,
+      status: displayStatus,
+      date: new Date(data.dueDate || new Date()),
+      feeName: data.feeName || '',
+      category: data.category || '',
+      academicYear: data.academicYear || ''
     };
   }
 
