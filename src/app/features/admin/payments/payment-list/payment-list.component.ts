@@ -15,7 +15,6 @@ import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatTabsModule } from '@angular/material/tabs';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
-import { forkJoin } from 'rxjs';
 
 import { StudentFee, Payment } from '../../../../core/models';
 import { NotificationService } from '../../../../core/services';
@@ -118,25 +117,39 @@ export class PaymentListComponent implements OnInit {
   loadAllData(): void {
     this.pendingLoading.set(true);
 
-    forkJoin({
-      feeAssignments: this.feeService.getAllStudentFees(0, 1000),
-      payments: this.feeService.getPayments(0, 1000)
-    }).subscribe({
-      next: (results) => {
-        console.log('Fee assignments loaded:', results.feeAssignments);
-        console.log('Payments loaded:', results.payments);
+    // Load fee assignments first (primary data source)
+    this.feeService.getAllStudentFees(0, 1000).subscribe({
+      next: (feeResponse) => {
+        console.log('Fee assignments loaded:', feeResponse);
+        this.allFeeAssignments.set(feeResponse.content);
 
-        this.allFeeAssignments.set(results.feeAssignments.content);
-        this.allPaymentRecords.set(results.payments.content);
-
-        // Process and aggregate data
+        // Process data with fee assignments
         this.processData();
         this.pendingLoading.set(false);
+
+        // Then try to load payments (secondary, optional)
+        this.loadPayments();
       },
       error: (err) => {
-        console.error('Failed to load data:', err);
+        console.error('Failed to load fee assignments:', err);
         this.pendingLoading.set(false);
-        this.notification.error('Failed to load payment data');
+        this.notification.error('Failed to load fee assignments');
+      }
+    });
+  }
+
+  // Load payments separately (optional enhancement)
+  private loadPayments(): void {
+    this.feeService.getPayments(0, 1000).subscribe({
+      next: (paymentResponse) => {
+        console.log('Payments loaded:', paymentResponse);
+        this.allPaymentRecords.set(paymentResponse.content);
+        // Re-process to include payment data
+        this.processData();
+      },
+      error: (err) => {
+        console.log('Payments API not available, using fee assignment data only:', err);
+        // Don't show error - payments API is optional
       }
     });
   }
