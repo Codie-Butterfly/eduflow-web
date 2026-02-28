@@ -113,6 +113,22 @@
       font-size: $font-size-sm;
     }
   }
+
+  .amount-info {
+    display: flex;
+    flex-direction: column;
+
+    .balance {
+      color: $warning-color;
+      font-size: $font-size-sm;
+      font-weight: $font-weight-medium;
+    }
+  }
+
+  .fee-type {
+    color: $text-secondary;
+    font-style: italic;
+  }
 }
 
 .quick-actions {

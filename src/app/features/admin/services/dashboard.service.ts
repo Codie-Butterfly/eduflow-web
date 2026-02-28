@@ -20,6 +20,8 @@ export interface RecentPayment {
   studentName: string;
   studentId: string;
   amount: number;
+  amountPaid?: number;
+  balance?: number;
   method: string;
   status: 'completed' | 'pending' | 'failed';
   date: Date;
@@ -97,18 +99,62 @@ export class DashboardService {
   }
 
   getRecentPayments(limit: number = 5): Observable<RecentPayment[]> {
-    console.log('Fetching recent payments...');
-    return this.http.get<any>(`${this.baseUrl}/payments?page=0&size=${limit}&sort=paidAt,desc`).pipe(
-      map(response => {
-        console.log('Recent payments API response:', response);
-        const payments = response.content || response.data || response || [];
-        return payments.map((p: any) => this.transformPayment(p));
+    console.log('Fetching recent payments from both tables...');
+
+    // Fetch from both fee assignments and payments tables
+    return forkJoin({
+      feeAssignments: this.http.get<any>(`${this.baseUrl}/fees/assignments?page=0&size=${limit}`).pipe(
+        map(response => {
+          console.log('Fee assignments API response:', response);
+          return response.content || response.data || response || [];
+        }),
+        catchError((error) => {
+          console.error('Fee assignments API error:', error);
+          return of([]);
+        })
+      ),
+      payments: this.http.get<any>(`${this.baseUrl}/payments?page=0&size=${limit}&sort=paidAt,desc`).pipe(
+        map(response => {
+          console.log('Payments API response:', response);
+          return response.content || response.data || response || [];
+        }),
+        catchError((error) => {
+          console.error('Payments API error:', error);
+          return of([]);
+        })
+      )
+    }).pipe(
+      map(results => {
+        // Transform and combine both data sources
+        const fromFeeAssignments = results.feeAssignments.map((f: any) => this.transformFeeAssignment(f));
+        const fromPayments = results.payments.map((p: any) => this.transformPayment(p));
+
+        // Combine and sort by date (most recent first)
+        const combined = [...fromFeeAssignments, ...fromPayments];
+        combined.sort((a, b) => b.date.getTime() - a.date.getTime());
+
+        // Return top entries
+        return combined.slice(0, limit);
       }),
-      catchError((error) => {
-        console.error('Recent payments API error:', error);
-        return of(this.mockPayments);
-      })
+      catchError(() => of(this.mockPayments))
     );
+  }
+
+  private transformFeeAssignment(data: any): RecentPayment {
+    const status = (data.status || 'PENDING').toLowerCase();
+
+    return {
+      id: data.id,
+      studentName: data.student?.fullName || data.studentName || 'Unknown',
+      studentId: data.student?.studentId || data.studentId || '',
+      amount: data.netAmount || data.amount || 0,
+      amountPaid: data.amountPaid || 0,
+      balance: data.balance || 0,
+      method: '-',
+      status: status === 'paid' ? 'completed' : status === 'overdue' ? 'failed' : 'pending',
+      date: new Date(data.dueDate || data.createdAt || new Date()),
+      feeName: data.feeName || data.fee?.name || ''
+    };
   }
 
   private transformStats(data: any): DashboardStats {
