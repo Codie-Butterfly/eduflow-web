@@ -6,6 +6,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatChipsModule } from '@angular/material/chips';
+import { forkJoin } from 'rxjs';
 
 import { ParentService, ChildSummary, ParentDashboardStats } from '../services/parent.service';
 import { StatCardComponent } from '../../../shared/components/stat-card/stat-card.component';
@@ -34,27 +35,29 @@ export class ParentDashboardComponent implements OnInit {
   isLoading = signal(true);
   stats = signal<ParentDashboardStats | null>(null);
   children = signal<ChildSummary[]>([]);
+  error = signal<string | null>(null);
 
   ngOnInit(): void {
     this.loadDashboardData();
   }
 
-  private loadDashboardData(): void {
+  loadDashboardData(): void {
     this.isLoading.set(true);
+    this.error.set(null);
 
-    // Load stats
-    this.parentService.getDashboardStats().subscribe({
-      next: (data) => this.stats.set(data),
-      error: () => console.error('Failed to load stats')
-    });
-
-    // Load children
-    this.parentService.getChildren().subscribe({
-      next: (data) => {
-        this.children.set(data);
+    // Load stats and children in parallel
+    forkJoin({
+      stats: this.parentService.getDashboardStats(),
+      children: this.parentService.getChildren()
+    }).subscribe({
+      next: (result) => {
+        this.stats.set(result.stats);
+        this.children.set(result.children);
         this.isLoading.set(false);
       },
-      error: () => {
+      error: (err) => {
+        console.error('Failed to load dashboard data:', err);
+        this.error.set('Failed to load dashboard data. Please try again.');
         this.isLoading.set(false);
       }
     });

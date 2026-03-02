@@ -10,33 +10,42 @@
     <div class="loading-container">
       <mat-spinner diameter="40"></mat-spinner>
     </div>
+  } @else if (error()) {
+    <div class="error-container">
+      <mat-icon color="warn">error</mat-icon>
+      <p>{{ error() }}</p>
+      <button mat-raised-button color="primary" (click)="loadDashboardData()">
+        <mat-icon>refresh</mat-icon>
+        Try Again
+      </button>
+    </div>
   } @else {
     <!-- Stats Overview -->
     @if (stats(); as s) {
       <div class="stats-grid">
         <app-stat-card
           title="Total Children"
-          [value]="s.totalChildren"
+          [value]="s.totalChildren || 0"
           icon="people"
           color="primary">
         </app-stat-card>
         <app-stat-card
           title="Total Fees"
-          [value]="'K' + s.totalFees.toLocaleString()"
+          [value]="'K' + (s.totalFees || 0).toLocaleString()"
           icon="receipt"
           color="success">
         </app-stat-card>
         <app-stat-card
           title="Total Paid"
-          [value]="'K' + s.totalPaid.toLocaleString()"
+          [value]="'K' + (s.totalPaid || 0).toLocaleString()"
           icon="check_circle"
           color="primary">
         </app-stat-card>
         <app-stat-card
           title="Outstanding Balance"
-          [value]="'K' + s.totalBalance.toLocaleString()"
+          [value]="'K' + (s.totalBalance || 0).toLocaleString()"
           icon="account_balance_wallet"
-          [color]="s.totalBalance > 0 ? 'warning' : 'primary'">
+          [color]="(s.totalBalance || 0) > 0 ? 'warning' : 'primary'">
         </app-stat-card>
       </div>
 

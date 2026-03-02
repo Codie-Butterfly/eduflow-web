@@ -183,9 +183,29 @@ export class ParentService {
   }
 
   getChildren(): Observable<ChildSummary[]> {
-    return this.http.get<ChildSummary[]>(`${this.baseUrl}/children`).pipe(
+    return this.http.get<any>(`${this.baseUrl}/children`).pipe(
+      map(response => {
+        // Handle different response formats
+        const children = Array.isArray(response) ? response : (response.content || response.children || []);
+        return children.map((child: any) => this.transformChild(child));
+      }),
       catchError(() => of(this.mockChildren))
     );
+  }
+
+  private transformChild(data: any): ChildSummary {
+    return {
+      id: data.id ?? data.studentId ?? 0,
+      studentId: data.studentId ?? data.student_id ?? '',
+      fullName: data.fullName ?? data.full_name ?? data.name ?? `${data.firstName || ''} ${data.lastName || ''}`.trim(),
+      currentClass: data.currentClass ?? data.current_class ?? data.className ?? data.class_name ?? '',
+      grade: data.grade ?? 0,
+      photoUrl: data.photoUrl ?? data.photo_url,
+      totalFees: data.totalFees ?? data.total_fees ?? 0,
+      totalPaid: data.totalPaid ?? data.total_paid ?? 0,
+      balance: data.balance ?? data.outstandingBalance ?? data.outstanding_balance ?? 0,
+      pendingFees: data.pendingFees ?? data.pending_fees ?? 0
+    };
   }
 
   getChildDetails(childId: number): Observable<Student> {

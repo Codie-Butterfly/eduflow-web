@@ -23,6 +23,25 @@
   min-height: 300px;
 }
 
+.error-container {
+  @include flex-center;
+  @include flex-column;
+  min-height: 300px;
+  text-align: center;
+
+  mat-icon {
+    font-size: 64px;
+    width: 64px;
+    height: 64px;
+    margin-bottom: $spacing-md;
+  }
+
+  p {
+    margin: 0 0 $spacing-md;
+    color: $text-secondary;
+  }
+}
+
 .stats-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
