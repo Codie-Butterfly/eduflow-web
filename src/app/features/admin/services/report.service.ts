@@ -308,17 +308,30 @@ export class ReportService {
 
   // Fee Collection Report
   getFeeCollectionReport(academicYear?: string): Observable<FeeCollectionReportData> {
+    console.log('Fetching fee collection from:', `${this.baseUrl}/fees/assignments`);
     return this.http.get<any>(`${this.baseUrl}/fees/assignments`, { params: { page: 0, size: 1000 } }).pipe(
       map(response => {
-        const assignments = response.content || response.data || [];
+        console.log('Fee collection API response:', response);
+        let assignments: any[] = [];
+        if (Array.isArray(response)) {
+          assignments = response;
+        } else if (response?.content) {
+          assignments = response.content;
+        } else if (response?.data) {
+          assignments = response.data;
+        }
+        console.log('Processing assignments for fee collection:', assignments.length);
         return this.processFeeCollectionData(assignments);
       }),
-      catchError(() => of({
-        summary: { totalFeesDue: 0, totalCollected: 0, totalOutstanding: 0, collectionRate: 0, totalStudentsWithFees: 0, fullyPaidCount: 0, partialPaidCount: 0, unpaidCount: 0 },
-        byMonth: [],
-        byClass: [],
-        byCategory: []
-      }))
+      catchError((error) => {
+        console.error('Failed to fetch fee collection:', error);
+        return of({
+          summary: { totalFeesDue: 0, totalCollected: 0, totalOutstanding: 0, collectionRate: 0, totalStudentsWithFees: 0, fullyPaidCount: 0, partialPaidCount: 0, unpaidCount: 0 },
+          byMonth: [],
+          byClass: [],
+          byCategory: []
+        });
+      })
     );
   }
 
@@ -499,17 +512,30 @@ export class ReportService {
 
   // Overdue Fees Report
   getOverdueFeesReport(): Observable<OverdueFeesReportData> {
+    console.log('Fetching overdue fees from:', `${this.baseUrl}/fees/assignments`);
     return this.http.get<any>(`${this.baseUrl}/fees/assignments`, { params: { page: 0, size: 1000 } }).pipe(
       map(response => {
-        const assignments = response.content || response.data || [];
+        console.log('Overdue fees API response:', response);
+        let assignments: any[] = [];
+        if (Array.isArray(response)) {
+          assignments = response;
+        } else if (response?.content) {
+          assignments = response.content;
+        } else if (response?.data) {
+          assignments = response.data;
+        }
+        console.log('Processing assignments for overdue:', assignments.length);
         return this.processOverdueData(assignments);
       }),
-      catchError(() => of({
-        records: [],
-        totalOverdueAmount: 0,
-        totalStudentsOverdue: 0,
-        averageDaysOverdue: 0
-      }))
+      catchError((error) => {
+        console.error('Failed to fetch overdue fees:', error);
+        return of({
+          records: [],
+          totalOverdueAmount: 0,
+          totalStudentsOverdue: 0,
+          averageDaysOverdue: 0
+        });
+      })
     );
   }
 
@@ -557,19 +583,33 @@ export class ReportService {
 
   // Pending Payments Report
   getPendingPaymentsReport(): Observable<PendingPaymentsReportData> {
+    console.log('Fetching pending payments from:', `${this.baseUrl}/fees/assignments`);
     return this.http.get<any>(`${this.baseUrl}/fees/assignments`, { params: { page: 0, size: 1000 } }).pipe(
       map(response => {
-        const assignments = response.content || response.data || [];
+        console.log('Pending payments API response:', response);
+        // Handle different response formats
+        let assignments: any[] = [];
+        if (Array.isArray(response)) {
+          assignments = response;
+        } else if (response?.content) {
+          assignments = response.content;
+        } else if (response?.data) {
+          assignments = response.data;
+        }
+        console.log('Processing assignments:', assignments.length);
         return this.processPendingPaymentsData(assignments);
       }),
-      catchError(() => of({
-        records: [],
-        totalPendingAmount: 0,
-        totalStudents: 0,
-        pendingCount: 0,
-        partialCount: 0,
-        overdueCount: 0
-      }))
+      catchError((error) => {
+        console.error('Failed to fetch pending payments:', error);
+        return of({
+          records: [],
+          totalPendingAmount: 0,
+          totalStudents: 0,
+          pendingCount: 0,
+          partialCount: 0,
+          overdueCount: 0
+        });
+      })
     );
   }
 
