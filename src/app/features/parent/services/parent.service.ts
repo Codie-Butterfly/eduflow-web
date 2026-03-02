@@ -1,6 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
-import { Observable, of, catchError, map } from 'rxjs';
+import { Observable, of, catchError, map, switchMap, forkJoin } from 'rxjs';
 import { environment } from '../../../../environments/environment';
 import { Student, StudentFee, Payment, PagedResponse, CreatePaymentRequest } from '../../../core/models';
 
@@ -194,7 +194,6 @@ export class ParentService {
   getChildren(): Observable<ChildSummary[]> {
     return this.http.get<any>(`${this.baseUrl}/children`).pipe(
       map(response => {
-        console.log('Children API response:', response);
         // Handle different response formats
         const children = Array.isArray(response) ? response : (response.content || response.children || response.data || []);
         return children.map((child: any) => this.transformChild(child));
@@ -206,35 +205,61 @@ export class ParentService {
     );
   }
 
-  private transformChild(data: any): ChildSummary {
-    console.log('Transforming child data:', data);
+  /**
+   * Get children with fee summaries
+   * Fetches children list then enriches with fee data
+   */
+  getChildrenWithFees(): Observable<ChildSummary[]> {
+    return this.getChildren().pipe(
+      switchMap(children => {
+        if (children.length === 0) {
+          return of([]);
+        }
+        // Fetch fees for each child and compute summaries
+        const feeRequests = children.map(child =>
+          this.getChildFees(child.id).pipe(
+            map(fees => this.enrichChildWithFees(child, fees)),
+            catchError(() => of(child)) // Return child without fee data on error
+          )
+        );
+        return forkJoin(feeRequests);
+      })
+    );
+  }
 
-    // Handle nested student object
-    const student = data.student || data;
-
-    // Build full name from various possible fields
-    const firstName = student.firstName ?? student.first_name ?? student.firstname ?? '';
-    const lastName = student.lastName ?? student.last_name ?? student.lastname ?? '';
-    const fullName = student.fullName ?? student.full_name ?? student.name ??
-      (firstName || lastName ? `${firstName} ${lastName}`.trim() : '');
-
-    // Get class info - might be nested
-    const classInfo = student.currentClass ?? student.current_class ?? student.schoolClass ?? student.school_class ?? {};
-    const className = typeof classInfo === 'string' ? classInfo :
-      (classInfo.name ?? classInfo.className ?? classInfo.class_name ?? '');
-    const grade = typeof classInfo === 'object' ? (classInfo.grade ?? classInfo.gradeLevel ?? 0) : (student.grade ?? 0);
+  private enrichChildWithFees(child: ChildSummary, fees: StudentFee[]): ChildSummary {
+    const totalFees = fees.reduce((sum, fee) => sum + (fee.netAmount || fee.amount || 0), 0);
+    const totalPaid = fees.reduce((sum, fee) => sum + (fee.amountPaid || 0), 0);
+    const balance = fees.reduce((sum, fee) => sum + (fee.balance || 0), 0);
+    const pendingFees = fees.filter(fee => fee.status !== 'PAID').length;
 
     return {
-      id: student.id ?? data.id ?? 0,
-      studentId: student.studentId ?? student.student_id ?? student.studentNumber ?? student.student_number ?? '',
-      fullName: fullName,
+      ...child,
+      totalFees,
+      totalPaid,
+      balance,
+      pendingFees
+    };
+  }
+
+  private transformChild(data: any): ChildSummary {
+    // Get class info - might be nested object
+    const classInfo = data.currentClass || {};
+    const className = typeof classInfo === 'string' ? classInfo : (classInfo.name || '');
+    const grade = typeof classInfo === 'object' ? (classInfo.grade || 0) : 0;
+
+    return {
+      id: data.id || 0,
+      studentId: data.studentId || '',
+      fullName: data.fullName || `${data.firstName || ''} ${data.lastName || ''}`.trim(),
       currentClass: className,
       grade: grade,
-      photoUrl: student.photoUrl ?? student.photo_url ?? student.photo ?? student.avatar,
-      totalFees: student.totalFees ?? student.total_fees ?? student.feesAmount ?? student.fees_amount ?? 0,
-      totalPaid: student.totalPaid ?? student.total_paid ?? student.paidAmount ?? student.paid_amount ?? student.amountPaid ?? student.amount_paid ?? 0,
-      balance: student.balance ?? student.outstandingBalance ?? student.outstanding_balance ?? student.remainingBalance ?? student.remaining_balance ?? 0,
-      pendingFees: student.pendingFees ?? student.pending_fees ?? student.pendingCount ?? student.pending_count ?? 0
+      photoUrl: data.photoUrl || data.photo,
+      // Fee data will be enriched separately
+      totalFees: 0,
+      totalPaid: 0,
+      balance: 0,
+      pendingFees: 0
     };
   }
 
@@ -269,9 +294,32 @@ export class ParentService {
   }
 
   getChildFees(childId: number): Observable<StudentFee[]> {
-    return this.http.get<StudentFee[]>(`${this.baseUrl}/children/${childId}/fees`).pipe(
+    return this.http.get<any>(`${this.baseUrl}/children/${childId}/fees`).pipe(
+      map(response => {
+        // Handle different response formats
+        const fees = Array.isArray(response) ? response : (response.content || response.fees || response.data || []);
+        return fees.map((fee: any) => this.transformFee(fee));
+      }),
       catchError(() => of(this.mockFees))
     );
+  }
+
+  private transformFee(data: any): StudentFee {
+    return {
+      id: data.id || 0,
+      feeName: data.feeName || data.fee_name || data.name || '',
+      category: data.category || data.feeCategory || '',
+      academicYear: data.academicYear || data.academic_year || '',
+      term: data.term || '',
+      dueDate: data.dueDate || data.due_date || '',
+      amount: data.amount || 0,
+      discountAmount: data.discountAmount || data.discount_amount || data.discount || 0,
+      netAmount: data.netAmount || data.net_amount || data.amount || 0,
+      amountPaid: data.amountPaid || data.amount_paid || data.paidAmount || data.paid_amount || 0,
+      balance: data.balance || data.remainingBalance || data.remaining_balance || 0,
+      status: data.status || 'PENDING',
+      payments: data.payments || []
+    };
   }
 
   getPaymentHistory(page: number = 0, size: number = 10): Observable<PagedResponse<Payment>> {

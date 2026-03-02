@@ -45,10 +45,10 @@ export class ParentDashboardComponent implements OnInit {
     this.isLoading.set(true);
     this.error.set(null);
 
-    // Load stats and children in parallel
+    // Load stats and children with fees in parallel
     forkJoin({
       stats: this.parentService.getDashboardStats(),
-      children: this.parentService.getChildren()
+      children: this.parentService.getChildrenWithFees()
     }).subscribe({
       next: (result) => {
         this.stats.set(result.stats);
