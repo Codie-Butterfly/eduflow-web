@@ -1,6 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
-import { Observable, of, catchError } from 'rxjs';
+import { Observable, of, catchError, map } from 'rxjs';
 import { environment } from '../../../../environments/environment';
 import { Student, StudentFee, Payment, PagedResponse, CreatePaymentRequest } from '../../../core/models';
 
@@ -24,6 +24,7 @@ export interface ParentDashboardStats {
   totalBalance: number;
   overdueCount: number;
   upcomingDueCount: number;
+  unreadNotifications: number;
 }
 
 @Injectable({
@@ -155,16 +156,30 @@ export class ParentService {
   ];
 
   getDashboardStats(): Observable<ParentDashboardStats> {
-    return this.http.get<ParentDashboardStats>(`${this.baseUrl}/dashboard`).pipe(
+    return this.http.get<any>(`${this.baseUrl}/dashboard`).pipe(
+      map(response => this.transformDashboardStats(response)),
       catchError(() => of({
         totalChildren: 2,
         totalFees: 27000,
         totalPaid: 22000,
         totalBalance: 5000,
         overdueCount: 1,
-        upcomingDueCount: 1
+        upcomingDueCount: 0,
+        unreadNotifications: 0
       }))
     );
+  }
+
+  private transformDashboardStats(data: any): ParentDashboardStats {
+    return {
+      totalChildren: data.totalChildren ?? 0,
+      totalFees: data.totalFeesDue ?? data.totalFees ?? 0,
+      totalPaid: data.totalFeesPaid ?? data.totalPaid ?? 0,
+      totalBalance: data.outstandingBalance ?? data.totalBalance ?? 0,
+      overdueCount: data.overdueCount ?? 0,
+      upcomingDueCount: data.upcomingDueCount ?? 0,
+      unreadNotifications: data.unreadNotifications ?? 0
+    };
   }
 
   getChildren(): Observable<ChildSummary[]> {
