@@ -143,12 +143,18 @@ export class AuthService {
   // Helper methods
   hasRole(role: string): boolean {
     const user = this.currentUserSignal();
-    return user?.roles?.includes(role) ?? false;
+    if (!user?.roles) return false;
+    // Check both formats: 'ADMIN' and 'ROLE_ADMIN'
+    return user.roles.includes(role) || user.roles.includes(`ROLE_${role}`);
   }
 
   hasAnyRole(roles: string[]): boolean {
     const user = this.currentUserSignal();
-    return roles.some(role => user?.roles?.includes(role));
+    if (!user?.roles) return false;
+    // Check both formats for each role
+    return roles.some(role =>
+      user.roles.includes(role) || user.roles.includes(`ROLE_${role}`)
+    );
   }
 
   getAccessToken(): string | null {
@@ -204,10 +210,11 @@ export class AuthService {
     const user = this.currentUserSignal();
     if (!user) return '/auth/login';
 
-    if (user.roles.includes('ADMIN')) return '/admin';
-    if (user.roles.includes('TEACHER')) return '/teacher';
-    if (user.roles.includes('PARENT')) return '/parent';
-    if (user.roles.includes('STUDENT')) return '/student';
+    // Check both formats: 'ADMIN' and 'ROLE_ADMIN'
+    if (this.hasRole('ADMIN')) return '/admin';
+    if (this.hasRole('TEACHER')) return '/teacher';
+    if (this.hasRole('PARENT')) return '/parent';
+    if (this.hasRole('STUDENT')) return '/student';
 
     return '/auth/login';
   }
