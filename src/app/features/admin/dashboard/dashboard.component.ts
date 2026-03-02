@@ -10,7 +10,7 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 
 import { AuthService } from '../../../core/services';
 import { StatCardComponent } from '../../../shared/components/stat-card/stat-card.component';
-import { DashboardService, DashboardStats, RecentPayment } from '../services/dashboard.service';
+import { DashboardService, DashboardStats, StudentFeeSummary } from '../services/dashboard.service';
 
 @Component({
   selector: 'app-admin-dashboard',
@@ -52,9 +52,9 @@ export class DashboardComponent implements OnInit {
     collectionRate: 0
   });
 
-  recentPayments = signal<RecentPayment[]>([]);
+  studentFeeSummaries = signal<StudentFeeSummary[]>([]);
 
-  displayedColumns = ['studentName', 'amount', 'method', 'status', 'date'];
+  displayedColumns = ['studentName', 'totalAmount', 'paid', 'balance', 'status'];
 
   ngOnInit(): void {
     this.loadDashboardData();
@@ -62,7 +62,7 @@ export class DashboardComponent implements OnInit {
 
   private loadDashboardData(): void {
     this.loadStats();
-    this.loadRecentPayments();
+    this.loadStudentFeeSummaries();
   }
 
   private loadStats(): void {
@@ -80,16 +80,16 @@ export class DashboardComponent implements OnInit {
     });
   }
 
-  private loadRecentPayments(): void {
+  private loadStudentFeeSummaries(): void {
     this.paymentsLoading.set(true);
-    this.dashboardService.getRecentPayments(5).subscribe({
-      next: (payments) => {
-        console.log('Recent payments loaded:', payments);
-        this.recentPayments.set(payments);
+    this.dashboardService.getStudentFeeSummaries(5).subscribe({
+      next: (summaries) => {
+        console.log('Student fee summaries loaded:', summaries);
+        this.studentFeeSummaries.set(summaries);
         this.paymentsLoading.set(false);
       },
       error: (err) => {
-        console.error('Failed to load recent payments:', err);
+        console.error('Failed to load student fee summaries:', err);
         this.paymentsLoading.set(false);
       }
     });

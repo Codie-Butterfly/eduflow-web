@@ -1,0 +1,97 @@
+@use 'styles/variables' as *;
+@use 'styles/mixins' as *;
+
+.reports-index {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.page-header {
+  margin-bottom: $spacing-xl;
+
+  h1 {
+    margin: 0;
+    font-size: $font-size-xxl;
+  }
+
+  p {
+    margin: $spacing-xs 0 0;
+  }
+}
+
+.reports-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: $spacing-lg;
+
+  @include tablet {
+    grid-template-columns: 1fr;
+  }
+}
+
+.report-card {
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+
+  &:hover {
+    transform: translateY(-4px);
+    box-shadow: $shadow-lg;
+  }
+
+  .card-content {
+    display: flex;
+    align-items: center;
+    gap: $spacing-md;
+    padding: $spacing-md;
+  }
+
+  .icon-wrapper {
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+
+    mat-icon {
+      font-size: 28px;
+      width: 28px;
+      height: 28px;
+      color: white;
+    }
+
+    &.primary { background: $primary-color; }
+    &.success { background: $success-color; }
+    &.warning { background: $warning-color; }
+    &.error { background: $error-color; }
+    &.info { background: $info-color; }
+  }
+
+  .report-info {
+    flex: 1;
+
+    h3 {
+      margin: 0 0 $spacing-xs;
+      font-size: $font-size-lg;
+      font-weight: $font-weight-medium;
+    }
+
+    p {
+      margin: 0;
+      color: $text-secondary;
+      font-size: $font-size-sm;
+      line-height: 1.4;
+    }
+  }
+
+  .arrow-icon {
+    color: $text-secondary;
+    transition: transform 0.2s ease;
+  }
+
+  &:hover .arrow-icon {
+    transform: translateX(4px);
+    color: $primary-color;
+  }
+}

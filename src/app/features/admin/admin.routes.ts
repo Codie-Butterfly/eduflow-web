@@ -111,6 +111,35 @@ export const ADMIN_ROUTES: Routes = [
     loadComponent: () => import('./payments/payment-list/payment-list.component').then(m => m.PaymentListComponent)
   },
   {
+    path: 'reports',
+    children: [
+      {
+        path: '',
+        loadComponent: () => import('./reports/reports-index/reports-index.component').then(m => m.ReportsIndexComponent)
+      },
+      {
+        path: 'students',
+        loadComponent: () => import('./reports/student-report/student-report.component').then(m => m.StudentReportComponent)
+      },
+      {
+        path: 'fee-collection',
+        loadComponent: () => import('./reports/fee-collection/fee-collection-report.component').then(m => m.FeeCollectionReportComponent)
+      },
+      {
+        path: 'payment-history',
+        loadComponent: () => import('./reports/payment-history/payment-history-report.component').then(m => m.PaymentHistoryReportComponent)
+      },
+      {
+        path: 'overdue-fees',
+        loadComponent: () => import('./reports/overdue-fees/overdue-fees-report.component').then(m => m.OverdueFeesReportComponent)
+      },
+      {
+        path: 'pending-payments',
+        loadComponent: () => import('./reports/pending-payments/pending-payments-report.component').then(m => m.PendingPaymentsReportComponent)
+      }
+    ]
+  },
+  {
     path: '',
     redirectTo: 'dashboard',
     pathMatch: 'full'

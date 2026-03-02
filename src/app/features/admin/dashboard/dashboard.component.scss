@@ -129,6 +129,11 @@
     color: $text-secondary;
     font-style: italic;
   }
+
+  .balance-warning {
+    color: $warning-color;
+    font-weight: $font-weight-medium;
+  }
 }
 
 .quick-actions {

@@ -1,0 +1,23 @@
+<div class="reports-index">
+  <header class="page-header">
+    <h1>Reports</h1>
+    <p class="text-secondary">View and analyze school data</p>
+  </header>
+
+  <div class="reports-grid">
+    @for (report of reports; track report.route) {
+      <mat-card class="report-card" [routerLink]="report.route">
+        <div class="card-content">
+          <div class="icon-wrapper" [class]="report.color">
+            <mat-icon>{{ report.icon }}</mat-icon>
+          </div>
+          <div class="report-info">
+            <h3>{{ report.title }}</h3>
+            <p>{{ report.description }}</p>
+          </div>
+          <mat-icon class="arrow-icon">chevron_right</mat-icon>
+        </div>
+      </mat-card>
+    }
+  </div>
+</div>

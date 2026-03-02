@@ -31,6 +31,20 @@ export interface RecentPayment {
   academicYear?: string;
 }
 
+// Aggregated student fee summary
+export interface StudentFeeSummary {
+  studentId: number;
+  studentCode: string;
+  studentName: string;
+  className?: string;
+  totalAmount: number;
+  totalPaid: number;
+  balance: number;
+  feeCount: number;
+  dueDate: Date | null;
+  status: 'completed' | 'pending' | 'failed';
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -141,6 +155,79 @@ export class DashboardService {
       }),
       catchError(() => of(this.mockPayments))
     );
+  }
+
+  // Get aggregated fees per student (summed up)
+  getStudentFeeSummaries(limit: number = 5): Observable<StudentFeeSummary[]> {
+    console.log('Fetching aggregated student fees...');
+
+    return this.http.get<any>(`${this.baseUrl}/fees/assignments?page=0&size=100`).pipe(
+      map(response => {
+        console.log('Fee assignments for aggregation:', response);
+        const feeAssignments = response.content || response.data || response || [];
+        return this.aggregateFeesByStudent(feeAssignments, limit);
+      }),
+      catchError((error) => {
+        console.error('Failed to fetch fee assignments:', error);
+        return of([]);
+      })
+    );
+  }
+
+  private aggregateFeesByStudent(fees: any[], limit: number): StudentFeeSummary[] {
+    const studentMap = new Map<number, StudentFeeSummary>();
+
+    fees.forEach(fee => {
+      const studentId = fee.student?.id;
+      if (!studentId) return;
+
+      if (!studentMap.has(studentId)) {
+        studentMap.set(studentId, {
+          studentId: studentId,
+          studentCode: fee.student?.studentId || '',
+          studentName: fee.student?.fullName || `${fee.student?.firstName || ''} ${fee.student?.lastName || ''}`.trim() || 'Unknown',
+          className: fee.student?.className || '',
+          totalAmount: 0,
+          totalPaid: 0,
+          balance: 0,
+          feeCount: 0,
+          dueDate: null,
+          status: 'completed'
+        });
+      }
+
+      const summary = studentMap.get(studentId)!;
+      summary.totalAmount += fee.netAmount || fee.amount || 0;
+      summary.totalPaid += fee.amountPaid || 0;
+      summary.balance += fee.balance || 0;
+      summary.feeCount++;
+
+      // Track the furthest (latest) due date
+      if (fee.dueDate) {
+        const feeDueDate = new Date(fee.dueDate);
+        if (!summary.dueDate || feeDueDate > summary.dueDate) {
+          summary.dueDate = feeDueDate;
+        }
+      }
+    });
+
+    // Calculate status for each student
+    studentMap.forEach(summary => {
+      if (summary.balance <= 0) {
+        summary.status = 'completed';
+      } else if (summary.dueDate && summary.dueDate < new Date()) {
+        summary.status = 'failed'; // overdue
+      } else if (summary.totalPaid > 0) {
+        summary.status = 'pending'; // partial
+      } else {
+        summary.status = 'pending';
+      }
+    });
+
+    // Sort by balance descending and return top entries
+    return Array.from(studentMap.values())
+      .sort((a, b) => b.balance - a.balance)
+      .slice(0, limit);
   }
 
   private transformFeeAssignment(data: any): RecentPayment {

@@ -1,0 +1,130 @@
+@use 'styles/variables' as *;
+@use 'styles/mixins' as *;
+
+.overdue-fees-report {
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.page-header {
+  @include flex-between;
+  flex-wrap: wrap;
+  gap: $spacing-md;
+  margin-bottom: $spacing-xl;
+
+  h1 { margin: 0; font-size: $font-size-xxl; }
+  p { margin: $spacing-xs 0 0; }
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: $spacing-sm;
+}
+
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: $spacing-md;
+  padding: $spacing-xxl;
+  color: $text-secondary;
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: $spacing-lg;
+  margin-bottom: $spacing-xl;
+
+  @include desktop { grid-template-columns: repeat(2, 1fr); }
+  @include mobile { grid-template-columns: 1fr; }
+}
+
+.search-card {
+  margin-bottom: $spacing-lg;
+
+  mat-card-content {
+    display: flex;
+    gap: $spacing-md;
+    align-items: center;
+
+    .search-field { flex: 1; }
+  }
+}
+
+.data-table-card {
+  mat-card-header {
+    @include flex-between;
+    margin-bottom: $spacing-md;
+
+    .record-count {
+      font-size: $font-size-sm;
+      color: $text-secondary;
+    }
+  }
+
+  .data-table { width: 100%; }
+
+  .student-info {
+    display: flex;
+    flex-direction: column;
+
+    .name { font-weight: $font-weight-medium; }
+    .code { font-size: $font-size-sm; color: $text-secondary; }
+  }
+
+  .balance-cell {
+    font-weight: $font-weight-bold;
+    color: $error-color;
+  }
+
+  .overdue-badge {
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: $border-radius-md;
+    font-size: $font-size-sm;
+    font-weight: $font-weight-medium;
+
+    &.low {
+      background: rgba($warning-color, 0.1);
+      color: $warning-color;
+    }
+
+    &.medium {
+      background: rgba($warning-color, 0.2);
+      color: darken($warning-color, 10%);
+    }
+
+    &.high {
+      background: rgba($error-color, 0.15);
+      color: $error-color;
+    }
+
+    &.critical {
+      background: $error-color;
+      color: white;
+    }
+  }
+}
+
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: $spacing-xl;
+  color: $text-secondary;
+
+  mat-icon { font-size: 48px; width: 48px; height: 48px; opacity: 0.5; margin-bottom: $spacing-md; }
+  p { margin: 0; }
+
+  &.success {
+    mat-icon { color: $success-color; opacity: 1; }
+    p { color: $success-color; }
+  }
+}
+
+::ng-deep .mat-mdc-table { background: transparent; }
+::ng-deep .mat-mdc-header-cell { font-weight: $font-weight-medium; color: $text-secondary; }
+::ng-deep .mat-mdc-row:hover { background: rgba(0, 0, 0, 0.02); }

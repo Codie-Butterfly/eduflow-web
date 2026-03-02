@@ -1,0 +1,158 @@
+<div class="overdue-fees-report">
+  <header class="page-header">
+    <div>
+      <h1>Overdue Fees Report</h1>
+      <p class="text-secondary">Students with fees past their due date</p>
+    </div>
+    <div class="header-actions">
+      <button mat-button (click)="refreshReport()" [disabled]="loading()">
+        <mat-icon>refresh</mat-icon>
+        Refresh
+      </button>
+    </div>
+  </header>
+
+  @if (loading()) {
+    <div class="loading-container">
+      <mat-spinner diameter="40"></mat-spinner>
+      <span>Loading report...</span>
+    </div>
+  } @else if (reportData()) {
+    <!-- Summary Cards -->
+    <div class="stats-grid">
+      <app-stat-card
+        title="Total Overdue"
+        [value]="reportData()!.totalOverdueAmount"
+        icon="warning"
+        color="error"
+        [isCurrency]="true">
+      </app-stat-card>
+
+      <app-stat-card
+        title="Students Affected"
+        [value]="reportData()!.totalStudentsOverdue"
+        icon="people"
+        color="warning">
+      </app-stat-card>
+
+      <app-stat-card
+        title="Overdue Records"
+        [value]="reportData()!.records.length"
+        icon="assignment_late"
+        color="warning">
+      </app-stat-card>
+
+      <app-stat-card
+        title="Avg Days Overdue"
+        [value]="reportData()!.averageDaysOverdue + ' days'"
+        icon="schedule"
+        color="error">
+      </app-stat-card>
+    </div>
+
+    <!-- Search -->
+    <mat-card class="search-card">
+      <mat-card-content>
+        <mat-form-field appearance="outline" class="search-field">
+          <mat-label>Search</mat-label>
+          <input matInput [(ngModel)]="searchQuery" (keyup.enter)="onSearch()" placeholder="Student name, code, fee, or class...">
+          <mat-icon matSuffix>search</mat-icon>
+        </mat-form-field>
+        <button mat-raised-button color="primary" (click)="onSearch()">
+          Search
+        </button>
+      </mat-card-content>
+    </mat-card>
+
+    <!-- Overdue Table -->
+    <mat-card class="data-table-card">
+      <mat-card-header>
+        <mat-card-title>Overdue Fee Records</mat-card-title>
+        <span class="record-count">{{ totalElements }} records</span>
+      </mat-card-header>
+      <mat-card-content>
+        @if (paginatedRecords().length === 0) {
+          <div class="empty-state success">
+            <mat-icon>check_circle</mat-icon>
+            <p>No overdue fees found</p>
+          </div>
+        } @else {
+          <table mat-table [dataSource]="paginatedRecords()" class="data-table">
+            <ng-container matColumnDef="studentName">
+              <th mat-header-cell *matHeaderCellDef>Student</th>
+              <td mat-cell *matCellDef="let row">
+                <div class="student-info">
+                  <span class="name">{{ row.studentName }}</span>
+                  <small class="code">{{ row.studentCode }}</small>
+                </div>
+              </td>
+            </ng-container>
+
+            <ng-container matColumnDef="className">
+              <th mat-header-cell *matHeaderCellDef>Class</th>
+              <td mat-cell *matCellDef="let row">{{ row.className }}</td>
+            </ng-container>
+
+            <ng-container matColumnDef="feeName">
+              <th mat-header-cell *matHeaderCellDef>Fee</th>
+              <td mat-cell *matCellDef="let row">{{ row.feeName }}</td>
+            </ng-container>
+
+            <ng-container matColumnDef="category">
+              <th mat-header-cell *matHeaderCellDef>Category</th>
+              <td mat-cell *matCellDef="let row">
+                <mat-chip>{{ getCategoryLabel(row.category) }}</mat-chip>
+              </td>
+            </ng-container>
+
+            <ng-container matColumnDef="balance">
+              <th mat-header-cell *matHeaderCellDef>Balance</th>
+              <td mat-cell *matCellDef="let row" class="balance-cell">
+                {{ row.balance | currency:'ZMW':'symbol':'1.0-0' }}
+              </td>
+            </ng-container>
+
+            <ng-container matColumnDef="dueDate">
+              <th mat-header-cell *matHeaderCellDef>Due Date</th>
+              <td mat-cell *matCellDef="let row">{{ row.dueDate | date:'mediumDate' }}</td>
+            </ng-container>
+
+            <ng-container matColumnDef="daysOverdue">
+              <th mat-header-cell *matHeaderCellDef>Days Overdue</th>
+              <td mat-cell *matCellDef="let row">
+                <div class="overdue-badge" [class]="getOverdueSeverity(row.daysOverdue)">
+                  {{ row.daysOverdue }} days
+                </div>
+              </td>
+            </ng-container>
+
+            <ng-container matColumnDef="actions">
+              <th mat-header-cell *matHeaderCellDef>Actions</th>
+              <td mat-cell *matCellDef="let row">
+                <button mat-icon-button [matTooltip]="'View Student'"
+                        [routerLink]="['/admin/students', row.studentId]">
+                  <mat-icon>visibility</mat-icon>
+                </button>
+                <button mat-icon-button [matTooltip]="'Send Reminder'"
+                        (click)="sendReminder(row)">
+                  <mat-icon>notifications</mat-icon>
+                </button>
+              </td>
+            </ng-container>
+
+            <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+            <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+          </table>
+
+          <mat-paginator
+            [length]="totalElements"
+            [pageSize]="pageSize"
+            [pageIndex]="currentPage"
+            [pageSizeOptions]="[10, 25, 50, 100]"
+            (page)="onPageChange($event)">
+          </mat-paginator>
+        }
+      </mat-card-content>
+    </mat-card>
+  }
+</div>

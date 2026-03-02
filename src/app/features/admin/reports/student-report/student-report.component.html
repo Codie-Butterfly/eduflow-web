@@ -1,0 +1,217 @@
+<div class="student-report">
+  <header class="page-header">
+    <div>
+      <h1>Student Report</h1>
+      <p class="text-secondary">Overview of student enrollment and demographics</p>
+    </div>
+    <div class="header-actions">
+      <mat-form-field appearance="outline" class="year-select">
+        <mat-label>Academic Year</mat-label>
+        <mat-select [(ngModel)]="selectedAcademicYear" (selectionChange)="onAcademicYearChange()">
+          <mat-option value="">All Years</mat-option>
+          @for (year of academicYears; track year) {
+            <mat-option [value]="year">{{ year }}</mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+      <button mat-button (click)="refreshReport()" [disabled]="loading()">
+        <mat-icon>refresh</mat-icon>
+        Refresh
+      </button>
+      <button mat-raised-button color="primary" (click)="exportReport()" [disabled]="loading()">
+        <mat-icon>download</mat-icon>
+        Export CSV
+      </button>
+    </div>
+  </header>
+
+  @if (loading()) {
+    <div class="loading-container">
+      <mat-spinner diameter="40"></mat-spinner>
+      <span>Loading report...</span>
+    </div>
+  } @else if (reportData()) {
+    <!-- Summary Cards -->
+    <div class="stats-grid">
+      <app-stat-card
+        title="Total Students"
+        [value]="reportData()!.summary.totalStudents"
+        icon="school"
+        color="primary">
+      </app-stat-card>
+
+      <app-stat-card
+        title="Active Students"
+        [value]="reportData()!.summary.activeStudents"
+        icon="check_circle"
+        color="success">
+      </app-stat-card>
+
+      <app-stat-card
+        title="Male Students"
+        [value]="reportData()!.summary.maleStudents"
+        icon="male"
+        color="primary">
+      </app-stat-card>
+
+      <app-stat-card
+        title="Female Students"
+        [value]="reportData()!.summary.femaleStudents"
+        icon="female"
+        color="warning">
+      </app-stat-card>
+    </div>
+
+    <!-- Gender Distribution & New Enrollments -->
+    <div class="charts-grid">
+      <mat-card>
+        <mat-card-header>
+          <mat-card-title>Gender Distribution</mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+          <div class="gender-chart">
+            <div class="gender-bar">
+              <div class="male-bar" [style.width.%]="getMalePercentage()">
+                <span>Male {{ getMalePercentage() | number:'1.0-0' }}%</span>
+              </div>
+              <div class="female-bar" [style.width.%]="getFemalePercentage()">
+                <span>Female {{ getFemalePercentage() | number:'1.0-0' }}%</span>
+              </div>
+            </div>
+            <div class="gender-legend">
+              <div class="legend-item">
+                <span class="dot male"></span>
+                <span>Male: {{ reportData()!.summary.maleStudents }}</span>
+              </div>
+              <div class="legend-item">
+                <span class="dot female"></span>
+                <span>Female: {{ reportData()!.summary.femaleStudents }}</span>
+              </div>
+            </div>
+          </div>
+        </mat-card-content>
+      </mat-card>
+
+      <mat-card>
+        <mat-card-header>
+          <mat-card-title>Enrollment Trends (Last 6 Months)</mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+          <div class="enrollment-chart">
+            @for (trend of reportData()!.enrollmentTrends; track trend.month) {
+              <div class="bar-container">
+                <div class="bar" [style.height.%]="getBarHeight(trend.count)"
+                     [matTooltip]="trend.count + ' students'">
+                </div>
+                <span class="bar-label">{{ trend.month }}</span>
+              </div>
+            }
+          </div>
+          <div class="new-enrollments">
+            <mat-icon>trending_up</mat-icon>
+            <span>{{ reportData()!.summary.newEnrollments }} new enrollments in the last 30 days</span>
+          </div>
+        </mat-card-content>
+      </mat-card>
+    </div>
+
+    <!-- Tabs for By Grade / By Class -->
+    <mat-card class="data-tables">
+      <mat-tab-group>
+        <mat-tab label="By Grade">
+          <div class="tab-content">
+            @if (reportData()!.byGrade.length === 0) {
+              <div class="empty-state">
+                <mat-icon>school</mat-icon>
+                <p>No grade data available</p>
+              </div>
+            } @else {
+              <table mat-table [dataSource]="reportData()!.byGrade" class="data-table">
+                <ng-container matColumnDef="grade">
+                  <th mat-header-cell *matHeaderCellDef>Grade</th>
+                  <td mat-cell *matCellDef="let row">Grade {{ row.grade }}</td>
+                </ng-container>
+
+                <ng-container matColumnDef="classCount">
+                  <th mat-header-cell *matHeaderCellDef>Classes</th>
+                  <td mat-cell *matCellDef="let row">{{ row.classCount }}</td>
+                </ng-container>
+
+                <ng-container matColumnDef="totalStudents">
+                  <th mat-header-cell *matHeaderCellDef>Total Students</th>
+                  <td mat-cell *matCellDef="let row">
+                    <strong>{{ row.totalStudents }}</strong>
+                  </td>
+                </ng-container>
+
+                <ng-container matColumnDef="maleCount">
+                  <th mat-header-cell *matHeaderCellDef>Male</th>
+                  <td mat-cell *matCellDef="let row">{{ row.maleCount }}</td>
+                </ng-container>
+
+                <ng-container matColumnDef="femaleCount">
+                  <th mat-header-cell *matHeaderCellDef>Female</th>
+                  <td mat-cell *matCellDef="let row">{{ row.femaleCount }}</td>
+                </ng-container>
+
+                <tr mat-header-row *matHeaderRowDef="gradeColumns"></tr>
+                <tr mat-row *matRowDef="let row; columns: gradeColumns;"></tr>
+              </table>
+            }
+          </div>
+        </mat-tab>
+
+        <mat-tab label="By Class">
+          <div class="tab-content">
+            @if (reportData()!.byClass.length === 0) {
+              <div class="empty-state">
+                <mat-icon>class</mat-icon>
+                <p>No class data available</p>
+              </div>
+            } @else {
+              <table mat-table [dataSource]="reportData()!.byClass" class="data-table">
+                <ng-container matColumnDef="className">
+                  <th mat-header-cell *matHeaderCellDef>Class Name</th>
+                  <td mat-cell *matCellDef="let row">{{ row.className }}</td>
+                </ng-container>
+
+                <ng-container matColumnDef="grade">
+                  <th mat-header-cell *matHeaderCellDef>Grade</th>
+                  <td mat-cell *matCellDef="let row">Grade {{ row.grade }}</td>
+                </ng-container>
+
+                <ng-container matColumnDef="totalStudents">
+                  <th mat-header-cell *matHeaderCellDef>Total Students</th>
+                  <td mat-cell *matCellDef="let row">
+                    <strong>{{ row.totalStudents }}</strong>
+                  </td>
+                </ng-container>
+
+                <ng-container matColumnDef="maleCount">
+                  <th mat-header-cell *matHeaderCellDef>Male</th>
+                  <td mat-cell *matCellDef="let row">{{ row.maleCount }}</td>
+                </ng-container>
+
+                <ng-container matColumnDef="femaleCount">
+                  <th mat-header-cell *matHeaderCellDef>Female</th>
+                  <td mat-cell *matCellDef="let row">{{ row.femaleCount }}</td>
+                </ng-container>
+
+                <tr mat-header-row *matHeaderRowDef="classColumns"></tr>
+                <tr mat-row *matRowDef="let row; columns: classColumns;"></tr>
+              </table>
+            }
+          </div>
+        </mat-tab>
+      </mat-tab-group>
+    </mat-card>
+  } @else {
+    <div class="empty-state">
+      <mat-icon>assessment</mat-icon>
+      <p>No report data available</p>
+      <button mat-button color="primary" (click)="refreshReport()">
+        Try Again
+      </button>
+    </div>
+  }
+</div>

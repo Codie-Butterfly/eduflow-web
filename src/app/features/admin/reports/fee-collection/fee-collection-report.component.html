@@ -1,0 +1,231 @@
+<div class="fee-collection-report">
+  <header class="page-header">
+    <div>
+      <h1>Fee Collection Report</h1>
+      <p class="text-secondary">Overview of fee collection and outstanding balances</p>
+    </div>
+    <div class="header-actions">
+      <mat-form-field appearance="outline" class="year-select">
+        <mat-label>Academic Year</mat-label>
+        <mat-select [(ngModel)]="selectedAcademicYear" (selectionChange)="onAcademicYearChange()">
+          <mat-option value="">All Years</mat-option>
+          @for (year of academicYears; track year) {
+            <mat-option [value]="year">{{ year }}</mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+      <button mat-button (click)="refreshReport()" [disabled]="loading()">
+        <mat-icon>refresh</mat-icon>
+        Refresh
+      </button>
+    </div>
+  </header>
+
+  @if (loading()) {
+    <div class="loading-container">
+      <mat-spinner diameter="40"></mat-spinner>
+      <span>Loading report...</span>
+    </div>
+  } @else if (reportData()) {
+    <!-- Summary Cards -->
+    <div class="stats-grid">
+      <app-stat-card
+        title="Total Fees Due"
+        [value]="reportData()!.summary.totalFeesDue"
+        icon="account_balance"
+        color="primary"
+        [isCurrency]="true">
+      </app-stat-card>
+
+      <app-stat-card
+        title="Total Collected"
+        [value]="reportData()!.summary.totalCollected"
+        icon="payments"
+        color="success"
+        [isCurrency]="true">
+      </app-stat-card>
+
+      <app-stat-card
+        title="Outstanding"
+        [value]="reportData()!.summary.totalOutstanding"
+        icon="warning"
+        color="warning"
+        [isCurrency]="true">
+      </app-stat-card>
+
+      <app-stat-card
+        title="Collection Rate"
+        [value]="(reportData()!.summary.collectionRate | number:'1.1-1') + '%'"
+        icon="trending_up"
+        [color]="reportData()!.summary.collectionRate >= 80 ? 'success' : reportData()!.summary.collectionRate >= 50 ? 'warning' : 'error'">
+      </app-stat-card>
+    </div>
+
+    <!-- Payment Status Cards -->
+    <div class="status-cards">
+      <mat-card class="status-card fully-paid">
+        <div class="status-icon">
+          <mat-icon>check_circle</mat-icon>
+        </div>
+        <div class="status-info">
+          <span class="status-value">{{ reportData()!.summary.fullyPaidCount }}</span>
+          <span class="status-label">Fully Paid</span>
+        </div>
+      </mat-card>
+
+      <mat-card class="status-card partial-paid">
+        <div class="status-icon">
+          <mat-icon>timelapse</mat-icon>
+        </div>
+        <div class="status-info">
+          <span class="status-value">{{ reportData()!.summary.partialPaidCount }}</span>
+          <span class="status-label">Partial Payment</span>
+        </div>
+      </mat-card>
+
+      <mat-card class="status-card unpaid">
+        <div class="status-icon">
+          <mat-icon>cancel</mat-icon>
+        </div>
+        <div class="status-info">
+          <span class="status-value">{{ reportData()!.summary.unpaidCount }}</span>
+          <span class="status-label">Unpaid</span>
+        </div>
+      </mat-card>
+    </div>
+
+    <!-- Charts Grid -->
+    <div class="charts-grid">
+      <mat-card>
+        <mat-card-header>
+          <mat-card-title>Collection Trends</mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+          @if (reportData()!.byMonth.length === 0) {
+            <div class="empty-state">
+              <mat-icon>bar_chart</mat-icon>
+              <p>No monthly data available</p>
+            </div>
+          } @else {
+            <div class="collection-chart">
+              @for (month of reportData()!.byMonth; track month.month) {
+                <div class="bar-group">
+                  <div class="stacked-bar">
+                    <div class="collected-bar"
+                         [style.height.%]="getCollectedHeight(month.collected)"
+                         [matTooltip]="'Collected: ' + (month.collected | currency:'ZMW':'symbol':'1.0-0')">
+                    </div>
+                    <div class="outstanding-bar"
+                         [style.height.%]="getOutstandingHeight(month.outstanding)"
+                         [matTooltip]="'Outstanding: ' + (month.outstanding | currency:'ZMW':'symbol':'1.0-0')">
+                    </div>
+                  </div>
+                  <span class="bar-label">{{ month.month }}</span>
+                </div>
+              }
+            </div>
+            <div class="chart-legend">
+              <div class="legend-item">
+                <span class="dot collected"></span>
+                <span>Collected</span>
+              </div>
+              <div class="legend-item">
+                <span class="dot outstanding"></span>
+                <span>Outstanding</span>
+              </div>
+            </div>
+          }
+        </mat-card-content>
+      </mat-card>
+
+      <mat-card>
+        <mat-card-header>
+          <mat-card-title>Collection by Category</mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+          @if (reportData()!.byCategory.length === 0) {
+            <div class="empty-state">
+              <mat-icon>category</mat-icon>
+              <p>No category data available</p>
+            </div>
+          } @else {
+            <div class="category-list">
+              @for (cat of reportData()!.byCategory; track cat.category) {
+                <div class="category-item">
+                  <div class="category-header">
+                    <span class="category-name">{{ getCategoryLabel(cat.category) }}</span>
+                    <span class="category-rate">{{ cat.collectionRate | number:'1.0-0' }}%</span>
+                  </div>
+                  <div class="progress-bar">
+                    <div class="progress-fill" [style.width.%]="cat.collectionRate"></div>
+                  </div>
+                  <div class="category-amounts">
+                    <small>{{ cat.totalCollected | currency:'ZMW':'symbol':'1.0-0' }} / {{ cat.totalDue | currency:'ZMW':'symbol':'1.0-0' }}</small>
+                  </div>
+                </div>
+              }
+            </div>
+          }
+        </mat-card-content>
+      </mat-card>
+    </div>
+
+    <!-- Data Table -->
+    <mat-card class="data-table-card">
+      <mat-card-header>
+        <mat-card-title>Collection by Class</mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        @if (reportData()!.byClass.length === 0) {
+          <div class="empty-state">
+            <mat-icon>class</mat-icon>
+            <p>No class data available</p>
+          </div>
+        } @else {
+          <table mat-table [dataSource]="reportData()!.byClass" class="data-table">
+            <ng-container matColumnDef="className">
+              <th mat-header-cell *matHeaderCellDef>Class</th>
+              <td mat-cell *matCellDef="let row">{{ row.className }}</td>
+            </ng-container>
+
+            <ng-container matColumnDef="studentCount">
+              <th mat-header-cell *matHeaderCellDef>Students</th>
+              <td mat-cell *matCellDef="let row">{{ row.studentCount }}</td>
+            </ng-container>
+
+            <ng-container matColumnDef="totalDue">
+              <th mat-header-cell *matHeaderCellDef>Total Due</th>
+              <td mat-cell *matCellDef="let row">{{ row.totalDue | currency:'ZMW':'symbol':'1.0-0' }}</td>
+            </ng-container>
+
+            <ng-container matColumnDef="totalCollected">
+              <th mat-header-cell *matHeaderCellDef>Collected</th>
+              <td mat-cell *matCellDef="let row" class="success-text">
+                {{ row.totalCollected | currency:'ZMW':'symbol':'1.0-0' }}
+              </td>
+            </ng-container>
+
+            <ng-container matColumnDef="outstanding">
+              <th mat-header-cell *matHeaderCellDef>Outstanding</th>
+              <td mat-cell *matCellDef="let row" class="warning-text">
+                {{ row.outstanding | currency:'ZMW':'symbol':'1.0-0' }}
+              </td>
+            </ng-container>
+
+            <ng-container matColumnDef="collectionRate">
+              <th mat-header-cell *matHeaderCellDef>Rate</th>
+              <td mat-cell *matCellDef="let row">
+                <mat-chip [color]="getCollectionRateColor(row.collectionRate)" selected>
+                  {{ row.collectionRate | number:'1.0-0' }}%
+                </mat-chip>
+              </td>
+            </ng-container>
+
+            <tr mat-header-row *matHeaderRowDef="classColumns"></tr>
+            <tr mat-row *matRowDef="let row; columns: classColumns;"></tr>
+          </table>
+        }
+      </mat-card-content>
+    </mat-card>
+  }
+</div>
