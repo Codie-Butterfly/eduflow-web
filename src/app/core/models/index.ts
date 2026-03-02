@@ -6,3 +6,4 @@ export * from './fee.model';
 export * from './payment.model';
 export * from './class.model';
 export * from './subject.model';
+export * from './announcement.model';

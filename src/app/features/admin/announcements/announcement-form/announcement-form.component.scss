@@ -1,0 +1,151 @@
+@use 'styles/variables' as *;
+@use 'styles/mixins' as *;
+
+.announcement-form {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.page-header {
+  @include flex-between;
+  flex-wrap: wrap;
+  gap: $spacing-md;
+  margin-bottom: $spacing-lg;
+
+  h1 {
+    margin: 0;
+    font-size: $font-size-xxl;
+    font-weight: $font-weight-medium;
+  }
+
+  .text-secondary {
+    margin: $spacing-xs 0 0;
+    color: $text-secondary;
+  }
+}
+
+.loading-container {
+  @include flex-center;
+  padding: $spacing-xxl;
+}
+
+.form-layout {
+  display: grid;
+  grid-template-columns: 1fr 360px;
+  gap: $spacing-lg;
+  margin-bottom: $spacing-lg;
+}
+
+.main-card,
+.settings-card {
+  mat-card-header {
+    margin-bottom: $spacing-md;
+  }
+
+  mat-card-title {
+    font-size: $font-size-lg;
+    font-weight: $font-weight-medium;
+  }
+
+  mat-card-content {
+    display: flex;
+    flex-direction: column;
+    gap: $spacing-md;
+  }
+}
+
+.full-width {
+  width: 100%;
+}
+
+.section-title {
+  margin: $spacing-md 0 $spacing-xs;
+  font-size: $font-size-md;
+  font-weight: $font-weight-medium;
+  color: $text-primary;
+}
+
+.section-description {
+  margin: 0 0 $spacing-md;
+  font-size: $font-size-sm;
+  color: $text-secondary;
+}
+
+.option-icon {
+  margin-right: $spacing-sm;
+  font-size: 18px;
+  width: 18px;
+  height: 18px;
+  vertical-align: middle;
+}
+
+.priority-low {
+  color: $text-secondary;
+}
+
+.priority-normal {
+  color: $text-primary;
+}
+
+.priority-high {
+  color: $warning-color;
+}
+
+.priority-urgent {
+  color: $error-color;
+  font-weight: $font-weight-medium;
+}
+
+.form-actions {
+  @include flex-between;
+  padding: $spacing-md;
+  background: $surface-color;
+  border-radius: $border-radius-md;
+  box-shadow: $shadow-sm;
+
+  .action-buttons {
+    display: flex;
+    gap: $spacing-md;
+  }
+
+  button {
+    mat-spinner {
+      margin-right: $spacing-sm;
+    }
+  }
+}
+
+mat-divider {
+  margin: $spacing-md 0;
+}
+
+@include tablet {
+  .form-layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+@include mobile {
+  .page-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .form-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .form-actions {
+    flex-direction: column;
+    gap: $spacing-md;
+
+    .action-buttons {
+      width: 100%;
+      flex-direction: column;
+
+      button {
+        width: 100%;
+      }
+    }
+  }
+}

@@ -1,0 +1,162 @@
+@use 'styles/variables' as *;
+@use 'styles/mixins' as *;
+
+.announcement-list {
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.page-header {
+  @include flex-between;
+  flex-wrap: wrap;
+  gap: $spacing-md;
+  margin-bottom: $spacing-lg;
+
+  h1 {
+    margin: 0;
+    font-size: $font-size-xxl;
+    font-weight: $font-weight-medium;
+  }
+
+  .text-secondary {
+    margin: $spacing-xs 0 0;
+    color: $text-secondary;
+  }
+}
+
+.filters-card {
+  margin-bottom: $spacing-md;
+
+  .filters {
+    display: flex;
+    gap: $spacing-md;
+    align-items: center;
+    flex-wrap: wrap;
+
+    .search-field {
+      flex: 1;
+      min-width: 250px;
+    }
+
+    .status-field,
+    .priority-field {
+      width: 160px;
+    }
+  }
+}
+
+.table-card {
+  .loading-container {
+    @include flex-center;
+    padding: $spacing-xxl;
+  }
+}
+
+.announcements-table {
+  width: 100%;
+
+  .announcement-title {
+    display: flex;
+    align-items: center;
+    gap: $spacing-xs;
+
+    .title-link {
+      color: $text-primary;
+      text-decoration: none;
+      font-weight: $font-weight-medium;
+
+      &:hover {
+        color: $primary-color;
+        text-decoration: underline;
+      }
+    }
+
+    .attachment-icon {
+      font-size: 18px;
+      width: 18px;
+      height: 18px;
+      color: $text-secondary;
+    }
+  }
+
+  .recipient-info {
+    display: flex;
+    align-items: center;
+    gap: $spacing-xs;
+
+    mat-icon {
+      font-size: 18px;
+      width: 18px;
+      height: 18px;
+      color: $text-secondary;
+    }
+
+    span {
+      font-size: $font-size-sm;
+    }
+  }
+
+  .read-count {
+    font-size: $font-size-sm;
+    color: $text-secondary;
+  }
+
+  .text-secondary {
+    color: $text-secondary;
+    font-style: italic;
+  }
+}
+
+.no-data-message {
+  @include flex-column;
+  @include flex-center;
+  padding: $spacing-xxl;
+  text-align: center;
+
+  mat-icon {
+    font-size: 48px;
+    width: 48px;
+    height: 48px;
+    color: $text-disabled;
+    margin-bottom: $spacing-md;
+  }
+
+  p {
+    margin: 0 0 $spacing-md;
+    color: $text-secondary;
+    font-size: $font-size-md;
+  }
+}
+
+::ng-deep {
+  .mat-mdc-row:hover {
+    background: rgba(0, 0, 0, 0.02);
+  }
+
+  .mat-column-title {
+    min-width: 200px;
+  }
+
+  .mat-column-actions {
+    width: 80px;
+    text-align: center;
+  }
+}
+
+@include mobile {
+  .page-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .filters {
+    flex-direction: column;
+
+    .search-field,
+    .status-field,
+    .priority-field {
+      width: 100%;
+      min-width: unset;
+    }
+  }
+}

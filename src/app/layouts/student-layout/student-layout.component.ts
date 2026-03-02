@@ -15,7 +15,8 @@ export class StudentLayoutComponent {
 
   sidebarItems: SidebarItem[] = [
     { icon: 'dashboard', label: 'Dashboard', route: '/student/dashboard' },
-    { icon: 'receipt_long', label: 'My Fees', route: '/student/fees' }
+    { icon: 'receipt_long', label: 'My Fees', route: '/student/fees' },
+    { icon: 'campaign', label: 'Announcements', route: '/student/announcements' }
   ];
 
   toggleSidebar(): void {

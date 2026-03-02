@@ -23,6 +23,10 @@ export const PARENT_ROUTES: Routes = [
     loadComponent: () => import('./payments/payment-history.component').then(m => m.PaymentHistoryComponent)
   },
   {
+    path: 'announcements',
+    loadComponent: () => import('./announcements/parent-announcement-inbox.component').then(m => m.ParentAnnouncementInboxComponent)
+  },
+  {
     path: '',
     redirectTo: 'dashboard',
     pathMatch: 'full'

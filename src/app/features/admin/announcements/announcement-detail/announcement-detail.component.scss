@@ -1,0 +1,241 @@
+@use 'styles/variables' as *;
+@use 'styles/mixins' as *;
+
+.announcement-detail {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.loading-container {
+  @include flex-center;
+  padding: $spacing-xxl;
+}
+
+.page-header {
+  @include flex-between;
+  gap: $spacing-md;
+  margin-bottom: $spacing-lg;
+
+  .header-left {
+    display: flex;
+    align-items: flex-start;
+    gap: $spacing-sm;
+  }
+
+  .header-info {
+    .title-row {
+      display: flex;
+      align-items: center;
+      gap: $spacing-md;
+      flex-wrap: wrap;
+
+      h1 {
+        margin: 0;
+        font-size: $font-size-xxl;
+        font-weight: $font-weight-medium;
+      }
+    }
+
+    .meta {
+      margin: $spacing-xs 0 0;
+      color: $text-secondary;
+      font-size: $font-size-sm;
+    }
+  }
+
+  .header-actions {
+    display: flex;
+    align-items: center;
+    gap: $spacing-sm;
+  }
+}
+
+.content-layout {
+  display: grid;
+  grid-template-columns: 1fr 320px;
+  gap: $spacing-lg;
+}
+
+.main-content {
+  .announcement-content {
+    font-size: $font-size-md;
+    line-height: 1.7;
+    color: $text-primary;
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+
+  mat-divider {
+    margin: $spacing-lg 0;
+  }
+
+  .attachments-section {
+    h3 {
+      display: flex;
+      align-items: center;
+      gap: $spacing-sm;
+      margin: 0 0 $spacing-md;
+      font-size: $font-size-md;
+      font-weight: $font-weight-medium;
+
+      mat-icon {
+        color: $text-secondary;
+      }
+    }
+  }
+
+  .attachments-list {
+    display: flex;
+    flex-direction: column;
+    gap: $spacing-sm;
+  }
+
+  .attachment-item {
+    display: flex;
+    align-items: center;
+    gap: $spacing-md;
+    padding: $spacing-sm $spacing-md;
+    background: $background-color;
+    border-radius: $border-radius-sm;
+    cursor: pointer;
+    transition: background $transition-fast;
+
+    &:hover {
+      background: rgba($primary-color, 0.08);
+    }
+
+    mat-icon {
+      color: $primary-color;
+    }
+
+    .attachment-info {
+      flex: 1;
+      min-width: 0;
+
+      .file-name {
+        display: block;
+        @include truncate;
+        font-weight: $font-weight-medium;
+      }
+
+      .file-size {
+        font-size: $font-size-sm;
+        color: $text-secondary;
+      }
+    }
+  }
+}
+
+.sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-md;
+}
+
+.details-card,
+.stats-card {
+  mat-card-header {
+    margin-bottom: $spacing-md;
+  }
+
+  mat-card-title {
+    font-size: $font-size-md;
+    font-weight: $font-weight-medium;
+  }
+}
+
+.detail-row {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-xs;
+  padding: $spacing-sm 0;
+  border-bottom: 1px solid $divider-color;
+
+  &:last-child {
+    border-bottom: none;
+  }
+
+  .label {
+    font-size: $font-size-sm;
+    color: $text-secondary;
+  }
+
+  .recipient-info {
+    display: flex;
+    align-items: center;
+    gap: $spacing-xs;
+
+    mat-icon {
+      font-size: 18px;
+      width: 18px;
+      height: 18px;
+      color: $text-secondary;
+    }
+  }
+
+  .class-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: $spacing-xs;
+
+    mat-chip {
+      font-size: $font-size-sm;
+    }
+  }
+}
+
+.stats-card {
+  .stat-summary {
+    text-align: center;
+    margin-bottom: $spacing-md;
+
+    .stat-number {
+      font-size: $font-size-xxxl;
+      font-weight: $font-weight-bold;
+      color: $primary-color;
+    }
+
+    .stat-label {
+      font-size: $font-size-sm;
+      color: $text-secondary;
+    }
+  }
+
+  .read-progress {
+    height: 8px;
+    border-radius: 4px;
+    margin-bottom: $spacing-sm;
+  }
+
+  .percentage-label {
+    text-align: center;
+    font-size: $font-size-sm;
+    color: $text-secondary;
+  }
+}
+
+@include tablet {
+  .content-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .sidebar {
+    order: -1;
+  }
+}
+
+@include mobile {
+  .page-header {
+    flex-direction: column;
+    align-items: flex-start;
+
+    .header-actions {
+      width: 100%;
+      justify-content: flex-end;
+    }
+  }
+
+  .content-layout {
+    grid-template-columns: 1fr;
+  }
+}

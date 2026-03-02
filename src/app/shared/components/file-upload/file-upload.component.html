@@ -1,0 +1,90 @@
+<div class="file-upload">
+  <!-- Drop Zone -->
+  <div
+    class="drop-zone"
+    [class.drag-over]="isDragOver()"
+    (dragover)="onDragOver($event)"
+    (dragleave)="onDragLeave($event)"
+    (drop)="onDrop($event)"
+    (click)="fileInput.click()"
+  >
+    <mat-icon class="upload-icon">cloud_upload</mat-icon>
+    <p class="drop-text">
+      Drag and drop files here, or <span class="browse-link">browse</span>
+    </p>
+    <p class="hint-text">
+      {{ multiple ? 'Up to ' + maxFiles + ' files' : 'Single file' }}, max {{ maxSizeMB }}MB each
+    </p>
+    <p class="accepted-types">
+      Supported: {{ acceptedTypes.join(', ') }}
+    </p>
+  </div>
+
+  <!-- Hidden File Input -->
+  <input
+    #fileInput
+    type="file"
+    [accept]="acceptedTypesString"
+    [multiple]="multiple"
+    (change)="onFileSelect($event)"
+    class="file-input"
+  />
+
+  <!-- Error Message -->
+  @if (errorMessage()) {
+    <div class="error-message">
+      <mat-icon>error</mat-icon>
+      {{ errorMessage() }}
+    </div>
+  }
+
+  <!-- File List -->
+  @if (files().length > 0) {
+    <div class="file-list">
+      @for (file of files(); track $index) {
+        <div class="file-item" [class.error]="file.status === 'error'">
+          <div class="file-icon">
+            <mat-icon>{{ getFileIcon(file.fileType) }}</mat-icon>
+          </div>
+
+          <div class="file-info">
+            <span class="file-name">{{ file.fileName }}</span>
+            <span class="file-size">{{ formatFileSize(file.fileSize) }}</span>
+
+            @if (file.status === 'uploading') {
+              <mat-progress-bar
+                mode="determinate"
+                [value]="file.progress"
+                class="upload-progress"
+              ></mat-progress-bar>
+            }
+
+            @if (file.status === 'error' && file.errorMessage) {
+              <span class="file-error">{{ file.errorMessage }}</span>
+            }
+          </div>
+
+          <div class="file-actions">
+            @if (file.status === 'success') {
+              <mat-icon class="success-icon">check_circle</mat-icon>
+            }
+
+            @if (file.status === 'uploading') {
+              <span class="progress-text">{{ file.progress }}%</span>
+            }
+
+            @if (file.status === 'error') {
+              <button mat-icon-button (click)="retryUpload($index)" title="Retry">
+                <mat-icon>refresh</mat-icon>
+              </button>
+            }
+
+            <button mat-icon-button (click)="removeFile($index)" title="Remove">
+              <mat-icon>close</mat-icon>
+            </button>
+          </div>
+        </div>
+      }
+    </div>
+  }
+</div>

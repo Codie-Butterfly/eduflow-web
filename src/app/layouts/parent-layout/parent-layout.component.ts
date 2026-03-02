@@ -16,7 +16,8 @@ export class ParentLayoutComponent {
   sidebarItems: SidebarItem[] = [
     { icon: 'dashboard', label: 'Dashboard', route: '/parent/dashboard' },
     { icon: 'people', label: 'My Children', route: '/parent/children' },
-    { icon: 'receipt_long', label: 'Payments', route: '/parent/payments' }
+    { icon: 'receipt_long', label: 'Payments', route: '/parent/payments' },
+    { icon: 'campaign', label: 'Announcements', route: '/parent/announcements' }
   ];
 
   toggleSidebar(): void {

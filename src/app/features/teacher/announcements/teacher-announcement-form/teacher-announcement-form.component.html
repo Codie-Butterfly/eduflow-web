@@ -1,0 +1,157 @@
+<div class="teacher-announcement-form">
+  <header class="page-header">
+    <div>
+      <h1>{{ isEditMode() ? 'Edit Announcement' : 'New Announcement' }}</h1>
+      <p class="text-secondary">
+        {{ isEditMode() ? 'Update your announcement' : 'Create an announcement for your classes' }}
+      </p>
+    </div>
+    <button mat-button routerLink="/teacher/announcements">
+      <mat-icon>arrow_back</mat-icon>
+      Back to List
+    </button>
+  </header>
+
+  @if (isLoading()) {
+    <div class="loading-container">
+      <mat-spinner diameter="40"></mat-spinner>
+    </div>
+  } @else {
+    <form [formGroup]="announcementForm" (ngSubmit)="onSubmit()">
+      <div class="form-layout">
+        <!-- Main Content Card -->
+        <mat-card class="main-card">
+          <mat-card-header>
+            <mat-card-title>Announcement Content</mat-card-title>
+          </mat-card-header>
+          <mat-card-content>
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Title</mat-label>
+              <input matInput formControlName="title" placeholder="Enter announcement title">
+              <mat-hint>A clear, descriptive title</mat-hint>
+              @if (title?.hasError('required') && title?.touched) {
+                <mat-error>Title is required</mat-error>
+              }
+              @if (title?.hasError('minlength')) {
+                <mat-error>Title must be at least 5 characters</mat-error>
+              }
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Message</mat-label>
+              <textarea
+                matInput
+                formControlName="content"
+                placeholder="Enter your message to students"
+                rows="6"
+              ></textarea>
+              <mat-hint align="end">{{ content?.value?.length || 0 }}/5000</mat-hint>
+              @if (content?.hasError('required') && content?.touched) {
+                <mat-error>Message is required</mat-error>
+              }
+              @if (content?.hasError('minlength')) {
+                <mat-error>Message must be at least 10 characters</mat-error>
+              }
+            </mat-form-field>
+
+            <mat-divider></mat-divider>
+
+            <h3 class="section-title">Attachments (Optional)</h3>
+            <app-file-upload
+              [multiple]="true"
+              [maxFiles]="3"
+              [maxSizeMB]="5"
+              [existingFiles]="existingAttachments()"
+              (filesUploaded)="onFilesUploaded($event)"
+              (fileRemoved)="onFileRemoved($event)"
+            ></app-file-upload>
+          </mat-card-content>
+        </mat-card>
+
+        <!-- Settings Card -->
+        <mat-card class="settings-card">
+          <mat-card-header>
+            <mat-card-title>Settings</mat-card-title>
+          </mat-card-header>
+          <mat-card-content>
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Select Classes</mat-label>
+              <mat-select formControlName="targetClassIds" multiple>
+                @for (cls of myClasses(); track cls.id) {
+                  <mat-option [value]="cls.id">
+                    {{ cls.name }}
+                    <span class="student-count">({{ cls.studentCount }} students)</span>
+                  </mat-option>
+                }
+              </mat-select>
+              <mat-hint>Select one or more classes</mat-hint>
+              @if (targetClassIds?.hasError('required') && targetClassIds?.touched) {
+                <mat-error>Please select at least one class</mat-error>
+              }
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Priority</mat-label>
+              <mat-select formControlName="priority">
+                @for (option of priorities; track option.value) {
+                  <mat-option [value]="option.value">{{ option.label }}</mat-option>
+                }
+              </mat-select>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Expiration Date (Optional)</mat-label>
+              <input matInput [matDatepicker]="picker" formControlName="expiresAt" [min]="minDate">
+              <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
+              <mat-datepicker #picker></mat-datepicker>
+              <mat-hint>Leave empty for no expiration</mat-hint>
+            </mat-form-field>
+
+            <mat-checkbox formControlName="includeParents" color="primary">
+              Also notify parents of students
+            </mat-checkbox>
+          </mat-card-content>
+        </mat-card>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="form-actions">
+        <button
+          mat-button
+          type="button"
+          routerLink="/teacher/announcements"
+          [disabled]="isSaving()"
+        >
+          Cancel
+        </button>
+        <div class="action-buttons">
+          <button
+            mat-stroked-button
+            type="button"
+            (click)="onSubmit(false)"
+            [disabled]="isSaving()"
+          >
+            @if (isSaving()) {
+              <mat-spinner diameter="20"></mat-spinner>
+            }
+            <mat-icon>save</mat-icon>
+            Save as Draft
+          </button>
+          <button
+            mat-raised-button
+            color="primary"
+            type="button"
+            (click)="onSubmit(true)"
+            [disabled]="isSaving()"
+          >
+            @if (isSaving()) {
+              <mat-spinner diameter="20"></mat-spinner>
+            }
+            <mat-icon>send</mat-icon>
+            Publish Now
+          </button>
+        </div>
+      </div>
+    </form>
+  }
+</div>

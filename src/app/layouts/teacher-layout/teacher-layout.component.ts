@@ -16,7 +16,8 @@ export class TeacherLayoutComponent {
   sidebarItems: SidebarItem[] = [
     { icon: 'dashboard', label: 'Dashboard', route: '/teacher/dashboard' },
     { icon: 'class', label: 'My Classes', route: '/teacher/classes' },
-    { icon: 'fact_check', label: 'Attendance', route: '/teacher/attendance' }
+    { icon: 'fact_check', label: 'Attendance', route: '/teacher/attendance' },
+    { icon: 'campaign', label: 'Announcements', route: '/teacher/announcements' }
   ];
 
   toggleSidebar(): void {

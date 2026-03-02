@@ -1,0 +1,136 @@
+<div class="announcement-inbox">
+  <header class="page-header">
+    <div>
+      <h1>
+        Announcements
+        @if (unreadCount() > 0) {
+          <span class="unread-badge">{{ unreadCount() }} unread</span>
+        }
+      </h1>
+      <p class="text-secondary">Stay updated with school announcements</p>
+    </div>
+  </header>
+
+  <div class="inbox-layout">
+    <!-- Announcement List -->
+    <mat-card class="list-card">
+      <mat-card-content>
+        <div class="list-header">
+          <mat-checkbox
+            [(ngModel)]="showUnreadOnly"
+            (ngModelChange)="onFilterChange()"
+            color="primary"
+          >
+            Show unread only
+          </mat-checkbox>
+        </div>
+
+        @if (isLoading()) {
+          <div class="loading-container">
+            <mat-spinner diameter="40"></mat-spinner>
+          </div>
+        } @else if (announcements().length === 0) {
+          <div class="empty-state">
+            <mat-icon>inbox</mat-icon>
+            <p>No announcements</p>
+          </div>
+        } @else {
+          <div class="announcement-list">
+            @for (announcement of announcements(); track announcement.id) {
+              <div
+                class="announcement-item"
+                [class.unread]="!announcement.isRead"
+                [class.selected]="selectedAnnouncement()?.id === announcement.id"
+                (click)="selectAnnouncement(announcement)"
+              >
+                <div class="item-indicator">
+                  @if (!announcement.isRead) {
+                    <span class="unread-dot"></span>
+                  }
+                </div>
+                <div class="item-content">
+                  <div class="item-header">
+                    <span class="item-title">{{ announcement.title }}</span>
+                    @if (announcement.priority === 'URGENT' || announcement.priority === 'HIGH') {
+                      <mat-icon class="priority-icon" [class.urgent]="announcement.priority === 'URGENT'">
+                        {{ getPriorityIcon(announcement.priority) }}
+                      </mat-icon>
+                    }
+                  </div>
+                  <div class="item-meta">
+                    <span class="item-from">{{ announcement.createdBy }}</span>
+                    <span class="item-time">{{ getTimeAgo(announcement.publishedAt!) }}</span>
+                  </div>
+                  <p class="item-preview">{{ announcement.content | slice:0:80 }}...</p>
+                </div>
+                @if (announcement.attachments?.length) {
+                  <mat-icon class="attachment-indicator">attach_file</mat-icon>
+                }
+              </div>
+            }
+          </div>
+        }
+      </mat-card-content>
+    </mat-card>
+
+    <!-- Announcement Detail -->
+    <mat-card class="detail-card">
+      @if (selectedAnnouncement()) {
+        <mat-card-content>
+          <div class="detail-header">
+            <h2>{{ selectedAnnouncement()!.title }}</h2>
+            <div class="detail-meta">
+              <span class="from">From: {{ selectedAnnouncement()!.createdBy }}</span>
+              <span class="date">{{ selectedAnnouncement()!.publishedAt | date:'MMMM d, y, h:mm a' }}</span>
+            </div>
+            <div class="detail-tags">
+              <mat-chip [color]="getPriorityColor(selectedAnnouncement()!.priority)" selected>
+                {{ selectedAnnouncement()!.priority | lowercase }} priority
+              </mat-chip>
+              @if (selectedAnnouncement()!.targetClasses?.length) {
+                @for (cls of selectedAnnouncement()!.targetClasses; track cls.id) {
+                  <mat-chip>{{ cls.name }}</mat-chip>
+                }
+              }
+            </div>
+          </div>
+
+          <mat-divider></mat-divider>
+
+          <div class="detail-content">
+            {{ selectedAnnouncement()!.content }}
+          </div>
+
+          @if (selectedAnnouncement()!.attachments?.length) {
+            <mat-divider></mat-divider>
+            <div class="attachments-section">
+              <h3>
+                <mat-icon>attach_file</mat-icon>
+                Attachments
+              </h3>
+              <div class="attachments-list">
+                @for (attachment of selectedAnnouncement()!.attachments; track attachment.id) {
+                  <button class="attachment-item" (click)="downloadAttachment(attachment)">
+                    <mat-icon>{{ getFileIcon(attachment.fileType) }}</mat-icon>
+                    <div class="attachment-info">
+                      <span class="file-name">{{ attachment.fileName }}</span>
+                      <span class="file-size">{{ formatFileSize(attachment.fileSize) }}</span>
+                    </div>
+                    <mat-icon class="download-icon">download</mat-icon>
+                  </button>
+                }
+              </div>
+            </div>
+          }
+        </mat-card-content>
+      } @else {
+        <mat-card-content>
+          <div class="no-selection">
+            <mat-icon>mail</mat-icon>
+            <p>Select an announcement to read</p>
+          </div>
+        </mat-card-content>
+      }
+    </mat-card>
+  </div>
+</div>

@@ -1,0 +1,207 @@
+@use 'styles/variables' as *;
+@use 'styles/mixins' as *;
+
+.file-upload {
+  width: 100%;
+}
+
+.drop-zone {
+  @include flex-column;
+  @include flex-center;
+  gap: $spacing-sm;
+  padding: $spacing-xl;
+  border: 2px dashed $divider-color;
+  border-radius: $border-radius-md;
+  background: rgba($primary-color, 0.02);
+  cursor: pointer;
+  transition: all $transition-fast;
+
+  &:hover {
+    border-color: $primary-color;
+    background: rgba($primary-color, 0.05);
+  }
+
+  &.drag-over {
+    border-color: $primary-color;
+    background: rgba($primary-color, 0.1);
+    transform: scale(1.01);
+  }
+
+  .upload-icon {
+    font-size: 48px;
+    width: 48px;
+    height: 48px;
+    color: $primary-color;
+    opacity: 0.7;
+  }
+
+  .drop-text {
+    margin: 0;
+    font-size: $font-size-md;
+    color: $text-primary;
+
+    .browse-link {
+      color: $primary-color;
+      font-weight: $font-weight-medium;
+      text-decoration: underline;
+    }
+  }
+
+  .hint-text {
+    margin: 0;
+    font-size: $font-size-sm;
+    color: $text-secondary;
+  }
+
+  .accepted-types {
+    margin: 0;
+    font-size: $font-size-xs;
+    color: $text-disabled;
+  }
+}
+
+.file-input {
+  display: none;
+}
+
+.error-message {
+  display: flex;
+  align-items: center;
+  gap: $spacing-xs;
+  margin-top: $spacing-sm;
+  padding: $spacing-sm $spacing-md;
+  background: rgba($error-color, 0.1);
+  border-radius: $border-radius-sm;
+  color: $error-color;
+  font-size: $font-size-sm;
+
+  mat-icon {
+    font-size: 18px;
+    width: 18px;
+    height: 18px;
+  }
+}
+
+.file-list {
+  margin-top: $spacing-md;
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-sm;
+}
+
+.file-item {
+  display: flex;
+  align-items: center;
+  gap: $spacing-md;
+  padding: $spacing-sm $spacing-md;
+  background: $surface-color;
+  border: 1px solid $divider-color;
+  border-radius: $border-radius-sm;
+  transition: all $transition-fast;
+
+  &:hover {
+    background: rgba($primary-color, 0.02);
+  }
+
+  &.error {
+    border-color: $error-color;
+    background: rgba($error-color, 0.02);
+  }
+
+  .file-icon {
+    @include flex-center;
+    width: 40px;
+    height: 40px;
+    border-radius: $border-radius-sm;
+    background: rgba($primary-color, 0.1);
+    flex-shrink: 0;
+
+    mat-icon {
+      color: $primary-color;
+    }
+  }
+
+  .file-info {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+
+    .file-name {
+      @include truncate;
+      font-size: $font-size-base;
+      font-weight: $font-weight-medium;
+      color: $text-primary;
+    }
+
+    .file-size {
+      font-size: $font-size-sm;
+      color: $text-secondary;
+    }
+
+    .file-error {
+      font-size: $font-size-sm;
+      color: $error-color;
+    }
+
+    .upload-progress {
+      margin-top: $spacing-xs;
+      height: 4px;
+      border-radius: 2px;
+    }
+  }
+
+  .file-actions {
+    display: flex;
+    align-items: center;
+    gap: $spacing-xs;
+    flex-shrink: 0;
+
+    .success-icon {
+      color: $success-color;
+    }
+
+    .progress-text {
+      font-size: $font-size-sm;
+      color: $primary-color;
+      min-width: 36px;
+      text-align: right;
+    }
+
+    button {
+      width: 32px;
+      height: 32px;
+
+      mat-icon {
+        font-size: 18px;
+        width: 18px;
+        height: 18px;
+      }
+    }
+  }
+}
+
+@include mobile {
+  .drop-zone {
+    padding: $spacing-lg;
+
+    .upload-icon {
+      font-size: 36px;
+      width: 36px;
+      height: 36px;
+    }
+
+    .drop-text {
+      font-size: $font-size-base;
+      text-align: center;
+    }
+  }
+
+  .file-item {
+    .file-icon {
+      width: 32px;
+      height: 32px;
+    }
+  }
+}

@@ -10,6 +10,10 @@ export const STUDENT_ROUTES: Routes = [
     loadComponent: () => import('./fees/student-fees.component').then(m => m.StudentFeesComponent)
   },
   {
+    path: 'announcements',
+    loadComponent: () => import('./announcements/announcement-inbox.component').then(m => m.AnnouncementInboxComponent)
+  },
+  {
     path: '',
     redirectTo: 'dashboard',
     pathMatch: 'full'

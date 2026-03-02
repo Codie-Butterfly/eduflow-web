@@ -140,6 +140,27 @@ export const ADMIN_ROUTES: Routes = [
     ]
   },
   {
+    path: 'announcements',
+    children: [
+      {
+        path: '',
+        loadComponent: () => import('./announcements/announcement-list/announcement-list.component').then(m => m.AnnouncementListComponent)
+      },
+      {
+        path: 'new',
+        loadComponent: () => import('./announcements/announcement-form/announcement-form.component').then(m => m.AnnouncementFormComponent)
+      },
+      {
+        path: ':id',
+        loadComponent: () => import('./announcements/announcement-detail/announcement-detail.component').then(m => m.AnnouncementDetailComponent)
+      },
+      {
+        path: ':id/edit',
+        loadComponent: () => import('./announcements/announcement-form/announcement-form.component').then(m => m.AnnouncementFormComponent)
+      }
+    ]
+  },
+  {
     path: '',
     redirectTo: 'dashboard',
     pathMatch: 'full'

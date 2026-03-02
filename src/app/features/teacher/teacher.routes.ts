@@ -23,6 +23,23 @@ export const TEACHER_ROUTES: Routes = [
     loadComponent: () => import('./attendance/attendance.component').then(m => m.AttendanceComponent)
   },
   {
+    path: 'announcements',
+    children: [
+      {
+        path: '',
+        loadComponent: () => import('./announcements/teacher-announcement-list/teacher-announcement-list.component').then(m => m.TeacherAnnouncementListComponent)
+      },
+      {
+        path: 'new',
+        loadComponent: () => import('./announcements/teacher-announcement-form/teacher-announcement-form.component').then(m => m.TeacherAnnouncementFormComponent)
+      },
+      {
+        path: ':id/edit',
+        loadComponent: () => import('./announcements/teacher-announcement-form/teacher-announcement-form.component').then(m => m.TeacherAnnouncementFormComponent)
+      }
+    ]
+  },
+  {
     path: '',
     redirectTo: 'dashboard',
     pathMatch: 'full'

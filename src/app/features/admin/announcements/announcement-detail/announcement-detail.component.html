@@ -1,0 +1,178 @@
+<div class="announcement-detail">
+  @if (isLoading()) {
+    <div class="loading-container">
+      <mat-spinner diameter="40"></mat-spinner>
+    </div>
+  } @else if (announcement()) {
+    <header class="page-header">
+      <div class="header-left">
+        <button mat-icon-button routerLink="/admin/announcements" matTooltip="Back to list">
+          <mat-icon>arrow_back</mat-icon>
+        </button>
+        <div class="header-info">
+          <div class="title-row">
+            <h1>{{ announcement()!.title }}</h1>
+            <mat-chip [color]="getStatusColor(announcement()!.status)" selected>
+              {{ announcement()!.status | lowercase }}
+            </mat-chip>
+          </div>
+          <p class="meta">
+            Created by {{ announcement()!.createdBy || 'Unknown' }}
+            on {{ announcement()!.createdAt | date:'MMM d, y, h:mm a' }}
+          </p>
+        </div>
+      </div>
+      <div class="header-actions">
+        <button mat-icon-button [matMenuTriggerFor]="actionsMenu">
+          <mat-icon>more_vert</mat-icon>
+        </button>
+        <mat-menu #actionsMenu="matMenu">
+          <a mat-menu-item [routerLink]="['/admin/announcements', announcement()!.id, 'edit']">
+            <mat-icon>edit</mat-icon>
+            <span>Edit</span>
+          </a>
+          @if (announcement()!.status === 'DRAFT') {
+            <button mat-menu-item (click)="publishAnnouncement()">
+              <mat-icon color="primary">send</mat-icon>
+              <span>Publish</span>
+            </button>
+          }
+          @if (announcement()!.status === 'PUBLISHED') {
+            <button mat-menu-item (click)="archiveAnnouncement()">
+              <mat-icon>archive</mat-icon>
+              <span>Archive</span>
+            </button>
+          }
+          <mat-divider></mat-divider>
+          <button mat-menu-item (click)="deleteAnnouncement()">
+            <mat-icon color="warn">delete</mat-icon>
+            <span>Delete</span>
+          </button>
+        </mat-menu>
+
+        @if (announcement()!.status === 'DRAFT') {
+          <button mat-raised-button color="primary" (click)="publishAnnouncement()">
+            <mat-icon>send</mat-icon>
+            Publish
+          </button>
+        }
+      </div>
+    </header>
+
+    <div class="content-layout">
+      <!-- Main Content -->
+      <mat-card class="main-content">
+        <mat-card-content>
+          <div class="announcement-content">
+            {{ announcement()!.content }}
+          </div>
+
+          @if (announcement()!.attachments?.length) {
+            <mat-divider></mat-divider>
+            <div class="attachments-section">
+              <h3>
+                <mat-icon>attach_file</mat-icon>
+                Attachments ({{ announcement()!.attachments!.length }})
+              </h3>
+              <div class="attachments-list">
+                @for (attachment of announcement()!.attachments; track attachment.id) {
+                  <div class="attachment-item" (click)="downloadAttachment(attachment)">
+                    <mat-icon>{{ getFileIcon(attachment.fileType) }}</mat-icon>
+                    <div class="attachment-info">
+                      <span class="file-name">{{ attachment.fileName }}</span>
+                      <span class="file-size">{{ formatFileSize(attachment.fileSize) }}</span>
+                    </div>
+                    <button mat-icon-button matTooltip="Download">
+                      <mat-icon>download</mat-icon>
+                    </button>
+                  </div>
+                }
+              </div>
+            </div>
+          }
+        </mat-card-content>
+      </mat-card>
+
+      <!-- Sidebar -->
+      <div class="sidebar">
+        <!-- Details Card -->
+        <mat-card class="details-card">
+          <mat-card-header>
+            <mat-card-title>Details</mat-card-title>
+          </mat-card-header>
+          <mat-card-content>
+            <div class="detail-row">
+              <span class="label">Priority</span>
+              <mat-chip [color]="getPriorityColor(announcement()!.priority)" selected>
+                {{ announcement()!.priority | lowercase }}
+              </mat-chip>
+            </div>
+
+            <div class="detail-row">
+              <span class="label">Recipients</span>
+              <div class="recipient-info">
+                <mat-icon>{{ getRecipientTypeIcon(announcement()!.recipientType) }}</mat-icon>
+                <span>{{ getRecipientTypeLabel(announcement()!.recipientType) }}</span>
+              </div>
+            </div>
+
+            @if (announcement()!.targetClasses?.length) {
+              <div class="detail-row">
+                <span class="label">Target Classes</span>
+                <div class="class-chips">
+                  @for (cls of announcement()!.targetClasses; track cls.id) {
+                    <mat-chip>{{ cls.name }}</mat-chip>
+                  }
+                </div>
+              </div>
+            }
+
+            @if (announcement()!.publishedAt) {
+              <div class="detail-row">
+                <span class="label">Published</span>
+                <span>{{ announcement()!.publishedAt | date:'MMM d, y, h:mm a' }}</span>
+              </div>
+            }
+
+            @if (announcement()!.expiresAt) {
+              <div class="detail-row">
+                <span class="label">Expires</span>
+                <span>{{ announcement()!.expiresAt | date:'MMM d, y' }}</span>
+              </div>
+            }
+
+            <div class="detail-row">
+              <span class="label">Last Updated</span>
+              <span>{{ announcement()!.updatedAt | date:'MMM d, y, h:mm a' }}</span>
+            </div>
+          </mat-card-content>
+        </mat-card>
+
+        <!-- Read Statistics Card -->
+        @if (announcement()!.status === 'PUBLISHED') {
+          <mat-card class="stats-card">
+            <mat-card-header>
+              <mat-card-title>Read Statistics</mat-card-title>
+            </mat-card-header>
+            <mat-card-content>
+              <div class="stat-summary">
+                <div class="stat-number">{{ announcement()!.readCount || 0 }}</div>
+                <div class="stat-label">of {{ announcement()!.totalRecipients || 0 }} recipients</div>
+              </div>
+
+              <mat-progress-bar
+                mode="determinate"
+                [value]="getReadPercentage()"
+                class="read-progress"
+              ></mat-progress-bar>
+
+              <div class="percentage-label">
+                {{ getReadPercentage() }}% read
+              </div>
+            </mat-card-content>
+          </mat-card>
+        }
+      </div>
+    </div>
+  }
+</div>
