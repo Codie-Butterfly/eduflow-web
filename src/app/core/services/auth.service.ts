@@ -168,10 +168,27 @@ export class AuthService {
 
   private handleAuthResponse(response: AuthResponse): void {
     this.accessTokenSignal.set(response.accessToken);
-    this.currentUserSignal.set(response.user);
+
+    // Ensure user has roles - derive from email if not provided by API
+    const user = response.user;
+    if (!user.roles || user.roles.length === 0 || (user.roles.length === 1 && user.roles[0] === '')) {
+      user.roles = this.deriveRolesFromEmail(user.email);
+    }
+
+    this.currentUserSignal.set(user);
     this.storage.setItem(REFRESH_TOKEN_KEY, response.refreshToken);
     this.storage.setItem(TOKEN_EXPIRY_KEY, (Date.now() + response.expiresIn).toString());
     this.isLoadingSignal.set(false);
+  }
+
+  private deriveRolesFromEmail(email: string): string[] {
+    const emailLower = email.toLowerCase();
+    if (emailLower.includes('admin')) return ['ADMIN'];
+    if (emailLower.includes('teacher')) return ['TEACHER'];
+    if (emailLower.includes('parent')) return ['PARENT'];
+    if (emailLower.includes('student')) return ['STUDENT'];
+    // Default fallback
+    return ['STUDENT'];
   }
 
   private clearAuth(): void {
