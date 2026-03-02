@@ -512,20 +512,35 @@ export class ReportService {
 
   // Overdue Fees Report
   getOverdueFeesReport(): Observable<OverdueFeesReportData> {
-    console.log('Fetching overdue fees from:', `${this.baseUrl}/fees/assignments`);
-    return this.http.get<any>(`${this.baseUrl}/fees/assignments`, { params: { page: 0, size: 1000 } }).pipe(
-      map(response => {
-        console.log('Overdue fees API response:', response);
-        let assignments: any[] = [];
-        if (Array.isArray(response)) {
-          assignments = response;
-        } else if (response?.content) {
-          assignments = response.content;
-        } else if (response?.data) {
-          assignments = response.data;
-        }
-        console.log('Processing assignments for overdue:', assignments.length);
-        return this.processOverdueData(assignments);
+    console.log('Fetching overdue fees from both tables...');
+
+    return forkJoin({
+      feeAssignments: this.http.get<any>(`${this.baseUrl}/fees/assignments`, { params: { page: 0, size: 1000 } }).pipe(
+        map(response => {
+          console.log('Fee assignments response:', response);
+          if (Array.isArray(response)) return response;
+          return response?.content || response?.data || [];
+        }),
+        catchError((error) => {
+          console.error('Failed to fetch fee assignments:', error);
+          return of([]);
+        })
+      ),
+      payments: this.http.get<any>(`${this.baseUrl}/payments`, { params: { page: 0, size: 1000 } }).pipe(
+        map(response => {
+          console.log('Payments response:', response);
+          if (Array.isArray(response)) return response;
+          return response?.content || response?.data || [];
+        }),
+        catchError((error) => {
+          console.log('Payments API not available:', error);
+          return of([]);
+        })
+      )
+    }).pipe(
+      map(({ feeAssignments, payments }) => {
+        console.log('Processing overdue - assignments:', feeAssignments.length, 'payments:', payments.length);
+        return this.processOverdueData(feeAssignments, payments);
       }),
       catchError((error) => {
         console.error('Failed to fetch overdue fees:', error);
@@ -539,12 +554,14 @@ export class ReportService {
     );
   }
 
-  private processOverdueData(assignments: any[]): OverdueFeesReportData {
+  private processOverdueData(assignments: any[], payments: any[] = []): OverdueFeesReportData {
     const today = new Date();
     const records: OverdueFeeRecord[] = [];
     const studentSet = new Set<number>();
+    const processedIds = new Set<number>();
     let totalDaysOverdue = 0;
 
+    // Process fee assignments
     assignments.forEach(a => {
       const balance = a.balance || 0;
       const dueDate = a.dueDate ? new Date(a.dueDate) : null;
@@ -554,7 +571,7 @@ export class ReportService {
 
         records.push({
           studentId: a.student?.id || 0,
-          studentName: a.student?.fullName || 'Unknown',
+          studentName: a.student?.fullName || `${a.student?.firstName || ''} ${a.student?.lastName || ''}`.trim() || 'Unknown',
           studentCode: a.student?.studentId || '',
           className: a.student?.className || '',
           feeName: a.feeName || '',
@@ -567,6 +584,36 @@ export class ReportService {
         });
 
         if (a.student?.id) studentSet.add(a.student.id);
+        if (a.id) processedIds.add(a.id);
+        totalDaysOverdue += daysOverdue;
+      }
+    });
+
+    // Process payments table for any additional overdue records
+    payments.forEach(p => {
+      // Skip if already processed from fee assignments
+      if (p.studentFee?.id && processedIds.has(p.studentFee.id)) return;
+
+      const balance = p.studentFee?.balance || 0;
+      const dueDate = p.studentFee?.dueDate ? new Date(p.studentFee.dueDate) : null;
+
+      if (balance > 0 && dueDate && dueDate < today) {
+        const daysOverdue = Math.ceil((today.getTime() - dueDate.getTime()) / (1000 * 60 * 60 * 24));
+
+        records.push({
+          studentId: 0,
+          studentName: p.studentFee?.studentName || 'Unknown',
+          studentCode: p.studentFee?.studentId || '',
+          className: '',
+          feeName: p.studentFee?.feeName || '',
+          category: '',
+          amountDue: p.studentFee?.netAmount || p.studentFee?.amount || 0,
+          amountPaid: p.studentFee?.amountPaid || 0,
+          balance,
+          dueDate,
+          daysOverdue
+        });
+
         totalDaysOverdue += daysOverdue;
       }
     });
@@ -583,21 +630,35 @@ export class ReportService {
 
   // Pending Payments Report
   getPendingPaymentsReport(): Observable<PendingPaymentsReportData> {
-    console.log('Fetching pending payments from:', `${this.baseUrl}/fees/assignments`);
-    return this.http.get<any>(`${this.baseUrl}/fees/assignments`, { params: { page: 0, size: 1000 } }).pipe(
-      map(response => {
-        console.log('Pending payments API response:', response);
-        // Handle different response formats
-        let assignments: any[] = [];
-        if (Array.isArray(response)) {
-          assignments = response;
-        } else if (response?.content) {
-          assignments = response.content;
-        } else if (response?.data) {
-          assignments = response.data;
-        }
-        console.log('Processing assignments:', assignments.length);
-        return this.processPendingPaymentsData(assignments);
+    console.log('Fetching pending payments from both tables...');
+
+    return forkJoin({
+      feeAssignments: this.http.get<any>(`${this.baseUrl}/fees/assignments`, { params: { page: 0, size: 1000 } }).pipe(
+        map(response => {
+          console.log('Fee assignments response:', response);
+          if (Array.isArray(response)) return response;
+          return response?.content || response?.data || [];
+        }),
+        catchError((error) => {
+          console.error('Failed to fetch fee assignments:', error);
+          return of([]);
+        })
+      ),
+      payments: this.http.get<any>(`${this.baseUrl}/payments`, { params: { page: 0, size: 1000 } }).pipe(
+        map(response => {
+          console.log('Payments response:', response);
+          if (Array.isArray(response)) return response;
+          return response?.content || response?.data || [];
+        }),
+        catchError((error) => {
+          console.log('Payments API not available:', error);
+          return of([]);
+        })
+      )
+    }).pipe(
+      map(({ feeAssignments, payments }) => {
+        console.log('Processing pending - assignments:', feeAssignments.length, 'payments:', payments.length);
+        return this.processPendingPaymentsData(feeAssignments, payments);
       }),
       catchError((error) => {
         console.error('Failed to fetch pending payments:', error);
@@ -613,10 +674,12 @@ export class ReportService {
     );
   }
 
-  private processPendingPaymentsData(assignments: any[]): PendingPaymentsReportData {
+  private processPendingPaymentsData(assignments: any[], payments: any[] = []): PendingPaymentsReportData {
     const today = new Date();
     const studentMap = new Map<number, PendingPaymentRecord>();
+    const processedFeeIds = new Set<number>();
 
+    // Process fee assignments first
     assignments.forEach(a => {
       const balance = a.balance || 0;
       if (balance <= 0) return;
@@ -624,10 +687,12 @@ export class ReportService {
       const studentId = a.student?.id;
       if (!studentId) return;
 
+      if (a.id) processedFeeIds.add(a.id);
+
       if (!studentMap.has(studentId)) {
         studentMap.set(studentId, {
           studentId,
-          studentName: a.student?.fullName || 'Unknown',
+          studentName: a.student?.fullName || `${a.student?.firstName || ''} ${a.student?.lastName || ''}`.trim() || 'Unknown',
           studentCode: a.student?.studentId || '',
           className: a.student?.className || '',
           totalFees: 0,
@@ -648,6 +713,31 @@ export class ReportService {
       const dueDate = a.dueDate ? new Date(a.dueDate) : null;
       if (dueDate && dueDate < record.oldestDueDate) {
         record.oldestDueDate = dueDate;
+      }
+    });
+
+    // Process payments for any additional pending records not in fee assignments
+    payments.forEach(p => {
+      if (p.studentFee?.id && processedFeeIds.has(p.studentFee.id)) return;
+
+      const balance = p.studentFee?.balance || 0;
+      if (balance <= 0) return;
+
+      // Try to find by student code
+      const studentCode = p.studentFee?.studentId;
+      let existingRecord: PendingPaymentRecord | undefined;
+
+      studentMap.forEach(r => {
+        if (r.studentCode === studentCode) {
+          existingRecord = r;
+        }
+      });
+
+      if (existingRecord) {
+        existingRecord.totalFees += p.studentFee?.netAmount || p.studentFee?.amount || 0;
+        existingRecord.totalPaid += p.studentFee?.amountPaid || 0;
+        existingRecord.balance += balance;
+        existingRecord.feeCount++;
       }
     });
 
