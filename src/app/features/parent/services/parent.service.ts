@@ -157,54 +157,84 @@ export class ParentService {
 
   getDashboardStats(): Observable<ParentDashboardStats> {
     return this.http.get<any>(`${this.baseUrl}/dashboard`).pipe(
-      map(response => this.transformDashboardStats(response)),
-      catchError(() => of({
-        totalChildren: 2,
-        totalFees: 27000,
-        totalPaid: 22000,
-        totalBalance: 5000,
-        overdueCount: 1,
-        upcomingDueCount: 0,
-        unreadNotifications: 0
-      }))
+      map(response => {
+        console.log('Dashboard API response:', response);
+        return this.transformDashboardStats(response);
+      }),
+      catchError((error) => {
+        console.error('Dashboard API error:', error);
+        return of({
+          totalChildren: 2,
+          totalFees: 27000,
+          totalPaid: 22000,
+          totalBalance: 5000,
+          overdueCount: 1,
+          upcomingDueCount: 0,
+          unreadNotifications: 0
+        });
+      })
     );
   }
 
   private transformDashboardStats(data: any): ParentDashboardStats {
+    // Handle nested response (e.g., { data: {...} })
+    const stats = data.data || data;
+
     return {
-      totalChildren: data.totalChildren ?? 0,
-      totalFees: data.totalFeesDue ?? data.totalFees ?? 0,
-      totalPaid: data.totalFeesPaid ?? data.totalPaid ?? 0,
-      totalBalance: data.outstandingBalance ?? data.totalBalance ?? 0,
-      overdueCount: data.overdueCount ?? 0,
-      upcomingDueCount: data.upcomingDueCount ?? 0,
-      unreadNotifications: data.unreadNotifications ?? 0
+      totalChildren: stats.totalChildren ?? stats.total_children ?? stats.childCount ?? stats.child_count ?? 0,
+      totalFees: stats.totalFeesDue ?? stats.total_fees_due ?? stats.totalFees ?? stats.total_fees ?? 0,
+      totalPaid: stats.totalFeesPaid ?? stats.total_fees_paid ?? stats.totalPaid ?? stats.total_paid ?? 0,
+      totalBalance: stats.outstandingBalance ?? stats.outstanding_balance ?? stats.totalBalance ?? stats.total_balance ?? stats.balance ?? 0,
+      overdueCount: stats.overdueCount ?? stats.overdue_count ?? 0,
+      upcomingDueCount: stats.upcomingDueCount ?? stats.upcoming_due_count ?? 0,
+      unreadNotifications: stats.unreadNotifications ?? stats.unread_notifications ?? 0
     };
   }
 
   getChildren(): Observable<ChildSummary[]> {
     return this.http.get<any>(`${this.baseUrl}/children`).pipe(
       map(response => {
+        console.log('Children API response:', response);
         // Handle different response formats
-        const children = Array.isArray(response) ? response : (response.content || response.children || []);
+        const children = Array.isArray(response) ? response : (response.content || response.children || response.data || []);
         return children.map((child: any) => this.transformChild(child));
       }),
-      catchError(() => of(this.mockChildren))
+      catchError((error) => {
+        console.error('Children API error:', error);
+        return of(this.mockChildren);
+      })
     );
   }
 
   private transformChild(data: any): ChildSummary {
+    console.log('Transforming child data:', data);
+
+    // Handle nested student object
+    const student = data.student || data;
+
+    // Build full name from various possible fields
+    const firstName = student.firstName ?? student.first_name ?? student.firstname ?? '';
+    const lastName = student.lastName ?? student.last_name ?? student.lastname ?? '';
+    const fullName = student.fullName ?? student.full_name ?? student.name ??
+      (firstName || lastName ? `${firstName} ${lastName}`.trim() : '');
+
+    // Get class info - might be nested
+    const classInfo = student.currentClass ?? student.current_class ?? student.schoolClass ?? student.school_class ?? {};
+    const className = typeof classInfo === 'string' ? classInfo :
+      (classInfo.name ?? classInfo.className ?? classInfo.class_name ?? '');
+    const grade = typeof classInfo === 'object' ? (classInfo.grade ?? classInfo.gradeLevel ?? 0) : (student.grade ?? 0);
+
     return {
-      id: data.id ?? data.studentId ?? 0,
-      studentId: data.studentId ?? data.student_id ?? '',
-      fullName: data.fullName ?? data.full_name ?? data.name ?? `${data.firstName || ''} ${data.lastName || ''}`.trim(),
-      currentClass: data.currentClass ?? data.current_class ?? data.className ?? data.class_name ?? '',
-      grade: data.grade ?? 0,
-      photoUrl: data.photoUrl ?? data.photo_url,
-      totalFees: data.totalFees ?? data.total_fees ?? 0,
-      totalPaid: data.totalPaid ?? data.total_paid ?? 0,
-      balance: data.balance ?? data.outstandingBalance ?? data.outstanding_balance ?? 0,
-      pendingFees: data.pendingFees ?? data.pending_fees ?? 0
+      id: student.id ?? data.id ?? 0,
+      studentId: student.studentId ?? student.student_id ?? student.studentNumber ?? student.student_number ?? '',
+      fullName: fullName,
+      currentClass: className,
+      grade: grade,
+      photoUrl: student.photoUrl ?? student.photo_url ?? student.photo ?? student.avatar,
+      totalFees: student.totalFees ?? student.total_fees ?? student.feesAmount ?? student.fees_amount ?? 0,
+      totalPaid: student.totalPaid ?? student.total_paid ?? student.paidAmount ?? student.paid_amount ?? student.amountPaid ?? student.amount_paid ?? 0,
+      balance: student.balance ?? student.outstandingBalance ?? student.outstanding_balance ?? student.remainingBalance ?? student.remaining_balance ?? 0,
+      pendingFees: student.pendingFees ?? student.pending_fees ?? student.pendingCount ?? student.pending_count ?? 0
     };
   }
 
