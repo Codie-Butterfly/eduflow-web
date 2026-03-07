@@ -174,12 +174,43 @@ export class ParentService {
   }
 
   getChildDetails(childId: number): Observable<Student> {
-    return this.http.get<Student>(`${this.baseUrl}/children/${childId}`).pipe(
+    return this.http.get<any>(`${this.baseUrl}/children/${childId}`).pipe(
+      map(response => {
+        console.log('Child details API response:', response);
+        return this.transformStudentDetails(response);
+      }),
       catchError((error) => {
         console.error('Child details API error:', error);
         throw error;  // Re-throw to let the component handle the error
       })
     );
+  }
+
+  private transformStudentDetails(data: any): Student {
+    const firstName = data.firstName || data.first_name || '';
+    const lastName = data.lastName || data.last_name || '';
+    const fullName = data.fullName || data.full_name || `${firstName} ${lastName}`.trim();
+
+    return {
+      id: data.id || 0,
+      studentId: data.studentId || data.student_id || '',
+      email: data.email || '',
+      firstName,
+      lastName,
+      fullName,
+      phone: data.phone || data.phoneNumber || data.phone_number,
+      dateOfBirth: data.dateOfBirth || data.date_of_birth,
+      gender: data.gender || 'OTHER',
+      enrollmentDate: data.enrollmentDate || data.enrollment_date,
+      address: data.address,
+      bloodGroup: data.bloodGroup || data.blood_group,
+      medicalConditions: data.medicalConditions || data.medical_conditions,
+      status: data.status || 'ACTIVE',
+      currentClass: data.currentClass || data.current_class,
+      parent: data.parent,
+      createdAt: data.createdAt || data.created_at,
+      updatedAt: data.updatedAt || data.updated_at
+    };
   }
 
   getChildFees(childId: number): Observable<StudentFee[]> {
@@ -198,14 +229,21 @@ export class ParentService {
   }
 
   private transformFee(data: any): StudentFee {
+    // Handle nested fee type/fee structure from backend
+    const feeType = data.feeType || data.fee_type || data.fee || {};
+    const feeName = data.feeName || data.fee_name || data.name ||
+                    feeType.name || feeType.feeName || feeType.fee_name || 'Unknown Fee';
+
+    console.log('Transforming fee:', data, 'Extracted feeName:', feeName);
+
     return {
       id: data.id || 0,
-      feeName: data.feeName || data.fee_name || data.name || '',
-      category: data.category || data.feeCategory || '',
+      feeName,
+      category: data.category || data.feeCategory || feeType.category || '',
       academicYear: data.academicYear || data.academic_year || '',
       term: data.term || '',
       dueDate: data.dueDate || data.due_date || '',
-      amount: data.amount || 0,
+      amount: data.amount || feeType.amount || 0,
       discountAmount: data.discountAmount || data.discount_amount || data.discount || 0,
       netAmount: data.netAmount || data.net_amount || data.amount || 0,
       amountPaid: data.amountPaid || data.amount_paid || data.paidAmount || data.paid_amount || 0,
