@@ -203,9 +203,8 @@ export class PaymentDialogComponent {
       studentFeeAssignmentId: this.data.fee.id,
       amount: formValue.amount,
       paymentMethod: formValue.paymentMethod,
-      transactionRef: formValue.transactionRef || undefined,
-      paidBy: formValue.paidBy,
-      paidByPhone: formValue.paidByPhone || undefined
+      payerName: formValue.paidBy,
+      payerPhone: formValue.paidByPhone || undefined
     }).subscribe({
       next: (payment) => {
         this.notification.success(`Payment of K${formValue.amount} successful! Receipt: ${payment.receiptNumber}`);

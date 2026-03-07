@@ -35,9 +35,9 @@ export interface CreatePaymentRequest {
   studentFeeAssignmentId: number;
   amount: number;
   paymentMethod: PaymentMethod;
-  transactionRef?: string;
-  paidBy: string;
-  paidByPhone?: string;
+  payerName: string;
+  payerPhone?: string;
+  payerEmail?: string;
   notes?: string;
 }
 

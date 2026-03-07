@@ -237,22 +237,15 @@ export class ParentService {
   }
 
   makePayment(data: CreatePaymentRequest): Observable<Payment> {
+    console.log('Making payment request:', data);
     return this.http.post<Payment>(`${this.baseUrl}/payments`, data).pipe(
-      catchError(() => {
-        const payment: Payment = {
-          id: Date.now(),
-          studentFeeId: data.studentFeeAssignmentId,
-          amount: data.amount,
-          paymentMethod: data.paymentMethod,
-          transactionRef: data.transactionRef || `TXN-${Date.now()}`,
-          receiptNumber: `RCP-${new Date().getFullYear()}-${String(Date.now()).slice(-4)}`,
-          status: 'COMPLETED',
-          paidBy: data.paidBy,
-          paidByPhone: data.paidByPhone,
-          paidAt: new Date().toISOString(),
-          createdAt: new Date().toISOString()
-        };
-        return of(payment);
+      map(response => {
+        console.log('Payment response:', response);
+        return response;
+      }),
+      catchError((error) => {
+        console.error('Payment API error:', error);
+        throw error;  // Re-throw to let component handle it
       })
     );
   }
