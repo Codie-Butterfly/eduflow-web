@@ -37,7 +37,7 @@ export class ChildrenListComponent implements OnInit {
 
   private loadChildren(): void {
     this.isLoading.set(true);
-    this.parentService.getChildren().subscribe({
+    this.parentService.getChildrenWithFees().subscribe({
       next: (data) => {
         this.children.set(data);
         this.isLoading.set(false);
