@@ -34,127 +34,6 @@ export class ParentService {
   private http = inject(HttpClient);
   private readonly baseUrl = `${environment.apiUrl}/v1/parent`;
 
-  // Mock data for development/fallback
-  private mockChildren: ChildSummary[] = [
-    {
-      id: 1,
-      studentId: 'STU-2024-001',
-      fullName: 'John Mulenga',
-      currentClass: 'Grade 8A',
-      grade: 8,
-      totalFees: 15000,
-      totalPaid: 10000,
-      balance: 5000,
-      pendingFees: 2
-    },
-    {
-      id: 2,
-      studentId: 'STU-2024-002',
-      fullName: 'Mary Mulenga',
-      currentClass: 'Grade 5B',
-      grade: 5,
-      totalFees: 12000,
-      totalPaid: 12000,
-      balance: 0,
-      pendingFees: 0
-    }
-  ];
-
-  private mockFees: StudentFee[] = [
-    {
-      id: 1,
-      feeName: 'Term 1 Tuition',
-      category: 'TUITION',
-      academicYear: '2024',
-      term: 'TERM_1',
-      dueDate: '2024-02-15',
-      amount: 8000,
-      discountAmount: 0,
-      netAmount: 8000,
-      amountPaid: 5000,
-      balance: 3000,
-      status: 'PARTIAL',
-      payments: [
-        { id: 1, amount: 5000, paymentMethod: 'MOBILE_MONEY_MTN', transactionRef: 'MM-001', status: 'COMPLETED', paidAt: '2024-01-20' }
-      ]
-    },
-    {
-      id: 2,
-      feeName: 'Transport Fee',
-      category: 'TRANSPORT',
-      academicYear: '2024',
-      term: 'TERM_1',
-      dueDate: '2024-02-01',
-      amount: 2000,
-      discountAmount: 0,
-      netAmount: 2000,
-      amountPaid: 0,
-      balance: 2000,
-      status: 'OVERDUE',
-      payments: []
-    },
-    {
-      id: 3,
-      feeName: 'Exam Fee',
-      category: 'EXAM',
-      academicYear: '2024',
-      term: 'TERM_1',
-      dueDate: '2024-03-15',
-      amount: 500,
-      discountAmount: 0,
-      netAmount: 500,
-      amountPaid: 500,
-      balance: 0,
-      status: 'PAID',
-      payments: [
-        { id: 2, amount: 500, paymentMethod: 'CASH', transactionRef: 'CASH-002', status: 'COMPLETED', paidAt: '2024-02-10' }
-      ]
-    }
-  ];
-
-  private mockPayments: Payment[] = [
-    {
-      id: 1,
-      studentFeeId: 1,
-      amount: 5000,
-      paymentMethod: 'MOBILE_MONEY_MTN',
-      transactionRef: 'MM-123456',
-      receiptNumber: 'RCP-2024-001',
-      status: 'COMPLETED',
-      paidBy: 'James Mulenga',
-      paidByPhone: '+260977123456',
-      paidAt: '2024-01-20T10:30:00',
-      createdAt: '2024-01-20T10:30:00',
-      studentFee: { id: 1, feeName: 'Term 1 Tuition', studentName: 'John Mulenga', studentId: 'STU-2024-001' }
-    },
-    {
-      id: 2,
-      studentFeeId: 3,
-      amount: 500,
-      paymentMethod: 'CASH',
-      transactionRef: 'CASH-789',
-      receiptNumber: 'RCP-2024-002',
-      status: 'COMPLETED',
-      paidBy: 'James Mulenga',
-      paidAt: '2024-02-10T14:15:00',
-      createdAt: '2024-02-10T14:15:00',
-      studentFee: { id: 3, feeName: 'Exam Fee', studentName: 'John Mulenga', studentId: 'STU-2024-001' }
-    },
-    {
-      id: 3,
-      studentFeeId: 4,
-      amount: 12000,
-      paymentMethod: 'BANK_TRANSFER',
-      transactionRef: 'BT-456789',
-      receiptNumber: 'RCP-2024-003',
-      status: 'COMPLETED',
-      paidBy: 'James Mulenga',
-      paidAt: '2024-01-05T09:00:00',
-      createdAt: '2024-01-05T09:00:00',
-      studentFee: { id: 4, feeName: 'Term 1 Tuition', studentName: 'Mary Mulenga', studentId: 'STU-2024-002' }
-    }
-  ];
-
   getDashboardStats(): Observable<ParentDashboardStats> {
     return this.http.get<any>(`${this.baseUrl}/dashboard`).pipe(
       map(response => {
@@ -194,20 +73,24 @@ export class ParentService {
   getChildren(): Observable<ChildSummary[]> {
     return this.http.get<any>(`${this.baseUrl}/children`).pipe(
       map(response => {
+        console.log('Children API response:', response);
         // Handle different response formats
         const children = Array.isArray(response) ? response : (response.content || response.children || response.data || []);
-        return children.map((child: any) => this.transformChild(child));
+        console.log('Extracted children array:', children);
+        const transformed = children.map((child: any) => this.transformChild(child));
+        console.log('Transformed children:', transformed);
+        return transformed;
       }),
       catchError((error) => {
         console.error('Children API error:', error);
-        return of(this.mockChildren);
+        return of([]);  // Return empty array instead of mock data
       })
     );
   }
 
   /**
    * Get children with fee summaries
-   * Fetches children list then enriches with fee data
+   * Fetches children list then enriches with fee data if not already present
    */
   getChildrenWithFees(): Observable<ChildSummary[]> {
     return this.getChildren().pipe(
@@ -215,13 +98,31 @@ export class ParentService {
         if (children.length === 0) {
           return of([]);
         }
-        // Fetch fees for each child and compute summaries
-        const feeRequests = children.map(child =>
-          this.getChildFees(child.id).pipe(
+
+        // Check if children already have fee data from the API
+        const childrenNeedFees = children.filter(child =>
+          child.totalFees === 0 && child.totalPaid === 0 && child.balance === 0
+        );
+
+        // If all children already have fee data, return them directly
+        if (childrenNeedFees.length === 0) {
+          console.log('Children already have fee data, skipping additional API calls');
+          return of(children);
+        }
+
+        console.log(`Fetching fees for ${childrenNeedFees.length} children without fee data`);
+
+        // Fetch fees only for children that don't have fee data
+        const feeRequests = children.map(child => {
+          // Skip if child already has fee data
+          if (child.totalFees > 0 || child.totalPaid > 0 || child.balance > 0) {
+            return of(child);
+          }
+          return this.getChildFees(child.id).pipe(
             map(fees => this.enrichChildWithFees(child, fees)),
             catchError(() => of(child)) // Return child without fee data on error
-          )
-        );
+          );
+        });
         return forkJoin(feeRequests);
       })
     );
@@ -244,51 +145,38 @@ export class ParentService {
 
   private transformChild(data: any): ChildSummary {
     // Get class info - might be nested object
-    const classInfo = data.currentClass || {};
-    const className = typeof classInfo === 'string' ? classInfo : (classInfo.name || '');
-    const grade = typeof classInfo === 'object' ? (classInfo.grade || 0) : 0;
+    const classInfo = data.currentClass || data.current_class || {};
+    const className = typeof classInfo === 'string' ? classInfo : (classInfo.name || classInfo.className || '');
+    const grade = typeof classInfo === 'object' ? (classInfo.grade || classInfo.gradeLevel || 0) : 0;
+
+    // Extract fee data if available directly from the children endpoint
+    const totalFees = data.totalFees ?? data.total_fees ?? data.totalFeesDue ?? data.total_fees_due ?? 0;
+    const totalPaid = data.totalPaid ?? data.total_paid ?? data.totalFeesPaid ?? data.total_fees_paid ?? data.amountPaid ?? data.amount_paid ?? 0;
+    const balance = data.balance ?? data.outstandingBalance ?? data.outstanding_balance ?? data.remainingBalance ?? data.remaining_balance ?? 0;
+    const pendingFees = data.pendingFees ?? data.pending_fees ?? data.pendingFeesCount ?? data.pending_fees_count ?? 0;
+
+    console.log('Transforming child:', data.fullName || data.firstName, 'Fee data:', { totalFees, totalPaid, balance, pendingFees });
 
     return {
       id: data.id || 0,
-      studentId: data.studentId || '',
-      fullName: data.fullName || `${data.firstName || ''} ${data.lastName || ''}`.trim(),
+      studentId: data.studentId || data.student_id || '',
+      fullName: data.fullName || data.full_name || `${data.firstName || data.first_name || ''} ${data.lastName || data.last_name || ''}`.trim(),
       currentClass: className,
       grade: grade,
-      photoUrl: data.photoUrl || data.photo,
-      // Fee data will be enriched separately
-      totalFees: 0,
-      totalPaid: 0,
-      balance: 0,
-      pendingFees: 0
+      photoUrl: data.photoUrl || data.photo_url || data.photo,
+      // Use fee data from response if available, otherwise will be enriched separately
+      totalFees,
+      totalPaid,
+      balance,
+      pendingFees
     };
   }
 
   getChildDetails(childId: number): Observable<Student> {
     return this.http.get<Student>(`${this.baseUrl}/children/${childId}`).pipe(
-      catchError(() => {
-        const child = this.mockChildren.find(c => c.id === childId);
-        if (!child) throw new Error('Child not found');
-
-        const student: Student = {
-          id: child.id,
-          studentId: child.studentId,
-          firstName: child.fullName.split(' ')[0],
-          lastName: child.fullName.split(' ')[1],
-          fullName: child.fullName,
-          dateOfBirth: '2010-05-15',
-          gender: 'MALE',
-          email: `${child.fullName.toLowerCase().replace(' ', '.')}@student.edu`,
-          enrollmentDate: '2022-01-10',
-          status: 'ACTIVE',
-          currentClass: { id: 1, name: child.currentClass, grade: child.grade, academicYear: '2024' },
-          parent: {
-            id: 100,
-            name: 'James Mulenga',
-            phone: '+260977123456',
-            email: 'james.mulenga@email.com'
-          }
-        };
-        return of(student);
+      catchError((error) => {
+        console.error('Child details API error:', error);
+        throw error;  // Re-throw to let the component handle the error
       })
     );
   }
@@ -296,11 +184,15 @@ export class ParentService {
   getChildFees(childId: number): Observable<StudentFee[]> {
     return this.http.get<any>(`${this.baseUrl}/children/${childId}/fees`).pipe(
       map(response => {
+        console.log('Child fees API response:', response);
         // Handle different response formats
         const fees = Array.isArray(response) ? response : (response.content || response.fees || response.data || []);
         return fees.map((fee: any) => this.transformFee(fee));
       }),
-      catchError(() => of(this.mockFees))
+      catchError((error) => {
+        console.error('Child fees API error:', error);
+        return of([]);  // Return empty array instead of mock data
+      })
     );
   }
 
@@ -328,15 +220,18 @@ export class ParentService {
       .set('size', size.toString());
 
     return this.http.get<PagedResponse<Payment>>(`${this.baseUrl}/payments`, { params }).pipe(
-      catchError(() => of({
-        content: this.mockPayments,
-        totalElements: this.mockPayments.length,
-        totalPages: 1,
-        size,
-        page,
-        first: page === 0,
-        last: true
-      }))
+      catchError((error) => {
+        console.error('Payment history API error:', error);
+        return of({
+          content: [],
+          totalElements: 0,
+          totalPages: 0,
+          size,
+          page,
+          first: true,
+          last: true
+        });
+      })
     );
   }
 
