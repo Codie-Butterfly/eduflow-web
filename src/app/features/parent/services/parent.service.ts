@@ -149,13 +149,14 @@ export class ParentService {
     const className = typeof classInfo === 'string' ? classInfo : (classInfo.name || classInfo.className || '');
     const grade = typeof classInfo === 'object' ? (classInfo.grade || classInfo.gradeLevel || 0) : 0;
 
-    // Extract fee data if available directly from the children endpoint
-    const totalFees = data.totalFees ?? data.total_fees ?? data.totalFeesDue ?? data.total_fees_due ?? 0;
-    const totalPaid = data.totalPaid ?? data.total_paid ?? data.totalFeesPaid ?? data.total_fees_paid ?? data.amountPaid ?? data.amount_paid ?? 0;
-    const balance = data.balance ?? data.outstandingBalance ?? data.outstanding_balance ?? data.remainingBalance ?? data.remaining_balance ?? 0;
-    const pendingFees = data.pendingFees ?? data.pending_fees ?? data.pendingFeesCount ?? data.pending_fees_count ?? 0;
+    // Extract fee data - check feeSummary object first (from updated backend), then fallback to flat fields
+    const feeSummary = data.feeSummary || data.fee_summary || {};
+    const totalFees = feeSummary.totalFees ?? feeSummary.total_fees ?? data.totalFees ?? data.total_fees ?? 0;
+    const totalPaid = feeSummary.totalPaid ?? feeSummary.total_paid ?? data.totalPaid ?? data.total_paid ?? 0;
+    const balance = feeSummary.balance ?? data.balance ?? data.outstandingBalance ?? 0;
+    const pendingFees = feeSummary.pendingFees ?? feeSummary.pending_fees ?? data.pendingFees ?? data.pending_fees ?? 0;
 
-    console.log('Transforming child:', data.fullName || data.firstName, 'Fee data:', { totalFees, totalPaid, balance, pendingFees });
+    console.log('Transforming child:', data.fullName || data.firstName, 'Fee data:', { totalFees, totalPaid, balance, pendingFees }, 'feeSummary:', feeSummary);
 
     return {
       id: data.id || 0,
