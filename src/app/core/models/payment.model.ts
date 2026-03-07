@@ -32,7 +32,7 @@ export interface Payment {
 }
 
 export interface CreatePaymentRequest {
-  studentFeeId: number;
+  studentFeeAssignmentId: number;
   amount: number;
   paymentMethod: PaymentMethod;
   transactionRef?: string;

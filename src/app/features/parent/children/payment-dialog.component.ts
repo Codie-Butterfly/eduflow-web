@@ -200,7 +200,7 @@ export class PaymentDialogComponent {
     const formValue = this.paymentForm.value;
 
     this.parentService.makePayment({
-      studentFeeId: this.data.fee.id,
+      studentFeeAssignmentId: this.data.fee.id,
       amount: formValue.amount,
       paymentMethod: formValue.paymentMethod,
       transactionRef: formValue.transactionRef || undefined,

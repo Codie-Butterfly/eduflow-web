@@ -241,7 +241,7 @@ export class ParentService {
       catchError(() => {
         const payment: Payment = {
           id: Date.now(),
-          studentFeeId: data.studentFeeId,
+          studentFeeId: data.studentFeeAssignmentId,
           amount: data.amount,
           paymentMethod: data.paymentMethod,
           transactionRef: data.transactionRef || `TXN-${Date.now()}`,
