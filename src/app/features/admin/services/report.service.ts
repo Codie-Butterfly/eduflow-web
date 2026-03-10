@@ -463,44 +463,63 @@ export class ReportService {
   private processPaymentHistoryData(assignments: any[], payments: any[], startDate?: string, endDate?: string): PaymentHistoryReportData {
     const paymentRecords: PaymentRecord[] = [];
     const methodMap = new Map<string, PaymentsByMethod>();
+    const processedPaymentIds = new Set<number>();
 
-    // Extract payments from fee assignments
+    // Helper function to add payment record
+    const addPaymentRecord = (p: any, studentInfo: any, feeName: string) => {
+      if (processedPaymentIds.has(p.id)) return; // Skip duplicates
+      processedPaymentIds.add(p.id);
+
+      const paidAt = new Date(p.paidAt || p.createdAt || new Date());
+
+      if (startDate && paidAt < new Date(startDate)) return;
+      if (endDate && paidAt > new Date(endDate)) return;
+
+      const method = p.paymentMethod || 'UNKNOWN';
+
+      paymentRecords.push({
+        id: p.id,
+        studentId: studentInfo?.id || 0,
+        studentName: studentInfo?.fullName || studentInfo?.name || 'Unknown',
+        studentCode: studentInfo?.studentId || '',
+        className: studentInfo?.className || '',
+        feeName: feeName || '',
+        amount: p.amount || 0,
+        paymentMethod: method,
+        transactionRef: p.transactionRef || '',
+        paidAt,
+        status: p.status || 'COMPLETED'
+      });
+
+      if (!methodMap.has(method)) {
+        methodMap.set(method, { method, count: 0, totalAmount: 0 });
+      }
+      const methodData = methodMap.get(method)!;
+      methodData.count++;
+      methodData.totalAmount += p.amount || 0;
+    };
+
+    // Extract payments from fee assignments (embedded payments)
     assignments.forEach(a => {
       if (a.payments && a.payments.length > 0) {
         a.payments.forEach((p: any) => {
-          const paidAt = new Date(p.paidAt || p.createdAt);
-
-          if (startDate && paidAt < new Date(startDate)) return;
-          if (endDate && paidAt > new Date(endDate)) return;
-
-          const method = p.paymentMethod || 'UNKNOWN';
-
-          paymentRecords.push({
-            id: p.id,
-            studentId: a.student?.id || 0,
-            studentName: a.student?.fullName || 'Unknown',
-            studentCode: a.student?.studentId || '',
-            className: a.student?.className || '',
-            feeName: a.feeName || '',
-            amount: p.amount || 0,
-            paymentMethod: method,
-            transactionRef: p.transactionRef || '',
-            paidAt,
-            status: p.status || 'COMPLETED'
-          });
-
-          if (!methodMap.has(method)) {
-            methodMap.set(method, { method, count: 0, totalAmount: 0 });
-          }
-          const methodData = methodMap.get(method)!;
-          methodData.count++;
-          methodData.totalAmount += p.amount || 0;
+          addPaymentRecord(p, a.student, a.feeName);
         });
       }
     });
 
+    // Process standalone payments from /v1/admin/payments
+    console.log('Processing standalone payments:', payments.length);
+    payments.forEach((p: any) => {
+      const studentInfo = p.student || p.studentFee?.student || null;
+      const feeName = p.fee?.name || p.studentFee?.feeName || '';
+      addPaymentRecord(p, studentInfo, feeName);
+    });
+
     // Sort by date descending
     paymentRecords.sort((a, b) => b.paidAt.getTime() - a.paidAt.getTime());
+
+    console.log('Total payment records processed:', paymentRecords.length);
 
     return {
       payments: paymentRecords,
