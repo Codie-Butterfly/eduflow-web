@@ -106,15 +106,18 @@ export class StudentService {
       .set('page', page.toString())
       .set('size', size.toString());
 
-    if (search) {
-      params = params.set('search', search);
-    }
     if (status) {
       params = params.set('status', status);
     }
 
-    console.log('Fetching students with params:', { page, size, search, status });
-    return this.http.get<any>(this.baseUrl, { params }).pipe(
+    // Use /search endpoint if search query provided, otherwise use base endpoint
+    const url = search ? `${this.baseUrl}/search` : this.baseUrl;
+    if (search) {
+      params = params.set('name', search);
+    }
+
+    console.log('Fetching students with params:', { page, size, search, status, url });
+    return this.http.get<any>(url, { params }).pipe(
       map(response => {
         console.log('Students API response:', response);
         const paged = this.transformPagedResponse<any>(response);
