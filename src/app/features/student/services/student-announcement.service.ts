@@ -16,64 +16,6 @@ export class StudentAnnouncementService {
   private http = inject(HttpClient);
   private readonly baseUrl = `${environment.apiUrl}/v1/student/announcements`;
 
-  // Mock data for development/fallback
-  private mockAnnouncements: (Announcement & { isRead: boolean })[] = [
-    {
-      id: 1,
-      title: 'School Closure for Independence Day',
-      content: 'The school will be closed on October 24th for Independence Day celebrations. Classes will resume on October 25th. We encourage all families to participate in local community events.',
-      priority: 'HIGH',
-      status: 'PUBLISHED',
-      recipientType: 'ALL_STUDENTS',
-      publishedAt: '2024-10-20T09:00:00',
-      createdBy: 'Admin',
-      createdAt: '2024-10-19T14:30:00',
-      isRead: true
-    },
-    {
-      id: 4,
-      title: 'Grade 8A Field Trip Information',
-      content: 'Grade 8 students will be going on a field trip to the National Museum on November 5th. Please ensure permission slips are signed and returned by November 1st. Students should bring packed lunch and wear comfortable shoes.',
-      priority: 'NORMAL',
-      status: 'PUBLISHED',
-      recipientType: 'CLASS',
-      targetClasses: [{ id: 1, name: 'Grade 8A', grade: 8 }],
-      publishedAt: '2024-10-22T11:00:00',
-      attachments: [
-        { id: 1, fileName: 'permission_slip.pdf', fileUrl: '/files/1', fileSize: 125000, fileType: 'application/pdf', uploadedAt: '2024-10-22T10:30:00' }
-      ],
-      createdBy: 'Admin',
-      createdAt: '2024-10-22T10:30:00',
-      isRead: false
-    },
-    {
-      id: 101,
-      title: 'Grade 8A Homework Reminder',
-      content: 'Please remember to submit your science project by Friday. You should include a working model and a written report explaining your hypothesis and results.',
-      priority: 'NORMAL',
-      status: 'PUBLISHED',
-      recipientType: 'CLASS',
-      targetClasses: [{ id: 1, name: 'Grade 8A', grade: 8 }],
-      publishedAt: '2024-10-21T10:00:00',
-      createdBy: 'Mr. John Banda',
-      createdAt: '2024-10-21T09:30:00',
-      isRead: true
-    },
-    {
-      id: 102,
-      title: 'Extra Math Class This Saturday',
-      content: 'For students who need additional help with algebra, I will be holding an extra class this Saturday from 9 AM to 11 AM in Room 203. Please inform your parents.',
-      priority: 'HIGH',
-      status: 'PUBLISHED',
-      recipientType: 'CLASS',
-      targetClasses: [{ id: 1, name: 'Grade 8A', grade: 8 }],
-      publishedAt: '2024-10-22T08:00:00',
-      createdBy: 'Mr. John Banda',
-      createdAt: '2024-10-21T16:00:00',
-      isRead: false
-    }
-  ];
-
   /**
    * Get announcements for the current student (paginated)
    */
@@ -100,43 +42,17 @@ export class StudentAnnouncementService {
       }),
       catchError((error) => {
         console.error('Student announcements API error:', error);
-        return of(this.getMockAnnouncements(page, size, unreadOnly));
+        return of({
+          content: [],
+          page: 0,
+          size: 10,
+          totalElements: 0,
+          totalPages: 0,
+          first: true,
+          last: true
+        });
       })
     );
-  }
-
-  private getMockAnnouncements(
-    page: number,
-    size: number,
-    unreadOnly: boolean
-  ): PagedResponse<Announcement & { isRead: boolean }> {
-    let filtered = [...this.mockAnnouncements];
-
-    if (unreadOnly) {
-      filtered = filtered.filter(a => !a.isRead);
-    }
-
-    // Sort by publishedAt descending
-    filtered.sort((a, b) => {
-      const dateA = new Date(a.publishedAt || '').getTime();
-      const dateB = new Date(b.publishedAt || '').getTime();
-      return dateB - dateA;
-    });
-
-    const totalElements = filtered.length;
-    const totalPages = Math.ceil(totalElements / size);
-    const start = page * size;
-    const content = filtered.slice(start, start + size);
-
-    return {
-      content,
-      page,
-      size,
-      totalElements,
-      totalPages,
-      first: page === 0,
-      last: page >= totalPages - 1
-    };
   }
 
   /**
@@ -145,9 +61,8 @@ export class StudentAnnouncementService {
   getAnnouncementById(id: number): Observable<Announcement & { isRead: boolean }> {
     return this.http.get<any>(`${this.baseUrl}/${id}`).pipe(
       map(response => this.transformAnnouncement(response)),
-      catchError(() => {
-        const announcement = this.mockAnnouncements.find(a => a.id === id);
-        if (announcement) return of(announcement);
+      catchError((error) => {
+        console.error('Failed to get announcement:', error);
         return throwError(() => new Error('Announcement not found'));
       })
     );
@@ -158,13 +73,9 @@ export class StudentAnnouncementService {
    */
   markAsRead(id: number): Observable<MessageResponse> {
     return this.http.post<MessageResponse>(`${this.baseUrl}/${id}/read`, {}).pipe(
-      catchError(() => {
-        // Mock marking as read
-        const announcement = this.mockAnnouncements.find(a => a.id === id);
-        if (announcement) {
-          announcement.isRead = true;
-        }
-        return of({ message: 'Marked as read', success: true });
+      catchError((error) => {
+        console.error('Failed to mark announcement as read:', error);
+        return of({ message: 'Failed to mark as read', success: false });
       })
     );
   }
@@ -173,11 +84,13 @@ export class StudentAnnouncementService {
    * Get count of unread announcements
    */
   getUnreadCount(): Observable<number> {
-    return this.http.get<{ count: number }>(`${this.baseUrl}/unread-count`).pipe(
-      map(response => response.count),
-      catchError(() => {
-        const count = this.mockAnnouncements.filter(a => !a.isRead).length;
-        return of(count);
+    return this.http.get<any>(`${this.baseUrl}/unread-count`).pipe(
+      map(response => {
+        return typeof response === 'number' ? response : (response.count || response.unreadCount || 0);
+      }),
+      catchError((error) => {
+        console.error('Failed to get unread count:', error);
+        return of(0);
       })
     );
   }
@@ -196,7 +109,7 @@ export class StudentAnnouncementService {
       expiresAt: data.expiresAt || data.expires_at,
       createdBy: data.createdBy || data.created_by,
       createdAt: data.createdAt || data.created_at,
-      isRead: data.isRead ?? data.is_read ?? false
+      isRead: data.isRead ?? data.is_read ?? data.read ?? false
     };
   }
 
