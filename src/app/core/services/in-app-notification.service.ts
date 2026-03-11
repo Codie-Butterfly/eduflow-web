@@ -75,7 +75,7 @@ export class InAppNotificationService {
   }
 
   getUnreadCount(): Observable<number> {
-    return this.http.get<any>(`${this.baseUrl}/unread/count`).pipe(
+    return this.http.get<any>(`${this.baseUrl}/unread-count`).pipe(
       map(response => {
         const count = typeof response === 'number' ? response : (response.count || response.unreadCount || 0);
         this.unreadCount.set(count);
