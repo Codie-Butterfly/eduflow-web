@@ -1,6 +1,7 @@
 // Announcement Types
+export type TargetType = 'ALL' | 'CLASS' | 'GRADE' | 'PARENTS' | 'TEACHERS' | 'STUDENTS';
 export type RecipientType = 'INDIVIDUAL' | 'ALL_STUDENTS' | 'ALL_TEACHERS' | 'ALL_PARENTS' | 'CLASS';
-export type AnnouncementStatus = 'DRAFT' | 'PUBLISHED' | 'ARCHIVED';
+export type AnnouncementStatus = 'DRAFT' | 'SCHEDULED' | 'PUBLISHED' | 'ARCHIVED';
 export type AnnouncementPriority = 'LOW' | 'NORMAL' | 'HIGH' | 'URGENT';
 
 // Attachment Interface
@@ -35,13 +36,16 @@ export interface Announcement {
   content: string;
   priority: AnnouncementPriority;
   status: AnnouncementStatus;
-  recipientType: RecipientType;
+  targetType?: TargetType;
+  recipientType?: RecipientType;  // Legacy field
   targetClasses?: AnnouncementClassSummary[];
   targetRecipients?: RecipientSummary[];
+  targetIds?: number[];
   attachments?: Attachment[];
   readCount?: number;
   totalRecipients?: number;
   publishedAt?: string;
+  scheduledAt?: string;
   expiresAt?: string;
   createdBy?: string;
   createdById?: number;
@@ -49,8 +53,20 @@ export interface Announcement {
   updatedAt?: string;
 }
 
-// Create Request Interface
+// Create Request Interface (matches backend)
 export interface CreateAnnouncementRequest {
+  title: string;
+  content: string;
+  priority: AnnouncementPriority;
+  targetType: TargetType;
+  targetIds?: number[];  // Optional: specific class/user IDs
+  attachments?: string[];  // Optional: attachment URLs
+  scheduledAt?: string;  // Optional: schedule for later
+  expiresAt?: string;  // Optional: auto-expire date
+}
+
+// Legacy interface for backwards compatibility
+export interface LegacyCreateAnnouncementRequest {
   title: string;
   content: string;
   priority: AnnouncementPriority;
@@ -78,11 +94,22 @@ export const ANNOUNCEMENT_PRIORITIES: { value: AnnouncementPriority; label: stri
 // Status options for dropdowns
 export const ANNOUNCEMENT_STATUSES: { value: AnnouncementStatus; label: string; color: string }[] = [
   { value: 'DRAFT', label: 'Draft', color: 'accent' },
+  { value: 'SCHEDULED', label: 'Scheduled', color: 'accent' },
   { value: 'PUBLISHED', label: 'Published', color: 'primary' },
   { value: 'ARCHIVED', label: 'Archived', color: '' }
 ];
 
-// Recipient type options for dropdowns
+// Target type options for dropdowns (matches backend)
+export const TARGET_TYPES: { value: TargetType; label: string; icon: string }[] = [
+  { value: 'ALL', label: 'Everyone', icon: 'groups' },
+  { value: 'STUDENTS', label: 'All Students', icon: 'school' },
+  { value: 'TEACHERS', label: 'All Teachers', icon: 'person' },
+  { value: 'PARENTS', label: 'All Parents', icon: 'family_restroom' },
+  { value: 'CLASS', label: 'Specific Class(es)', icon: 'class' },
+  { value: 'GRADE', label: 'Specific Grade(s)', icon: 'grade' }
+];
+
+// Legacy recipient type options for backwards compatibility
 export const RECIPIENT_TYPES: { value: RecipientType; label: string; icon: string }[] = [
   { value: 'ALL_STUDENTS', label: 'All Students', icon: 'school' },
   { value: 'ALL_TEACHERS', label: 'All Teachers', icon: 'person' },
