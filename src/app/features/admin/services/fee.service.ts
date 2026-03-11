@@ -348,4 +348,21 @@ export class FeeService {
       last: true
     };
   }
+
+  // Payment reminder operations
+  sendOverdueReminders(): Observable<MessageResponse> {
+    const url = `${environment.apiUrl}/v1/admin/payments/reminders/overdue`;
+    return this.http.post<MessageResponse>(url, {});
+  }
+
+  sendUpcomingReminders(daysBeforeDue: number = 7): Observable<MessageResponse> {
+    const url = `${environment.apiUrl}/v1/admin/payments/reminders/upcoming`;
+    const params = new HttpParams().set('daysBeforeDue', daysBeforeDue.toString());
+    return this.http.post<MessageResponse>(url, {}, { params });
+  }
+
+  sendReminderToStudent(studentId: number): Observable<MessageResponse> {
+    const url = `${environment.apiUrl}/v1/admin/payments/reminders/student/${studentId}`;
+    return this.http.post<MessageResponse>(url, {});
+  }
 }

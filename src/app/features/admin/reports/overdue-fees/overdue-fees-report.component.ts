@@ -14,6 +14,7 @@ import { MatChipsModule } from '@angular/material/chips';
 import { MatTooltipModule } from '@angular/material/tooltip';
 
 import { ReportService, OverdueFeesReportData, OverdueFeeRecord } from '../../services/report.service';
+import { FeeService } from '../../services/fee.service';
 import { NotificationService } from '../../../../core/services';
 import { StatCardComponent } from '../../../../shared/components/stat-card/stat-card.component';
 
@@ -43,6 +44,7 @@ import { StatCardComponent } from '../../../../shared/components/stat-card/stat-
 })
 export class OverdueFeesReportComponent implements OnInit {
   private reportService = inject(ReportService);
+  private feeService = inject(FeeService);
   private notification = inject(NotificationService);
 
   loading = signal(true);
@@ -151,6 +153,28 @@ export class OverdueFeesReportComponent implements OnInit {
   }
 
   sendReminder(record: OverdueFeeRecord): void {
-    this.notification.info('Reminder feature coming soon');
+    this.notification.info('Sending payment reminder...');
+    this.feeService.sendReminderToStudent(record.studentId).subscribe({
+      next: () => {
+        this.notification.success(`Payment reminder sent to ${record.studentName}'s parent`);
+      },
+      error: (err) => {
+        console.error('Failed to send reminder:', err);
+        this.notification.error('Failed to send payment reminder');
+      }
+    });
+  }
+
+  sendAllReminders(): void {
+    this.notification.info('Sending reminders for all overdue fees...');
+    this.feeService.sendOverdueReminders().subscribe({
+      next: (response) => {
+        this.notification.success('Payment reminders sent to all parents with overdue fees');
+      },
+      error: (err) => {
+        console.error('Failed to send reminders:', err);
+        this.notification.error('Failed to send payment reminders');
+      }
+    });
   }
 }

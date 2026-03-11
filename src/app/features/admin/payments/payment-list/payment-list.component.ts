@@ -383,7 +383,16 @@ export class PaymentListComponent implements OnInit {
   }
 
   sendReminder(summary: StudentPaymentSummary): void {
-    this.notification.info('Payment reminder feature coming soon');
+    this.notification.info('Sending payment reminder...');
+    this.feeService.sendReminderToStudent(summary.studentId).subscribe({
+      next: (response) => {
+        this.notification.success(`Payment reminder sent to ${summary.studentName}'s parent`);
+      },
+      error: (err) => {
+        console.error('Failed to send reminder:', err);
+        this.notification.error('Failed to send payment reminder');
+      }
+    });
   }
 
   isOverdue(summary: StudentPaymentSummary): boolean {
