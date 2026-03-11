@@ -80,7 +80,8 @@
 }
 
 ::ng-deep .notification-menu {
-  min-width: 300px;
+  min-width: 320px;
+  max-width: 400px;
 
   .notification-header {
     @include flex-between;
@@ -88,6 +89,58 @@
 
     span {
       font-weight: $font-weight-medium;
+    }
+  }
+
+  .no-notifications {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: $spacing-lg;
+    color: $text-secondary;
+
+    mat-icon {
+      font-size: 48px;
+      width: 48px;
+      height: 48px;
+      margin-bottom: $spacing-sm;
+    }
+  }
+
+  .notification-content {
+    display: flex;
+    flex-direction: column;
+    margin-left: $spacing-sm;
+    overflow: hidden;
+
+    .notification-title {
+      font-weight: $font-weight-medium;
+      font-size: $font-size-sm;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .notification-message {
+      font-size: $font-size-xs;
+      color: $text-secondary;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .notification-time {
+      font-size: $font-size-xs;
+      color: $text-hint;
+      margin-top: 2px;
+    }
+  }
+
+  .unread {
+    background-color: rgba($primary-color, 0.05);
+
+    .notification-title {
+      color: $primary-color;
     }
   }
 

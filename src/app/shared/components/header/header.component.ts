@@ -1,5 +1,5 @@
-import { Component, inject, input, output } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Component, inject, input, output, OnInit } from '@angular/core';
+import { CommonModule, DatePipe } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatButtonModule } from '@angular/material/button';
@@ -8,7 +8,7 @@ import { MatMenuModule } from '@angular/material/menu';
 import { MatBadgeModule } from '@angular/material/badge';
 import { MatDividerModule } from '@angular/material/divider';
 
-import { AuthService } from '../../../core/services';
+import { AuthService, InAppNotificationService, InAppNotification } from '../../../core/services';
 
 @Component({
   selector: 'app-header',
@@ -21,21 +21,47 @@ import { AuthService } from '../../../core/services';
     MatIconModule,
     MatMenuModule,
     MatBadgeModule,
-    MatDividerModule
+    MatDividerModule,
+    DatePipe
   ],
   templateUrl: './header.component.html',
   styleUrl: './header.component.scss'
 })
-export class HeaderComponent {
+export class HeaderComponent implements OnInit {
   private authService = inject(AuthService);
+  private notificationService = inject(InAppNotificationService);
 
   title = input<string>('EduFlow');
   toggleSidebar = output<void>();
 
   currentUser = this.authService.currentUser;
+  notifications = this.notificationService.notifications;
+  unreadCount = this.notificationService.unreadCount;
+
+  ngOnInit(): void {
+    this.loadNotifications();
+  }
+
+  loadNotifications(): void {
+    this.notificationService.getUnreadNotifications().subscribe();
+  }
 
   onToggleSidebar(): void {
     this.toggleSidebar.emit();
+  }
+
+  markAsRead(notification: InAppNotification): void {
+    if (!notification.read) {
+      this.notificationService.markAsRead(notification.id).subscribe();
+    }
+  }
+
+  markAllAsRead(): void {
+    this.notificationService.markAllAsRead().subscribe();
+  }
+
+  getNotificationIcon(type: string): string {
+    return this.notificationService.getNotificationIcon(type);
   }
 
   logout(): void {
