@@ -16,78 +16,6 @@ export class ParentAnnouncementService {
   private http = inject(HttpClient);
   private readonly baseUrl = `${environment.apiUrl}/v1/parent/announcements`;
 
-  // Mock data for development/fallback
-  private mockAnnouncements: (Announcement & { isRead: boolean; childName?: string })[] = [
-    {
-      id: 2,
-      title: 'Parent-Teacher Conference Schedule',
-      content: 'We are pleased to announce that the Parent-Teacher conferences will be held on November 15-16, 2024. Please book your preferred time slot through the school portal or contact the administration office. This is an important opportunity to discuss your child\'s progress and address any concerns.',
-      priority: 'NORMAL',
-      status: 'PUBLISHED',
-      recipientType: 'ALL_PARENTS',
-      publishedAt: '2024-10-18T10:00:00',
-      createdBy: 'School Administration',
-      createdAt: '2024-10-17T16:00:00',
-      isRead: false
-    },
-    {
-      id: 1,
-      title: 'School Closure for Independence Day',
-      content: 'The school will be closed on October 24th for Independence Day celebrations. Classes will resume on October 25th. We encourage all families to participate in local community events.',
-      priority: 'HIGH',
-      status: 'PUBLISHED',
-      recipientType: 'ALL_STUDENTS',
-      publishedAt: '2024-10-20T09:00:00',
-      createdBy: 'Admin',
-      createdAt: '2024-10-19T14:30:00',
-      isRead: true,
-      childName: 'John Mwanza'
-    },
-    {
-      id: 4,
-      title: 'Grade 8A Field Trip Information',
-      content: 'Grade 8 students will be going on a field trip to the National Museum on November 5th. Please ensure permission slips are signed and returned by November 1st. Students should bring packed lunch and wear comfortable shoes.',
-      priority: 'NORMAL',
-      status: 'PUBLISHED',
-      recipientType: 'CLASS',
-      targetClasses: [{ id: 1, name: 'Grade 8A', grade: 8 }],
-      publishedAt: '2024-10-22T11:00:00',
-      attachments: [
-        { id: 1, fileName: 'permission_slip.pdf', fileUrl: '/files/1', fileSize: 125000, fileType: 'application/pdf', uploadedAt: '2024-10-22T10:30:00' }
-      ],
-      createdBy: 'Admin',
-      createdAt: '2024-10-22T10:30:00',
-      isRead: false,
-      childName: 'John Mwanza'
-    },
-    {
-      id: 102,
-      title: 'Extra Math Class This Saturday',
-      content: 'For students who need additional help with algebra, I will be holding an extra class this Saturday from 9 AM to 11 AM in Room 203. Please inform your parents.',
-      priority: 'HIGH',
-      status: 'PUBLISHED',
-      recipientType: 'CLASS',
-      targetClasses: [{ id: 1, name: 'Grade 8A', grade: 8 }],
-      publishedAt: '2024-10-22T08:00:00',
-      createdBy: 'Mr. John Banda',
-      createdAt: '2024-10-21T16:00:00',
-      isRead: true,
-      childName: 'John Mwanza'
-    },
-    {
-      id: 200,
-      title: 'Fee Payment Reminder',
-      content: 'This is a reminder that the second term fees are due by November 30th. Please ensure timely payment to avoid any disruption to your child\'s education. Payment can be made through bank transfer or at the school bursar\'s office.',
-      priority: 'URGENT',
-      status: 'PUBLISHED',
-      recipientType: 'ALL_PARENTS',
-      publishedAt: '2024-10-25T08:00:00',
-      createdBy: 'Finance Department',
-      createdAt: '2024-10-24T17:00:00',
-      isRead: false
-    }
-  ];
-
   /**
    * Get announcements for the current parent (paginated)
    */
@@ -114,43 +42,17 @@ export class ParentAnnouncementService {
       }),
       catchError((error) => {
         console.error('Parent announcements API error:', error);
-        return of(this.getMockAnnouncements(page, size, unreadOnly));
+        return of({
+          content: [],
+          page: 0,
+          size: 10,
+          totalElements: 0,
+          totalPages: 0,
+          first: true,
+          last: true
+        });
       })
     );
-  }
-
-  private getMockAnnouncements(
-    page: number,
-    size: number,
-    unreadOnly: boolean
-  ): PagedResponse<Announcement & { isRead: boolean; childName?: string }> {
-    let filtered = [...this.mockAnnouncements];
-
-    if (unreadOnly) {
-      filtered = filtered.filter(a => !a.isRead);
-    }
-
-    // Sort by publishedAt descending
-    filtered.sort((a, b) => {
-      const dateA = new Date(a.publishedAt || '').getTime();
-      const dateB = new Date(b.publishedAt || '').getTime();
-      return dateB - dateA;
-    });
-
-    const totalElements = filtered.length;
-    const totalPages = Math.ceil(totalElements / size);
-    const start = page * size;
-    const content = filtered.slice(start, start + size);
-
-    return {
-      content,
-      page,
-      size,
-      totalElements,
-      totalPages,
-      first: page === 0,
-      last: page >= totalPages - 1
-    };
   }
 
   /**
@@ -159,9 +61,8 @@ export class ParentAnnouncementService {
   getAnnouncementById(id: number): Observable<Announcement & { isRead: boolean; childName?: string }> {
     return this.http.get<any>(`${this.baseUrl}/${id}`).pipe(
       map(response => this.transformAnnouncement(response)),
-      catchError(() => {
-        const announcement = this.mockAnnouncements.find(a => a.id === id);
-        if (announcement) return of(announcement);
+      catchError((error) => {
+        console.error('Failed to get announcement:', error);
         return throwError(() => new Error('Announcement not found'));
       })
     );
@@ -172,13 +73,9 @@ export class ParentAnnouncementService {
    */
   markAsRead(id: number): Observable<MessageResponse> {
     return this.http.post<MessageResponse>(`${this.baseUrl}/${id}/read`, {}).pipe(
-      catchError(() => {
-        // Mock marking as read
-        const announcement = this.mockAnnouncements.find(a => a.id === id);
-        if (announcement) {
-          announcement.isRead = true;
-        }
-        return of({ message: 'Marked as read', success: true });
+      catchError((error) => {
+        console.error('Failed to mark announcement as read:', error);
+        return of({ message: 'Failed to mark as read', success: false });
       })
     );
   }
@@ -187,11 +84,13 @@ export class ParentAnnouncementService {
    * Get count of unread announcements
    */
   getUnreadCount(): Observable<number> {
-    return this.http.get<{ count: number }>(`${this.baseUrl}/unread-count`).pipe(
-      map(response => response.count),
-      catchError(() => {
-        const count = this.mockAnnouncements.filter(a => !a.isRead).length;
-        return of(count);
+    return this.http.get<any>(`${this.baseUrl}/unread-count`).pipe(
+      map(response => {
+        return typeof response === 'number' ? response : (response.count || response.unreadCount || 0);
+      }),
+      catchError((error) => {
+        console.error('Failed to get unread count:', error);
+        return of(0);
       })
     );
   }
