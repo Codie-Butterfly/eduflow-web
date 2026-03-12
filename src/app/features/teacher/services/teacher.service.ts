@@ -105,14 +105,26 @@ export class TeacherService {
   }
 
   getClassStudents(classId: number): Observable<Student[]> {
+    // Try teacher endpoint first, then fall back to admin endpoint
     return this.http.get<any>(`${this.baseUrl}/classes/${classId}/students`).pipe(
       map(response => {
-        const students = Array.isArray(response) ? response : (response.content || []);
+        console.log('Class students response:', response);
+        const students = Array.isArray(response) ? response : (response.content || response.students || []);
         return students.map((s: any) => this.transformStudent(s));
       }),
-      catchError(error => {
-        console.error('Failed to load class students:', error);
-        return of([]);
+      catchError(() => {
+        // Fallback to admin classes endpoint
+        return this.http.get<any>(`${environment.apiUrl}/v1/admin/classes/${classId}/students`).pipe(
+          map(response => {
+            console.log('Admin class students response:', response);
+            const students = Array.isArray(response) ? response : (response.content || response.students || []);
+            return students.map((s: any) => this.transformStudent(s));
+          }),
+          catchError(error => {
+            console.error('Failed to load class students:', error);
+            return of([]);
+          })
+        );
       })
     );
   }
@@ -121,12 +133,18 @@ export class TeacherService {
     const params = new HttpParams().set('date', date);
     return this.http.get<any>(`${this.baseUrl}/classes/${classId}/attendance`, { params }).pipe(
       map(response => {
-        const records = Array.isArray(response) ? response : (response.content || []);
+        console.log('Attendance response:', response);
+        const records = Array.isArray(response) ? response : (response.content || response.records || []);
+        if (records.length === 0) {
+          // Throw error to trigger fallback to load students
+          throw new Error('No attendance records');
+        }
         return records.map((r: any) => this.transformAttendanceRecord(r));
       }),
       catchError(error => {
-        console.error('Failed to load attendance:', error);
-        return of([]);
+        console.error('No attendance records, will load students:', error);
+        // Return throwError to trigger the fallback in the component
+        return throwError(() => new Error('No attendance records'));
       })
     );
   }
