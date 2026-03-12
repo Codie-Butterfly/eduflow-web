@@ -104,14 +104,28 @@
 
             @if (showClassSelector()) {
               <mat-form-field appearance="outline" class="full-width">
-                <mat-label>{{ targetType?.value === 'CLASS' ? 'Select Classes' : 'Select Grades' }}</mat-label>
-                <mat-select formControlName="targetIds" multiple>
+                <mat-label>Select Classes</mat-label>
+                <mat-select formControlName="targetClassIds" multiple>
                   @for (cls of classes(); track cls.id) {
                     <mat-option [value]="cls.id">{{ cls.name }}</mat-option>
                   }
                 </mat-select>
-                @if (targetIds?.hasError('required') && targetIds?.touched) {
-                  <mat-error>Please select at least one {{ targetType?.value === 'CLASS' ? 'class' : 'grade' }}</mat-error>
+                @if (targetClassIds?.hasError('required') && targetClassIds?.touched) {
+                  <mat-error>Please select at least one class</mat-error>
+                }
+              </mat-form-field>
+            }
+
+            @if (showGradeSelector()) {
+              <mat-form-field appearance="outline" class="full-width">
+                <mat-label>Select Grades</mat-label>
+                <mat-select formControlName="targetGrades" multiple>
+                  @for (grade of availableGrades; track grade) {
+                    <mat-option [value]="grade">Grade {{ grade }}</mat-option>
+                  }
+                </mat-select>
+                @if (targetGrades?.hasError('required') && targetGrades?.touched) {
+                  <mat-error>Please select at least one grade</mat-error>
                 }
               </mat-form-field>
             }

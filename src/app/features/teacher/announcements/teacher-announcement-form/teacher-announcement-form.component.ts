@@ -128,7 +128,7 @@ export class TeacherAnnouncementFormComponent implements OnInit {
       title: announcement.title,
       content: announcement.content,
       priority: announcement.priority,
-      targetClassIds: announcement.targetIds || announcement.targetClasses?.map(c => c.id) || [],
+      targetClassIds: announcement.targetClassIds || announcement.targetClasses?.map(c => c.id) || [],
       expiresAt: announcement.expiresAt ? new Date(announcement.expiresAt) : null
     });
 
@@ -162,17 +162,12 @@ export class TeacherAnnouncementFormComponent implements OnInit {
       content: formValue.content,
       priority: formValue.priority as AnnouncementPriority,
       targetType: 'CLASS' as const,
-      targetIds: formValue.targetClassIds,
+      targetClassIds: formValue.targetClassIds,
       attachments: this.uploadedFiles().map(f => f.fileUrl),
       expiresAt: formValue.expiresAt
         ? new Date(formValue.expiresAt).toISOString()
         : undefined
     };
-
-    // If not publishing now, don't include scheduledAt (it will be a draft)
-    if (!publishNow) {
-      // Just save as draft - backend handles this
-    }
 
     if (this.isEditMode()) {
       this.updateAnnouncement(data);

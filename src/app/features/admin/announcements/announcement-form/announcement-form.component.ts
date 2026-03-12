@@ -76,6 +76,9 @@ export class AnnouncementFormComponent implements OnInit {
   targetTypes = TARGET_TYPES;
   priorities = ANNOUNCEMENT_PRIORITIES;
 
+  // Available grades for selection
+  availableGrades = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
+
   minDate = new Date();
 
   ngOnInit(): void {
@@ -90,7 +93,8 @@ export class AnnouncementFormComponent implements OnInit {
       content: ['', [Validators.required, Validators.minLength(10), Validators.maxLength(5000)]],
       priority: ['NORMAL', [Validators.required]],
       targetType: ['STUDENTS', [Validators.required]],
-      targetIds: [[]],
+      targetClassIds: [[]],
+      targetGrades: [[]],
       expiresAt: [null],
       scheduledAt: [null],
       publishNow: [true]
@@ -98,14 +102,23 @@ export class AnnouncementFormComponent implements OnInit {
 
     // Watch for targetType changes
     this.announcementForm.get('targetType')?.valueChanges.subscribe(type => {
-      const targetIds = this.announcementForm.get('targetIds');
-      if (type === 'CLASS' || type === 'GRADE') {
-        targetIds?.setValidators([Validators.required]);
-      } else {
-        targetIds?.clearValidators();
-        targetIds?.setValue([]);
+      const targetClassIds = this.announcementForm.get('targetClassIds');
+      const targetGrades = this.announcementForm.get('targetGrades');
+
+      // Clear and reset validators based on target type
+      targetClassIds?.clearValidators();
+      targetGrades?.clearValidators();
+      targetClassIds?.setValue([]);
+      targetGrades?.setValue([]);
+
+      if (type === 'CLASS') {
+        targetClassIds?.setValidators([Validators.required]);
+      } else if (type === 'GRADE') {
+        targetGrades?.setValidators([Validators.required]);
       }
-      targetIds?.updateValueAndValidity();
+
+      targetClassIds?.updateValueAndValidity();
+      targetGrades?.updateValueAndValidity();
     });
   }
 
@@ -162,7 +175,8 @@ export class AnnouncementFormComponent implements OnInit {
       content: announcement.content,
       priority: announcement.priority,
       targetType: targetType || 'STUDENTS',
-      targetIds: announcement.targetIds || announcement.targetClasses?.map(c => c.id) || [],
+      targetClassIds: announcement.targetClassIds || announcement.targetClasses?.map(c => c.id) || [],
+      targetGrades: announcement.targetGrades || [],
       expiresAt: announcement.expiresAt ? new Date(announcement.expiresAt) : null,
       scheduledAt: announcement.scheduledAt ? new Date(announcement.scheduledAt) : null,
       publishNow: announcement.status === 'PUBLISHED'
@@ -202,9 +216,6 @@ export class AnnouncementFormComponent implements OnInit {
       content: formValue.content,
       priority: formValue.priority as AnnouncementPriority,
       targetType: formValue.targetType as TargetType,
-      targetIds: (formValue.targetType === 'CLASS' || formValue.targetType === 'GRADE')
-        ? formValue.targetIds
-        : undefined,
       attachments: this.uploadedFiles().map(f => f.fileUrl),
       expiresAt: formValue.expiresAt
         ? new Date(formValue.expiresAt).toISOString()
@@ -213,6 +224,13 @@ export class AnnouncementFormComponent implements OnInit {
         ? new Date(formValue.scheduledAt).toISOString()
         : undefined
     };
+
+    // Add target-specific IDs based on target type
+    if (formValue.targetType === 'CLASS' && formValue.targetClassIds?.length) {
+      data.targetClassIds = formValue.targetClassIds;
+    } else if (formValue.targetType === 'GRADE' && formValue.targetGrades?.length) {
+      data.targetGrades = formValue.targetGrades;
+    }
 
     // If publishing now, don't include scheduledAt
     if (formValue.publishNow) {
@@ -260,12 +278,16 @@ export class AnnouncementFormComponent implements OnInit {
   get content() { return this.announcementForm.get('content'); }
   get priority() { return this.announcementForm.get('priority'); }
   get targetType() { return this.announcementForm.get('targetType'); }
-  get targetIds() { return this.announcementForm.get('targetIds'); }
+  get targetClassIds() { return this.announcementForm.get('targetClassIds'); }
+  get targetGrades() { return this.announcementForm.get('targetGrades'); }
   get expiresAt() { return this.announcementForm.get('expiresAt'); }
   get scheduledAt() { return this.announcementForm.get('scheduledAt'); }
 
   showClassSelector(): boolean {
-    const targetType = this.announcementForm.get('targetType')?.value;
-    return targetType === 'CLASS' || targetType === 'GRADE';
+    return this.announcementForm.get('targetType')?.value === 'CLASS';
+  }
+
+  showGradeSelector(): boolean {
+    return this.announcementForm.get('targetType')?.value === 'GRADE';
   }
 }

@@ -1,5 +1,5 @@
 // Announcement Types
-export type TargetType = 'ALL' | 'CLASS' | 'GRADE' | 'PARENTS' | 'TEACHERS' | 'STUDENTS';
+export type TargetType = 'ALL' | 'CLASS' | 'GRADE' | 'PARENTS' | 'TEACHERS' | 'STUDENTS' | 'SPECIFIC_USERS';
 export type RecipientType = 'INDIVIDUAL' | 'ALL_STUDENTS' | 'ALL_TEACHERS' | 'ALL_PARENTS' | 'CLASS';
 export type AnnouncementStatus = 'DRAFT' | 'SCHEDULED' | 'PUBLISHED' | 'ARCHIVED';
 export type AnnouncementPriority = 'LOW' | 'NORMAL' | 'HIGH' | 'URGENT';
@@ -40,7 +40,10 @@ export interface Announcement {
   recipientType?: RecipientType;  // Legacy field
   targetClasses?: AnnouncementClassSummary[];
   targetRecipients?: RecipientSummary[];
-  targetIds?: number[];
+  targetClassIds?: number[];
+  targetUserIds?: number[];
+  targetGrades?: number[];
+  targetIds?: number[];  // Legacy generic field
   attachments?: Attachment[];
   readCount?: number;
   totalRecipients?: number;
@@ -59,10 +62,12 @@ export interface CreateAnnouncementRequest {
   content: string;
   priority: AnnouncementPriority;
   targetType: TargetType;
-  targetIds?: number[];  // Optional: specific class/user IDs
-  attachments?: string[];  // Optional: attachment URLs
-  scheduledAt?: string;  // Optional: schedule for later
-  expiresAt?: string;  // Optional: auto-expire date
+  targetClassIds?: number[];  // For CLASS target type
+  targetUserIds?: number[];   // For SPECIFIC_USERS target type
+  targetGrades?: number[];    // For GRADE target type
+  attachments?: string[];     // Optional: attachment URLs
+  scheduledAt?: string;       // Optional: schedule for later
+  expiresAt?: string;         // Optional: auto-expire date
 }
 
 // Legacy interface for backwards compatibility
@@ -106,7 +111,8 @@ export const TARGET_TYPES: { value: TargetType; label: string; icon: string }[] 
   { value: 'TEACHERS', label: 'All Teachers', icon: 'person' },
   { value: 'PARENTS', label: 'All Parents', icon: 'family_restroom' },
   { value: 'CLASS', label: 'Specific Class(es)', icon: 'class' },
-  { value: 'GRADE', label: 'Specific Grade(s)', icon: 'grade' }
+  { value: 'GRADE', label: 'Specific Grade(s)', icon: 'grade' },
+  { value: 'SPECIFIC_USERS', label: 'Specific Users', icon: 'person_search' }
 ];
 
 // Legacy recipient type options for backwards compatibility
