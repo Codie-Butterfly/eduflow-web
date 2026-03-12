@@ -186,14 +186,17 @@ export class TeacherService {
   }
 
   private transformClass(data: any): TeacherClass {
+    // Get subjects as comma-separated string
+    const subjects = data.subjects?.map((s: any) => s.name).join(', ') || data.subject || '';
+
     return {
       id: data.id,
       name: data.name,
       grade: data.grade,
       section: data.section,
       academicYear: data.academicYear || data.academic_year || '',
-      studentCount: data.studentCount || data.student_count || 0,
-      subject: data.subject,
+      studentCount: data.currentEnrollment || data.current_enrollment || data.studentCount || data.student_count || 0,
+      subject: subjects,
       schedule: data.schedule
     };
   }
