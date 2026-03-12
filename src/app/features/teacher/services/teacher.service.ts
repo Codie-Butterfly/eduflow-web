@@ -1,6 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
-import { Observable, of, catchError } from 'rxjs';
+import { Observable, of, catchError, throwError, map } from 'rxjs';
 import { environment } from '../../../../environments/environment';
 import { Student } from '../../../core/models';
 
@@ -56,68 +56,67 @@ export class TeacherService {
   private http = inject(HttpClient);
   private readonly baseUrl = `${environment.apiUrl}/v1/teacher`;
 
-  // Mock data
-  private mockClasses: TeacherClass[] = [
-    { id: 1, name: 'Grade 8A', grade: 8, section: 'A', academicYear: '2024', studentCount: 35, subject: 'Mathematics', schedule: 'Mon, Wed, Fri - 8:00 AM' },
-    { id: 2, name: 'Grade 9B', grade: 9, section: 'B', academicYear: '2024', studentCount: 32, subject: 'Mathematics', schedule: 'Tue, Thu - 10:00 AM' },
-    { id: 3, name: 'Grade 7A', grade: 7, section: 'A', academicYear: '2024', studentCount: 38, subject: 'Science', schedule: 'Mon, Wed - 2:00 PM' }
-  ];
-
-  private mockStudents: Student[] = [
-    { id: 1, studentId: 'STU-2024-001', firstName: 'John', lastName: 'Mulenga', fullName: 'John Mulenga', email: 'john@student.edu', gender: 'MALE', status: 'ACTIVE' },
-    { id: 2, studentId: 'STU-2024-002', firstName: 'Mary', lastName: 'Banda', fullName: 'Mary Banda', email: 'mary@student.edu', gender: 'FEMALE', status: 'ACTIVE' },
-    { id: 3, studentId: 'STU-2024-003', firstName: 'Peter', lastName: 'Zulu', fullName: 'Peter Zulu', email: 'peter@student.edu', gender: 'MALE', status: 'ACTIVE' },
-    { id: 4, studentId: 'STU-2024-004', firstName: 'Grace', lastName: 'Phiri', fullName: 'Grace Phiri', email: 'grace@student.edu', gender: 'FEMALE', status: 'ACTIVE' },
-    { id: 5, studentId: 'STU-2024-005', firstName: 'David', lastName: 'Tembo', fullName: 'David Tembo', email: 'david@student.edu', gender: 'MALE', status: 'ACTIVE' }
-  ];
-
   getDashboardStats(): Observable<TeacherDashboardStats> {
     return this.http.get<TeacherDashboardStats>(`${this.baseUrl}/dashboard`).pipe(
-      catchError(() => of({
-        totalClasses: 3,
-        totalStudents: 105,
-        todayAttendance: 2,
-        pendingAttendance: 1
-      }))
+      map(response => this.transformDashboardStats(response)),
+      catchError(error => {
+        console.error('Failed to load dashboard stats:', error);
+        return of({
+          totalClasses: 0,
+          totalStudents: 0,
+          todayAttendance: 0,
+          pendingAttendance: 0
+        });
+      })
     );
   }
 
   getMyClasses(): Observable<TeacherClass[]> {
-    return this.http.get<TeacherClass[]>(`${this.baseUrl}/classes`).pipe(
-      catchError(() => of(this.mockClasses))
+    return this.http.get<any>(`${this.baseUrl}/classes`).pipe(
+      map(response => {
+        const classes = Array.isArray(response) ? response : (response.content || []);
+        return classes.map((c: any) => this.transformClass(c));
+      }),
+      catchError(error => {
+        console.error('Failed to load classes:', error);
+        return of([]);
+      })
     );
   }
 
   getClassDetails(classId: number): Observable<TeacherClass> {
-    return this.http.get<TeacherClass>(`${this.baseUrl}/classes/${classId}`).pipe(
-      catchError(() => {
-        const cls = this.mockClasses.find(c => c.id === classId);
-        if (cls) return of(cls);
-        throw new Error('Class not found');
+    return this.http.get<any>(`${this.baseUrl}/classes/${classId}`).pipe(
+      map(response => this.transformClass(response)),
+      catchError(error => {
+        console.error('Failed to load class details:', error);
+        return throwError(() => new Error('Class not found'));
       })
     );
   }
 
   getClassStudents(classId: number): Observable<Student[]> {
-    return this.http.get<Student[]>(`${this.baseUrl}/classes/${classId}/students`).pipe(
-      catchError(() => of(this.mockStudents))
+    return this.http.get<any>(`${this.baseUrl}/classes/${classId}/students`).pipe(
+      map(response => {
+        const students = Array.isArray(response) ? response : (response.content || []);
+        return students.map((s: any) => this.transformStudent(s));
+      }),
+      catchError(error => {
+        console.error('Failed to load class students:', error);
+        return of([]);
+      })
     );
   }
 
   getAttendanceForDate(classId: number, date: string): Observable<AttendanceRecord[]> {
     const params = new HttpParams().set('date', date);
-    return this.http.get<AttendanceRecord[]>(`${this.baseUrl}/classes/${classId}/attendance`, { params }).pipe(
-      catchError(() => {
-        const records: AttendanceRecord[] = this.mockStudents.map((s, index) => ({
-          id: index + 1,
-          studentId: s.id,
-          studentName: s.fullName,
-          studentNumber: s.studentId,
-          date,
-          status: index === 1 ? 'ABSENT' : index === 3 ? 'LATE' : 'PRESENT' as any,
-          remarks: index === 1 ? 'Sick' : undefined
-        }));
-        return of(records);
+    return this.http.get<any>(`${this.baseUrl}/classes/${classId}/attendance`, { params }).pipe(
+      map(response => {
+        const records = Array.isArray(response) ? response : (response.content || []);
+        return records.map((r: any) => this.transformAttendanceRecord(r));
+      }),
+      catchError(error => {
+        console.error('Failed to load attendance:', error);
+        return of([]);
       })
     );
   }
@@ -127,27 +126,25 @@ export class TeacherService {
     if (month) {
       params = params.set('month', month);
     }
-    return this.http.get<AttendanceSummary[]>(`${this.baseUrl}/classes/${classId}/attendance/summary`, { params }).pipe(
-      catchError(() => of([
-        { classId, className: 'Grade 8A', date: '2024-02-19', totalStudents: 35, present: 32, absent: 2, late: 1, excused: 0 },
-        { classId, className: 'Grade 8A', date: '2024-02-18', totalStudents: 35, present: 33, absent: 1, late: 1, excused: 0 },
-        { classId, className: 'Grade 8A', date: '2024-02-17', totalStudents: 35, present: 30, absent: 3, late: 2, excused: 0 }
-      ]))
+    return this.http.get<any>(`${this.baseUrl}/classes/${classId}/attendance/summary`, { params }).pipe(
+      map(response => {
+        const summaries = Array.isArray(response) ? response : (response.content || []);
+        return summaries.map((s: any) => this.transformAttendanceSummary(s));
+      }),
+      catchError(error => {
+        console.error('Failed to load attendance summary:', error);
+        return of([]);
+      })
     );
   }
 
   markAttendance(data: MarkAttendanceRequest): Observable<AttendanceSummary> {
-    return this.http.post<AttendanceSummary>(`${this.baseUrl}/attendance`, data).pipe(
-      catchError(() => of({
-        classId: data.classId,
-        className: 'Grade 8A',
-        date: data.date,
-        totalStudents: data.records.length,
-        present: data.records.filter(r => r.status === 'PRESENT').length,
-        absent: data.records.filter(r => r.status === 'ABSENT').length,
-        late: data.records.filter(r => r.status === 'LATE').length,
-        excused: data.records.filter(r => r.status === 'EXCUSED').length
-      }))
+    return this.http.post<any>(`${this.baseUrl}/attendance`, data).pipe(
+      map(response => this.transformAttendanceSummary(response)),
+      catchError(error => {
+        console.error('Failed to mark attendance:', error);
+        return throwError(() => new Error('Failed to mark attendance'));
+      })
     );
   }
 
@@ -159,13 +156,83 @@ export class TeacherService {
     status: string;
   }> {
     return this.http.get<any>(`${this.baseUrl}/students/${studentId}/fee-status`).pipe(
-      catchError(() => of({
-        studentId,
-        totalFees: 15000,
-        totalPaid: 10000,
-        balance: 5000,
-        status: 'PARTIAL'
-      }))
+      map(response => ({
+        studentId: response.studentId || response.student_id || studentId,
+        totalFees: response.totalFees || response.total_fees || 0,
+        totalPaid: response.totalPaid || response.total_paid || 0,
+        balance: response.balance || 0,
+        status: response.status || 'UNKNOWN'
+      })),
+      catchError(error => {
+        console.error('Failed to load student fee status:', error);
+        return of({
+          studentId,
+          totalFees: 0,
+          totalPaid: 0,
+          balance: 0,
+          status: 'UNKNOWN'
+        });
+      })
     );
+  }
+
+  private transformDashboardStats(data: any): TeacherDashboardStats {
+    return {
+      totalClasses: data.totalClasses || data.total_classes || 0,
+      totalStudents: data.totalStudents || data.total_students || 0,
+      todayAttendance: data.todayAttendance || data.today_attendance || 0,
+      pendingAttendance: data.pendingAttendance || data.pending_attendance || 0
+    };
+  }
+
+  private transformClass(data: any): TeacherClass {
+    return {
+      id: data.id,
+      name: data.name,
+      grade: data.grade,
+      section: data.section,
+      academicYear: data.academicYear || data.academic_year || '',
+      studentCount: data.studentCount || data.student_count || 0,
+      subject: data.subject,
+      schedule: data.schedule
+    };
+  }
+
+  private transformStudent(data: any): Student {
+    return {
+      id: data.id,
+      studentId: data.studentId || data.student_id || data.studentCode || data.student_code || '',
+      firstName: data.firstName || data.first_name || '',
+      lastName: data.lastName || data.last_name || '',
+      fullName: data.fullName || data.full_name || `${data.firstName || data.first_name || ''} ${data.lastName || data.last_name || ''}`.trim(),
+      email: data.email || '',
+      gender: data.gender || 'MALE',
+      status: data.status || 'ACTIVE'
+    };
+  }
+
+  private transformAttendanceRecord(data: any): AttendanceRecord {
+    return {
+      id: data.id,
+      studentId: data.studentId || data.student_id,
+      studentName: data.studentName || data.student_name || '',
+      studentNumber: data.studentNumber || data.student_number || data.studentCode || data.student_code || '',
+      date: data.date,
+      status: (data.status || 'PRESENT').toUpperCase() as any,
+      remarks: data.remarks
+    };
+  }
+
+  private transformAttendanceSummary(data: any): AttendanceSummary {
+    return {
+      classId: data.classId || data.class_id,
+      className: data.className || data.class_name || '',
+      date: data.date,
+      totalStudents: data.totalStudents || data.total_students || 0,
+      present: data.present || 0,
+      absent: data.absent || 0,
+      late: data.late || 0,
+      excused: data.excused || 0
+    };
   }
 }
