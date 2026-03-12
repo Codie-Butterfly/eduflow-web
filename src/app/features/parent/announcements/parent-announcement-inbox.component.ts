@@ -87,12 +87,16 @@ export class ParentAnnouncementInboxComponent implements OnInit {
     if (!announcement.isRead) {
       this.announcementService.markAsRead(announcement.id).subscribe({
         next: () => {
-          // Update local state
+          // Update local state only after successful API call
           this.announcements.update(list =>
             list.map(a => a.id === announcement.id ? { ...a, isRead: true } : a)
           );
           this.selectedAnnouncement.update(a => a ? { ...a, isRead: true } : null);
           this.unreadCount.update(c => Math.max(0, c - 1));
+        },
+        error: (err) => {
+          console.error('Failed to mark announcement as read:', err);
+          // Don't update local state if API call failed
         }
       });
     }

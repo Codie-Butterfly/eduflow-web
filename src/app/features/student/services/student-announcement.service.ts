@@ -73,9 +73,13 @@ export class StudentAnnouncementService {
    */
   markAsRead(id: number): Observable<MessageResponse> {
     return this.http.post<MessageResponse>(`${this.baseUrl}/${id}/read`, {}).pipe(
+      map(response => {
+        console.log('Successfully marked announcement as read:', id, response);
+        return { message: 'Marked as read', success: true };
+      }),
       catchError((error) => {
         console.error('Failed to mark announcement as read:', error);
-        return of({ message: 'Failed to mark as read', success: false });
+        return throwError(() => error);
       })
     );
   }
