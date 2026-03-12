@@ -43,7 +43,8 @@ export class HeaderComponent implements OnInit {
   }
 
   loadNotifications(): void {
-    this.notificationService.getUnreadNotifications().subscribe();
+    // Load recent notifications (last 24 hours) - both read and unread
+    this.notificationService.getRecentNotifications().subscribe();
   }
 
   onToggleSidebar(): void {

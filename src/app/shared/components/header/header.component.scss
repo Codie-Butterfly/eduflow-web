@@ -144,6 +144,18 @@
     }
   }
 
+  .read {
+    opacity: 0.7;
+
+    .notification-title {
+      font-weight: 400;
+    }
+
+    mat-icon {
+      color: $text-disabled;
+    }
+  }
+
   .view-all {
     justify-content: center;
     color: $primary-color;

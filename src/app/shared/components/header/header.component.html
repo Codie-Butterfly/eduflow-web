@@ -28,11 +28,11 @@
     @if (notifications().length === 0) {
       <div class="no-notifications" (click)="$event.stopPropagation()">
         <mat-icon>notifications_off</mat-icon>
-        <span>No notifications</span>
+        <span>No recent notifications</span>
       </div>
     } @else {
-      @for (notification of notifications().slice(0, 5); track notification.id) {
-        <button mat-menu-item [class.unread]="!notification.read" (click)="markAsRead(notification)">
+      @for (notification of notifications().slice(0, 8); track notification.id) {
+        <button mat-menu-item [class.unread]="!notification.read" [class.read]="notification.read" (click)="markAsRead(notification)">
           <mat-icon>{{ getNotificationIcon(notification.type) }}</mat-icon>
           <div class="notification-content">
             <span class="notification-title">{{ notification.title }}</span>

@@ -64,11 +64,40 @@ export class InAppNotificationService {
         return notifications.map((n: any) => this.transformNotification(n));
       }),
       tap(notifications => {
-        this.notifications.set(notifications);
         this.unreadCount.set(notifications.length);
       }),
       catchError(error => {
         console.error('Failed to fetch unread notifications:', error);
+        return of([]);
+      })
+    );
+  }
+
+  /**
+   * Get recent notifications (last 24 hours) - both read and unread
+   */
+  getRecentNotifications(): Observable<InAppNotification[]> {
+    // Fetch all notifications, filter to last 24 hours client-side
+    return this.http.get<any>(this.baseUrl, { params: { size: '50' } }).pipe(
+      map(response => {
+        const content = response.content || response.data || (Array.isArray(response) ? response : []);
+        const notifications = content.map((n: any) => this.transformNotification(n));
+
+        // Filter to last 24 hours
+        const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
+        return notifications.filter((n: InAppNotification) => {
+          const createdAt = new Date(n.createdAt);
+          return createdAt >= twentyFourHoursAgo;
+        });
+      }),
+      tap(notifications => {
+        this.notifications.set(notifications);
+        // Update unread count
+        const unread = notifications.filter((n: InAppNotification) => !n.read).length;
+        this.unreadCount.set(unread);
+      }),
+      catchError(error => {
+        console.error('Failed to fetch recent notifications:', error);
         return of([]);
       })
     );
