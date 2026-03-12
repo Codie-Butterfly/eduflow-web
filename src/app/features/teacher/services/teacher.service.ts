@@ -1,6 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
-import { Observable, of, catchError, throwError, map } from 'rxjs';
+import { Observable, of, catchError, throwError, map, switchMap } from 'rxjs';
 import { environment } from '../../../../environments/environment';
 import { Student } from '../../../core/models';
 
@@ -87,9 +87,19 @@ export class TeacherService {
   getClassDetails(classId: number): Observable<TeacherClass> {
     return this.http.get<any>(`${this.baseUrl}/classes/${classId}`).pipe(
       map(response => this.transformClass(response)),
-      catchError(error => {
-        console.error('Failed to load class details:', error);
-        return throwError(() => new Error('Class not found'));
+      catchError(() => {
+        // Fallback: fetch from list and filter
+        return this.getMyClasses().pipe(
+          map(classes => {
+            const found = classes.find(c => c.id === classId);
+            if (found) return found;
+            throw new Error('Class not found');
+          }),
+          catchError(error => {
+            console.error('Failed to load class details:', error);
+            return throwError(() => new Error('Class not found'));
+          })
+        );
       })
     );
   }
