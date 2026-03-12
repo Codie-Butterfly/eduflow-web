@@ -91,8 +91,8 @@
 
             <mat-form-field appearance="outline" class="full-width">
               <mat-label>Recipients</mat-label>
-              <mat-select formControlName="recipientType">
-                @for (option of recipientTypes; track option.value) {
+              <mat-select formControlName="targetType">
+                @for (option of targetTypes; track option.value) {
                   <mat-option [value]="option.value">
                     <mat-icon class="option-icon">{{ option.icon }}</mat-icon>
                     {{ option.label }}
@@ -104,14 +104,14 @@
 
             @if (showClassSelector()) {
               <mat-form-field appearance="outline" class="full-width">
-                <mat-label>Select Classes</mat-label>
-                <mat-select formControlName="targetClassIds" multiple>
+                <mat-label>{{ targetType?.value === 'CLASS' ? 'Select Classes' : 'Select Grades' }}</mat-label>
+                <mat-select formControlName="targetIds" multiple>
                   @for (cls of classes(); track cls.id) {
                     <mat-option [value]="cls.id">{{ cls.name }}</mat-option>
                   }
                 </mat-select>
-                @if (targetClassIds?.hasError('required') && targetClassIds?.touched) {
-                  <mat-error>Please select at least one class</mat-error>
+                @if (targetIds?.hasError('required') && targetIds?.touched) {
+                  <mat-error>Please select at least one {{ targetType?.value === 'CLASS' ? 'class' : 'grade' }}</mat-error>
                 }
               </mat-form-field>
             }

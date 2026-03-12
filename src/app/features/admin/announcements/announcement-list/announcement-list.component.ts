@@ -245,25 +245,55 @@ export class AnnouncementListComponent implements OnInit {
     }
   }
 
-  getRecipientTypeLabel(recipientType: string): string {
-    switch (recipientType) {
-      case 'ALL_STUDENTS': return 'All Students';
-      case 'ALL_TEACHERS': return 'All Teachers';
-      case 'ALL_PARENTS': return 'All Parents';
-      case 'CLASS': return 'Class(es)';
-      case 'INDIVIDUAL': return 'Individual';
-      default: return recipientType;
+   getRecipientTypeLabel(recipientType?: string, targetType?: string): string {
+    // Use recipientType if available, fall back to targetType
+    if (recipientType) {
+      switch (recipientType) {
+        case 'ALL_STUDENTS': return 'All Students';
+        case 'ALL_TEACHERS': return 'All Teachers';
+        case 'ALL_PARENTS': return 'All Parents';
+        case 'CLASS': return 'Class(es)';
+        case 'INDIVIDUAL': return 'Individual';
+        default: return recipientType;
+      }
     }
+    if (targetType) {
+      switch (targetType) {
+        case 'ALL': return 'Everyone';
+        case 'STUDENTS': return 'All Students';
+        case 'TEACHERS': return 'All Teachers';
+        case 'PARENTS': return 'All Parents';
+        case 'CLASS': return 'Class(es)';
+        case 'GRADE': return 'Grade(s)';
+        default: return targetType;
+      }
+    }
+    return 'All Recipients';
   }
 
-  getRecipientTypeIcon(recipientType: string): string {
-    switch (recipientType) {
-      case 'ALL_STUDENTS': return 'school';
-      case 'ALL_TEACHERS': return 'person';
-      case 'ALL_PARENTS': return 'family_restroom';
-      case 'CLASS': return 'class';
-      case 'INDIVIDUAL': return 'person_search';
-      default: return 'group';
+  getRecipientTypeIcon(recipientType?: string, targetType?: string): string {
+    // Use recipientType if available, fall back to targetType
+    if (recipientType) {
+      switch (recipientType) {
+        case 'ALL_STUDENTS': return 'school';
+        case 'ALL_TEACHERS': return 'person';
+        case 'ALL_PARENTS': return 'family_restroom';
+        case 'CLASS': return 'class';
+        case 'INDIVIDUAL': return 'person_search';
+        default: return 'group';
+      }
     }
+    if (targetType) {
+      switch (targetType) {
+        case 'ALL': return 'groups';
+        case 'STUDENTS': return 'school';
+        case 'TEACHERS': return 'person';
+        case 'PARENTS': return 'family_restroom';
+        case 'CLASS': return 'class';
+        case 'GRADE': return 'grade';
+        default: return 'group';
+      }
+    }
+    return 'group';
   }
 }

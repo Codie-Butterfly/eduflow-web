@@ -82,8 +82,8 @@
             <th mat-header-cell *matHeaderCellDef>Recipients</th>
             <td mat-cell *matCellDef="let announcement">
               <div class="recipient-info">
-                <mat-icon>{{ getRecipientTypeIcon(announcement.recipientType) }}</mat-icon>
-                <span>{{ getRecipientTypeLabel(announcement.recipientType) }}</span>
+                <mat-icon>{{ getRecipientTypeIcon(announcement.recipientType, announcement.targetType) }}</mat-icon>
+                <span>{{ getRecipientTypeLabel(announcement.recipientType, announcement.targetType) }}</span>
               </div>
             </td>
           </ng-container>

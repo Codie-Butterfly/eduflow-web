@@ -17,9 +17,9 @@ import { MatDividerModule } from '@angular/material/divider';
 
 import {
   Announcement,
-  RecipientType,
+  TargetType,
   AnnouncementPriority,
-  RECIPIENT_TYPES,
+  TARGET_TYPES,
   ANNOUNCEMENT_PRIORITIES,
   SchoolClass,
   FileUploadResponse
@@ -73,7 +73,7 @@ export class AnnouncementFormComponent implements OnInit {
   existingAttachments = signal<FileUploadResponse[]>([]);
 
   // Options
-  recipientTypes = RECIPIENT_TYPES;
+  targetTypes = TARGET_TYPES;
   priorities = ANNOUNCEMENT_PRIORITIES;
 
   minDate = new Date();
@@ -89,22 +89,23 @@ export class AnnouncementFormComponent implements OnInit {
       title: ['', [Validators.required, Validators.minLength(5), Validators.maxLength(200)]],
       content: ['', [Validators.required, Validators.minLength(10), Validators.maxLength(5000)]],
       priority: ['NORMAL', [Validators.required]],
-      recipientType: ['ALL_STUDENTS', [Validators.required]],
-      targetClassIds: [[]],
+      targetType: ['STUDENTS', [Validators.required]],
+      targetIds: [[]],
       expiresAt: [null],
+      scheduledAt: [null],
       publishNow: [true]
     });
 
-    // Watch for recipientType changes
-    this.announcementForm.get('recipientType')?.valueChanges.subscribe(type => {
-      const targetClassIds = this.announcementForm.get('targetClassIds');
-      if (type === 'CLASS') {
-        targetClassIds?.setValidators([Validators.required]);
+    // Watch for targetType changes
+    this.announcementForm.get('targetType')?.valueChanges.subscribe(type => {
+      const targetIds = this.announcementForm.get('targetIds');
+      if (type === 'CLASS' || type === 'GRADE') {
+        targetIds?.setValidators([Validators.required]);
       } else {
-        targetClassIds?.clearValidators();
-        targetClassIds?.setValue([]);
+        targetIds?.clearValidators();
+        targetIds?.setValue([]);
       }
-      targetClassIds?.updateValueAndValidity();
+      targetIds?.updateValueAndValidity();
     });
   }
 
@@ -144,13 +145,26 @@ export class AnnouncementFormComponent implements OnInit {
   }
 
   private populateForm(announcement: Announcement): void {
+    // Map legacy recipientType to new targetType if needed
+    let targetType = announcement.targetType;
+    if (!targetType && announcement.recipientType) {
+      switch (announcement.recipientType) {
+        case 'ALL_STUDENTS': targetType = 'STUDENTS'; break;
+        case 'ALL_TEACHERS': targetType = 'TEACHERS'; break;
+        case 'ALL_PARENTS': targetType = 'PARENTS'; break;
+        case 'CLASS': targetType = 'CLASS'; break;
+        default: targetType = 'ALL';
+      }
+    }
+
     this.announcementForm.patchValue({
       title: announcement.title,
       content: announcement.content,
       priority: announcement.priority,
-      recipientType: announcement.recipientType,
-      targetClassIds: announcement.targetClasses?.map(c => c.id) || [],
+      targetType: targetType || 'STUDENTS',
+      targetIds: announcement.targetIds || announcement.targetClasses?.map(c => c.id) || [],
       expiresAt: announcement.expiresAt ? new Date(announcement.expiresAt) : null,
+      scheduledAt: announcement.scheduledAt ? new Date(announcement.scheduledAt) : null,
       publishNow: announcement.status === 'PUBLISHED'
     });
 
@@ -183,18 +197,27 @@ export class AnnouncementFormComponent implements OnInit {
     this.isSaving.set(true);
     const formValue = this.announcementForm.value;
 
-    const data = {
+    const data: any = {
       title: formValue.title,
       content: formValue.content,
       priority: formValue.priority as AnnouncementPriority,
-      recipientType: formValue.recipientType as RecipientType,
-      targetClassIds: formValue.recipientType === 'CLASS' ? formValue.targetClassIds : [],
-      attachmentIds: this.uploadedFiles().map(f => f.id),
-      publishNow: formValue.publishNow,
+      targetType: formValue.targetType as TargetType,
+      targetIds: (formValue.targetType === 'CLASS' || formValue.targetType === 'GRADE')
+        ? formValue.targetIds
+        : undefined,
+      attachments: this.uploadedFiles().map(f => f.fileUrl),
       expiresAt: formValue.expiresAt
         ? new Date(formValue.expiresAt).toISOString()
+        : undefined,
+      scheduledAt: formValue.scheduledAt && !formValue.publishNow
+        ? new Date(formValue.scheduledAt).toISOString()
         : undefined
     };
+
+    // If publishing now, don't include scheduledAt
+    if (formValue.publishNow) {
+      delete data.scheduledAt;
+    }
 
     if (this.isEditMode()) {
       this.updateAnnouncement(data);
@@ -236,11 +259,13 @@ export class AnnouncementFormComponent implements OnInit {
   get title() { return this.announcementForm.get('title'); }
   get content() { return this.announcementForm.get('content'); }
   get priority() { return this.announcementForm.get('priority'); }
-  get recipientType() { return this.announcementForm.get('recipientType'); }
-  get targetClassIds() { return this.announcementForm.get('targetClassIds'); }
+  get targetType() { return this.announcementForm.get('targetType'); }
+  get targetIds() { return this.announcementForm.get('targetIds'); }
   get expiresAt() { return this.announcementForm.get('expiresAt'); }
+  get scheduledAt() { return this.announcementForm.get('scheduledAt'); }
 
   showClassSelector(): boolean {
-    return this.announcementForm.get('recipientType')?.value === 'CLASS';
+    const targetType = this.announcementForm.get('targetType')?.value;
+    return targetType === 'CLASS' || targetType === 'GRADE';
   }
 }

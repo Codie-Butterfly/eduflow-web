@@ -182,7 +182,24 @@ export class AnnouncementDetailComponent implements OnInit {
     }
   }
 
-  getRecipientTypeLabel(recipientType: string): string {
+  getRecipientTypeLabel(recipientType?: string): string {
+    if (!recipientType) {
+      // Check targetType as fallback
+      const ann = this.announcement();
+      const targetType = ann?.targetType;
+      if (targetType) {
+        switch (targetType) {
+          case 'ALL': return 'Everyone';
+          case 'STUDENTS': return 'All Students';
+          case 'TEACHERS': return 'All Teachers';
+          case 'PARENTS': return 'All Parents';
+          case 'CLASS': return 'Specific Classes';
+          case 'GRADE': return 'Specific Grades';
+          default: return targetType;
+        }
+      }
+      return 'All Recipients';
+    }
     switch (recipientType) {
       case 'ALL_STUDENTS': return 'All Students';
       case 'ALL_TEACHERS': return 'All Teachers';
@@ -193,7 +210,24 @@ export class AnnouncementDetailComponent implements OnInit {
     }
   }
 
-  getRecipientTypeIcon(recipientType: string): string {
+  getRecipientTypeIcon(recipientType?: string): string {
+    if (!recipientType) {
+      // Check targetType as fallback
+      const ann = this.announcement();
+      const targetType = ann?.targetType;
+      if (targetType) {
+        switch (targetType) {
+          case 'ALL': return 'groups';
+          case 'STUDENTS': return 'school';
+          case 'TEACHERS': return 'person';
+          case 'PARENTS': return 'family_restroom';
+          case 'CLASS': return 'class';
+          case 'GRADE': return 'grade';
+          default: return 'group';
+        }
+      }
+      return 'group';
+    }
     switch (recipientType) {
       case 'ALL_STUDENTS': return 'school';
       case 'ALL_TEACHERS': return 'person';
