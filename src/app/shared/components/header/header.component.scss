@@ -80,8 +80,8 @@
 }
 
 ::ng-deep .notification-menu {
-  min-width: 320px;
-  max-width: 400px;
+  min-width: 380px;
+  max-width: 450px;
 
   .notification-header {
     @include flex-between;
@@ -107,32 +107,42 @@
     }
   }
 
+  .mat-mdc-menu-item {
+    height: auto !important;
+    min-height: 64px;
+    padding: $spacing-sm $spacing-md !important;
+    line-height: 1.4;
+  }
+
   .notification-content {
     display: flex;
     flex-direction: column;
     margin-left: $spacing-sm;
-    overflow: hidden;
+    flex: 1;
+    min-width: 0;
 
     .notification-title {
       font-weight: $font-weight-medium;
       font-size: $font-size-sm;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
+      margin-bottom: 4px;
     }
 
     .notification-message {
-      font-size: $font-size-xs;
+      font-size: $font-size-sm;
       color: $text-secondary;
-      white-space: nowrap;
+      white-space: normal;
+      word-wrap: break-word;
+      line-height: 1.4;
+      display: -webkit-box;
+      -webkit-line-clamp: 3;
+      -webkit-box-orient: vertical;
       overflow: hidden;
-      text-overflow: ellipsis;
     }
 
     .notification-time {
       font-size: $font-size-xs;
       color: $text-disabled;
-      margin-top: 2px;
+      margin-top: 4px;
     }
   }
 
