@@ -10,6 +10,8 @@ import { MatInputModule } from '@angular/material/input';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 import { MatChipsModule } from '@angular/material/chips';
+import { MatDatepickerModule } from '@angular/material/datepicker';
+import { MatNativeDateModule } from '@angular/material/core';
 
 import { ReportService, PaymentHistoryReportData, PaymentRecord } from '../../services/report.service';
 import { NotificationService } from '../../../../core/services';
@@ -30,6 +32,8 @@ import { StatCardComponent } from '../../../../shared/components/stat-card/stat-
     MatProgressSpinnerModule,
     MatPaginatorModule,
     MatChipsModule,
+    MatDatepickerModule,
+    MatNativeDateModule,
     DatePipe,
     CurrencyPipe,
     StatCardComponent
@@ -44,8 +48,8 @@ export class PaymentHistoryReportComponent implements OnInit {
   loading = signal(true);
   reportData = signal<PaymentHistoryReportData | null>(null);
 
-  startDate = '';
-  endDate = '';
+  startDate: Date | null = null;
+  endDate: Date | null = null;
   searchQuery = '';
 
   filteredPayments = signal<PaymentRecord[]>([]);
@@ -63,9 +67,11 @@ export class PaymentHistoryReportComponent implements OnInit {
 
   loadReport(): void {
     this.loading.set(true);
+    const startDateStr = this.startDate ? this.formatDate(this.startDate) : undefined;
+    const endDateStr = this.endDate ? this.formatDate(this.endDate) : undefined;
     this.reportService.getPaymentHistoryReport(
-      this.startDate || undefined,
-      this.endDate || undefined
+      startDateStr,
+      endDateStr
     ).subscribe({
       next: (data) => {
         console.log('Payment history report loaded:', data);
@@ -146,5 +152,12 @@ export class PaymentHistoryReportComponent implements OnInit {
     if (method === 'CASH') return 'primary';
     if (method.includes('BANK') || method === 'CHEQUE') return 'primary';
     return 'primary';
+  }
+
+  private formatDate(date: Date): string {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
   }
 }
