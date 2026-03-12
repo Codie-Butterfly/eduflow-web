@@ -30,6 +30,10 @@ export const TEACHER_ROUTES: Routes = [
         loadComponent: () => import('./announcements/teacher-announcement-list/teacher-announcement-list.component').then(m => m.TeacherAnnouncementListComponent)
       },
       {
+        path: 'inbox',
+        loadComponent: () => import('./announcements/teacher-announcement-inbox/teacher-announcement-inbox.component').then(m => m.TeacherAnnouncementInboxComponent)
+      },
+      {
         path: 'new',
         loadComponent: () => import('./announcements/teacher-announcement-form/teacher-announcement-form.component').then(m => m.TeacherAnnouncementFormComponent)
       },

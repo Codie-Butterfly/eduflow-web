@@ -148,6 +148,85 @@ export class TeacherAnnouncementService {
     );
   }
 
+  // ============ INBOX METHODS (for announcements sent TO the teacher) ============
+
+  /**
+   * Get announcements targeted to this teacher (inbox)
+   */
+  getInboxAnnouncements(
+    page: number = 0,
+    size: number = 10,
+    unreadOnly: boolean = false
+  ): Observable<PagedResponse<Announcement & { isRead: boolean }>> {
+    let params = new HttpParams()
+      .set('page', page.toString())
+      .set('size', size.toString());
+
+    if (unreadOnly) {
+      params = params.set('unreadOnly', 'true');
+    }
+
+    return this.http.get<any>(this.baseUrl, { params }).pipe(
+      map(response => {
+        const paged = this.transformPagedResponse<any>(response);
+        return {
+          ...paged,
+          content: paged.content.map((a: any) => this.transformInboxAnnouncement(a))
+        };
+      }),
+      catchError((error) => {
+        console.error('Teacher inbox announcements API error:', error);
+        return of({
+          content: [],
+          page: 0,
+          size: 10,
+          totalElements: 0,
+          totalPages: 0,
+          first: true,
+          last: true
+        });
+      })
+    );
+  }
+
+  /**
+   * Get count of unread announcements
+   */
+  getUnreadCount(): Observable<number> {
+    return this.http.get<any>(`${this.baseUrl}/unread-count`).pipe(
+      map(response => {
+        return typeof response === 'number' ? response : (response.count || response.unreadCount || 0);
+      }),
+      catchError((error) => {
+        console.error('Failed to get unread count:', error);
+        return of(0);
+      })
+    );
+  }
+
+  /**
+   * Mark an announcement as read
+   */
+  markAsRead(id: number): Observable<MessageResponse> {
+    return this.http.post<MessageResponse>(`${this.baseUrl}/${id}/read`, {}).pipe(
+      map(response => {
+        console.log('Successfully marked announcement as read:', id, response);
+        return { message: 'Marked as read', success: true };
+      }),
+      catchError((error) => {
+        console.error('Failed to mark announcement as read:', error);
+        return throwError(() => error);
+      })
+    );
+  }
+
+  private transformInboxAnnouncement(data: any): Announcement & { isRead: boolean } {
+    return {
+      ...this.transformAnnouncement(data),
+      isRead: data.isRead ?? data.is_read ?? data.read ?? false
+    };
+  }
+
   private transformAnnouncement(data: any): Announcement {
     return {
       id: data.id,
