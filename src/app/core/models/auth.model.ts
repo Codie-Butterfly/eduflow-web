@@ -12,6 +12,7 @@ export interface RegisterRequest {
   lastName: string;
   phone?: string;
   role: 'ADMIN' | 'TEACHER' | 'PARENT' | 'STUDENT';
+  studentId?: string;  // For parents: the student ID of their child
 }
 
 export interface AuthResponse {

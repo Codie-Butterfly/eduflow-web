@@ -52,9 +52,25 @@ export class RegisterComponent {
       email: ['', [Validators.required, Validators.email]],
       phone: ['', [Validators.pattern(/^\+?[0-9]{10,15}$/)]],
       role: ['PARENT', Validators.required],
+      studentId: [''],  // For parents to enter their child's student ID
       password: ['', [Validators.required, Validators.minLength(8)]],
       confirmPassword: ['', Validators.required]
     }, { validators: this.passwordMatchValidator });
+
+    // Watch for role changes to update studentId validation
+    this.registerForm.get('role')?.valueChanges.subscribe(role => {
+      const studentIdControl = this.registerForm.get('studentId');
+      if (role === 'PARENT') {
+        studentIdControl?.setValidators([Validators.required]);
+      } else {
+        studentIdControl?.clearValidators();
+        studentIdControl?.setValue('');
+      }
+      studentIdControl?.updateValueAndValidity();
+    });
+
+    // Trigger initial validation since default is PARENT
+    this.registerForm.get('studentId')?.setValidators([Validators.required]);
   }
 
   passwordMatchValidator(control: AbstractControl): { [key: string]: boolean } | null {
@@ -82,9 +98,16 @@ export class RegisterComponent {
     }
 
     this.isLoading.set(true);
-    const { firstName, lastName, email, phone, role, password } = this.registerForm.value;
+    const { firstName, lastName, email, phone, role, password, studentId } = this.registerForm.value;
 
-    this.authService.register({ firstName, lastName, email, phone, role, password }).subscribe({
+    const registerData: any = { firstName, lastName, email, phone, role, password };
+
+    // Include studentId only for parent registration
+    if (role === 'PARENT' && studentId) {
+      registerData.studentId = studentId;
+    }
+
+    this.authService.register(registerData).subscribe({
       next: () => {
         this.notification.success('Registration successful! Welcome to EduFlow.');
         const route = this.authService.getDefaultRoute();
@@ -94,8 +117,12 @@ export class RegisterComponent {
         this.isLoading.set(false);
         if (error.status === 409) {
           this.notification.error('An account with this email already exists');
+        } else if (error.status === 404) {
+          this.notification.error('Student ID not found. Please check and try again.');
         } else if (error.error?.message) {
           this.notification.error(error.error.message);
+        } else {
+          this.notification.error('Registration failed. Please try again.');
         }
       }
     });
@@ -106,6 +133,11 @@ export class RegisterComponent {
   get email() { return this.registerForm.get('email'); }
   get phone() { return this.registerForm.get('phone'); }
   get role() { return this.registerForm.get('role'); }
+  get studentId() { return this.registerForm.get('studentId'); }
   get password() { return this.registerForm.get('password'); }
   get confirmPassword() { return this.registerForm.get('confirmPassword'); }
+
+  isParentRole(): boolean {
+    return this.registerForm.get('role')?.value === 'PARENT';
+  }
 }

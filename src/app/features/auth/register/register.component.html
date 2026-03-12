@@ -59,6 +59,18 @@
       <mat-icon matPrefix>badge</mat-icon>
     </mat-form-field>
 
+    @if (isParentRole()) {
+      <mat-form-field appearance="outline" class="form-field">
+        <mat-label>Child's Student ID</mat-label>
+        <input matInput formControlName="studentId" placeholder="e.g., STU-2024-001">
+        <mat-icon matPrefix>school</mat-icon>
+        <mat-hint>Enter your child's student ID to link your account</mat-hint>
+        @if (studentId?.hasError('required') && studentId?.touched) {
+          <mat-error>Student ID is required for parent registration</mat-error>
+        }
+      </mat-form-field>
+    }
+
     <mat-form-field appearance="outline" class="form-field">
       <mat-label>Password</mat-label>
       <input
