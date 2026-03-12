@@ -8,7 +8,9 @@ import {
   CreateAnnouncementRequest,
   UpdateAnnouncementRequest,
   PagedResponse,
-  MessageResponse
+  MessageResponse,
+  AnnouncementRead,
+  AnnouncementReadStats
 } from '../../../core/models';
 
 @Injectable({
@@ -121,14 +123,87 @@ export class AnnouncementService {
     );
   }
 
+  /**
+   * Get read statistics for an announcement
+   */
+  getAnnouncementReads(id: number): Observable<AnnouncementReadStats> {
+    console.log(`[AnnouncementService] Fetching reads for announcement ${id}`);
+    return this.http.get<any>(`${this.baseUrl}/${id}/reads`).pipe(
+      map(response => {
+        console.log('[AnnouncementService] Reads API response:', response);
+        return this.transformReadStats(response);
+      }),
+      catchError((error) => {
+        console.error('[AnnouncementService] Failed to get announcement reads:', error);
+        return of({
+          totalRecipients: 0,
+          readCount: 0,
+          unreadCount: 0,
+          readPercentage: 0,
+          reads: []
+        });
+      })
+    );
+  }
+
+  private transformReadStats(data: any): AnnouncementReadStats {
+    // Handle API response format:
+    // { announcementId, announcementTitle, totalReads, reads: [{userId, userName, email, readAt}] }
+    console.log('[AnnouncementService] Raw reads data:', JSON.stringify(data));
+
+    // Handle array response (list of reads) or object response
+    let readsArray: any[] = [];
+    if (Array.isArray(data)) {
+      readsArray = data;
+    } else if (data.reads) {
+      readsArray = data.reads;
+    } else if (data.content) {
+      readsArray = data.content;
+    }
+
+    const reads = readsArray.map((r: any, index: number) => this.transformRead(r, data?.announcementId, index));
+    const readCount = data?.totalReads || data?.total_reads || data?.readCount || data?.read_count || reads.length;
+    const totalRecipients = data?.totalRecipients || data?.total_recipients || readCount;
+    const unreadCount = totalRecipients - readCount;
+    const readPercentage = totalRecipients > 0 ? Math.round((readCount / totalRecipients) * 100) : 0;
+
+    const result = {
+      totalRecipients,
+      readCount,
+      unreadCount,
+      readPercentage,
+      reads
+    };
+
+    console.log('[AnnouncementService] Transformed stats:', result);
+    return result;
+  }
+
+  private transformRead(data: any, announcementId?: number, index?: number): AnnouncementRead {
+    return {
+      id: data.id || index || 0,
+      announcementId: data.announcementId || data.announcement_id || announcementId || 0,
+      userId: data.userId || data.user_id,
+      userName: data.userName || data.user_name || data.name || 'Unknown',
+      userEmail: data.userEmail || data.user_email || data.email,
+      userRole: data.userRole || data.user_role || data.role || 'USER',
+      readAt: data.readAt || data.read_at || data.createdAt || data.created_at
+    };
+  }
+
   private transformAnnouncement(data: any): Announcement {
+    // Normalize status and priority to uppercase for consistent comparisons
+    const status = (data.status || '').toUpperCase() as any;
+    const priority = (data.priority || 'NORMAL').toUpperCase() as any;
+    const targetType = (data.targetType || data.target_type || '').toUpperCase() as any;
+
     return {
       id: data.id,
       title: data.title,
       content: data.content,
-      priority: data.priority,
-      status: data.status,
-      targetType: data.targetType || data.target_type,
+      priority,
+      status,
+      targetType,
       recipientType: data.recipientType || data.recipient_type,
       targetClasses: data.targetClasses || data.target_classes,
       targetRecipients: data.targetRecipients || data.target_recipients,

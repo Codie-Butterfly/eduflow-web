@@ -185,6 +185,25 @@
 }
 
 .stats-card {
+  mat-card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    button {
+      margin-left: auto;
+    }
+  }
+
+  .loading-reads {
+    @include flex-center;
+    flex-direction: column;
+    gap: $spacing-sm;
+    padding: $spacing-lg;
+    color: $text-secondary;
+    font-size: $font-size-sm;
+  }
+
   .stat-summary {
     text-align: center;
     margin-bottom: $spacing-md;
@@ -211,6 +230,90 @@
     text-align: center;
     font-size: $font-size-sm;
     color: $text-secondary;
+  }
+
+  .reads-divider {
+    margin: $spacing-md 0;
+  }
+
+  .reads-list {
+    h4 {
+      margin: 0 0 $spacing-sm;
+      font-size: $font-size-sm;
+      font-weight: $font-weight-medium;
+      color: $text-secondary;
+    }
+
+    max-height: 300px;
+    overflow-y: auto;
+  }
+
+  .read-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: $spacing-sm 0;
+    border-bottom: 1px solid $divider-color;
+
+    &:last-child {
+      border-bottom: none;
+    }
+  }
+
+  .read-user {
+    display: flex;
+    align-items: center;
+    gap: $spacing-sm;
+
+    .user-icon {
+      font-size: 20px;
+      width: 20px;
+      height: 20px;
+      color: $text-secondary;
+    }
+
+    .user-info {
+      display: flex;
+      flex-direction: column;
+
+      .user-name {
+        font-size: $font-size-sm;
+        font-weight: $font-weight-medium;
+      }
+
+      .user-email {
+        font-size: $font-size-xs;
+        color: $text-secondary;
+        @include truncate;
+        max-width: 150px;
+      }
+    }
+  }
+
+  .read-time {
+    font-size: $font-size-xs;
+    color: $text-secondary;
+    white-space: nowrap;
+  }
+
+  .no-reads {
+    @include flex-center;
+    flex-direction: column;
+    gap: $spacing-sm;
+    padding: $spacing-lg;
+    color: $text-secondary;
+
+    mat-icon {
+      font-size: 32px;
+      width: 32px;
+      height: 32px;
+      opacity: 0.5;
+    }
+
+    span {
+      font-size: $font-size-sm;
+      text-align: center;
+    }
   }
 }
 

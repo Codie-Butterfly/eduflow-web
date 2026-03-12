@@ -19,7 +19,9 @@ import { FileUploadService } from '../../../../shared/services/file-upload.servi
 import {
   Announcement,
   AnnouncementStatus,
-  AnnouncementPriority
+  AnnouncementPriority,
+  AnnouncementReadStats,
+  AnnouncementRead
 } from '../../../../core/models';
 
 @Component({
@@ -53,7 +55,9 @@ export class AnnouncementDetailComponent implements OnInit {
   private dialog = inject(MatDialog);
 
   announcement = signal<Announcement | null>(null);
+  readStats = signal<AnnouncementReadStats | null>(null);
   isLoading = signal(true);
+  isLoadingReads = signal(false);
 
   ngOnInit(): void {
     const id = this.route.snapshot.paramMap.get('id');
@@ -68,12 +72,40 @@ export class AnnouncementDetailComponent implements OnInit {
       next: (announcement) => {
         this.announcement.set(announcement);
         this.isLoading.set(false);
+
+        // Load read statistics if announcement is published
+        if (announcement.status === 'PUBLISHED') {
+          this.loadReadStats(id);
+        }
       },
       error: () => {
         this.notification.error('Failed to load announcement');
         this.router.navigate(['/admin/announcements']);
       }
     });
+  }
+
+  private loadReadStats(id: number): void {
+    console.log('[AnnouncementDetail] Loading read stats for announcement:', id);
+    this.isLoadingReads.set(true);
+    this.announcementService.getAnnouncementReads(id).subscribe({
+      next: (stats) => {
+        console.log('[AnnouncementDetail] Received read stats:', stats);
+        this.readStats.set(stats);
+        this.isLoadingReads.set(false);
+      },
+      error: (err) => {
+        console.error('[AnnouncementDetail] Error loading read stats:', err);
+        this.isLoadingReads.set(false);
+      }
+    });
+  }
+
+  refreshReadStats(): void {
+    const ann = this.announcement();
+    if (ann) {
+      this.loadReadStats(ann.id);
+    }
   }
 
   publishAnnouncement(): void {

@@ -153,22 +153,58 @@
           <mat-card class="stats-card">
             <mat-card-header>
               <mat-card-title>Read Statistics</mat-card-title>
+              <button mat-icon-button (click)="refreshReadStats()" [disabled]="isLoadingReads()" matTooltip="Refresh statistics">
+                <mat-icon>refresh</mat-icon>
+              </button>
             </mat-card-header>
             <mat-card-content>
-              <div class="stat-summary">
-                <div class="stat-number">{{ announcement()!.readCount || 0 }}</div>
-                <div class="stat-label">of {{ announcement()!.totalRecipients || 0 }} recipients</div>
-              </div>
+              @if (isLoadingReads()) {
+                <div class="loading-reads">
+                  <mat-spinner diameter="24"></mat-spinner>
+                  <span>Loading statistics...</span>
+                </div>
+              } @else {
+                <div class="stat-summary">
+                  <div class="stat-number">{{ readStats()?.readCount || announcement()!.readCount || 0 }}</div>
+                  <div class="stat-label">of {{ readStats()?.totalRecipients || announcement()!.totalRecipients || 0 }} recipients</div>
+                </div>
 
-              <mat-progress-bar
-                mode="determinate"
-                [value]="getReadPercentage()"
-                class="read-progress"
-              ></mat-progress-bar>
+                <mat-progress-bar
+                  mode="determinate"
+                  [value]="readStats()?.readPercentage || getReadPercentage()"
+                  class="read-progress"
+                ></mat-progress-bar>
 
-              <div class="percentage-label">
-                {{ getReadPercentage() }}% read
-              </div>
+                <div class="percentage-label">
+                  {{ readStats()?.readPercentage || getReadPercentage() }}% read
+                </div>
+
+                @if (readStats()?.reads?.length) {
+                  <mat-divider class="reads-divider"></mat-divider>
+                  <div class="reads-list">
+                    <h4>Who has read this ({{ readStats()!.reads.length }})</h4>
+                    @for (read of readStats()!.reads; track read.userId) {
+                      <div class="read-item">
+                        <div class="read-user">
+                          <mat-icon class="user-icon">person</mat-icon>
+                          <div class="user-info">
+                            <span class="user-name">{{ read.userName }}</span>
+                            @if (read.userEmail) {
+                              <span class="user-email">{{ read.userEmail }}</span>
+                            }
+                          </div>
+                        </div>
+                        <span class="read-time">{{ read.readAt | date:'MMM d, h:mm a' }}</span>
+                      </div>
+                    }
+                  </div>
+                } @else if (readStats() && readStats()!.readCount === 0) {
+                  <div class="no-reads">
+                    <mat-icon>visibility_off</mat-icon>
+                    <span>No one has read this announcement yet</span>
+                  </div>
+                }
+              }
             </mat-card-content>
           </mat-card>
         }

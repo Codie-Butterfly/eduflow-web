@@ -124,6 +124,26 @@ export const RECIPIENT_TYPES: { value: RecipientType; label: string; icon: strin
   { value: 'INDIVIDUAL', label: 'Individual Recipients', icon: 'person_search' }
 ];
 
+// Announcement Read Record
+export interface AnnouncementRead {
+  id: number;
+  announcementId: number;
+  userId: number;
+  userName: string;
+  userEmail?: string;
+  userRole?: 'STUDENT' | 'TEACHER' | 'PARENT' | 'USER';
+  readAt: string;
+}
+
+// Announcement Read Statistics
+export interface AnnouncementReadStats {
+  totalRecipients: number;
+  readCount: number;
+  unreadCount: number;
+  readPercentage: number;
+  reads: AnnouncementRead[];
+}
+
 // File upload response
 export interface FileUploadResponse {
   id: number;
