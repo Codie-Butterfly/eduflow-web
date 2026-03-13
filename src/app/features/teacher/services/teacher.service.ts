@@ -664,36 +664,54 @@ export class TeacherService {
   }
 
   private transformAssessment(data: any): Assessment {
+    // Handle nested schoolClass object or flat fields
+    const classId = data.schoolClass?.id || data.classId || data.class_id;
+    const className = data.schoolClass?.name || data.className || data.class_name || '';
+
+    // Handle nested subject object or flat fields
+    const subjectId = data.subject?.id || data.subjectId || data.subject_id;
+    const subjectName = data.subject?.name || data.subjectName || data.subject_name || '';
+
+    // Handle scoresEntered (could be scoredStudents from API)
+    const scoresEntered = data.scoredStudents || data.scoresEntered || data.scores_entered || 0;
+
+    // Handle classAverage (could be averagePercentage or averageScore from API)
+    const classAverage = data.averagePercentage ?? data.averageScore ?? data.classAverage ?? data.class_average;
+
     return {
       id: data.id,
       title: data.title || '',
       type: data.type || 'TEST',
-      classId: data.classId || data.class_id,
-      className: data.className || data.class_name || '',
-      subjectId: data.subjectId || data.subject_id,
-      subjectName: data.subjectName || data.subject_name || '',
+      classId,
+      className,
+      subjectId,
+      subjectName,
       date: data.date || '',
       maxScore: data.maxScore || data.max_score || 100,
       term: data.term || 'TERM_1',
       academicYear: data.academicYear || data.academic_year || '',
       description: data.description,
       totalStudents: data.totalStudents || data.total_students || 0,
-      scoresEntered: data.scoresEntered || data.scores_entered || 0,
-      classAverage: data.classAverage || data.class_average,
+      scoresEntered,
+      classAverage,
       createdAt: data.createdAt || data.created_at || ''
     };
   }
 
   private transformAssessmentDetail(data: any): AssessmentDetail {
-    const scores = (data.scores || data.studentScores || data.student_scores || []).map((s: any) => ({
-      id: s.id,
-      studentId: s.studentId || s.student_id,
-      studentName: s.studentName || s.student_name || '',
-      studentNumber: s.studentNumber || s.student_number || s.studentCode || s.student_code || '',
-      score: s.score ?? s.marks ?? null,
-      absent: s.absent || s.isAbsent || s.is_absent || false,
-      remarks: s.remarks || s.comment || ''
-    }));
+    const scores = (data.scores || data.studentScores || data.student_scores || []).map((s: any) => {
+      // Handle nested student object or flat fields
+      const student = s.student || {};
+      return {
+        id: s.id,
+        studentId: student.id || s.studentId || s.student_id,
+        studentName: student.name || student.fullName || s.studentName || s.student_name || '',
+        studentNumber: student.studentId || student.studentCode || s.studentNumber || s.student_number || s.studentCode || s.student_code || '',
+        score: s.score ?? s.marks ?? null,
+        absent: s.absent || s.isAbsent || s.is_absent || false,
+        remarks: s.remarks || s.comment || ''
+      };
+    });
 
     return {
       ...this.transformAssessment(data),
