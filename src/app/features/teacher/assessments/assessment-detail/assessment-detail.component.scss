@@ -240,6 +240,11 @@
   border-radius: $border-radius-md;
   box-shadow: $shadow-sm;
 
+  .action-buttons {
+    display: flex;
+    gap: $spacing-md;
+  }
+
   button mat-spinner {
     margin-right: $spacing-sm;
   }

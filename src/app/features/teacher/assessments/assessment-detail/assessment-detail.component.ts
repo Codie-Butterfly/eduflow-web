@@ -57,10 +57,11 @@ export class AssessmentDetailComponent implements OnInit {
 
   isLoading = signal(true);
   isSaving = signal(false);
+  isNotifying = signal(false);
   assessment = signal<AssessmentDetail | null>(null);
   scores = signal<EditableScore[]>([]);
 
-  displayedColumns = ['studentNumber', 'studentName', 'score', 'absent', 'remarks'];
+  displayedColumns = ['studentNumber', 'studentName', 'score', 'absent', 'remarks', 'actions'];
 
   // Computed values
   hasUnsavedChanges = computed(() => this.scores().some(s => s.isDirty));
@@ -232,5 +233,48 @@ export class AssessmentDetailComponent implements OnInit {
     if (percent >= 60) return 'good';
     if (percent >= 40) return 'average';
     return 'poor';
+  }
+
+  notifyParent(studentId: number, studentName: string): void {
+    if (!this.assessment()) return;
+
+    this.notification.info(`Sending notification to ${studentName}'s parent...`);
+    this.teacherService.notifyParentOfScore(this.assessment()!.id, studentId).subscribe({
+      next: () => {
+        this.notification.success(`Notification sent to ${studentName}'s parent`);
+      },
+      error: (error) => {
+        this.notification.error(error.message || 'Failed to send notification');
+      }
+    });
+  }
+
+  notifyAllParents(): void {
+    if (!this.assessment()) return;
+
+    // Check if there are any scores entered
+    const hasScores = this.scores().some(s => s.score !== null || s.absent);
+    if (!hasScores) {
+      this.notification.warning('Please enter scores before notifying parents');
+      return;
+    }
+
+    this.isNotifying.set(true);
+    this.notification.info('Sending notifications to all parents...');
+
+    this.teacherService.notifyAllParentsOfScores(this.assessment()!.id).subscribe({
+      next: (response) => {
+        this.isNotifying.set(false);
+        this.notification.success(`Notifications sent to ${response.notified} parents`);
+      },
+      error: (error) => {
+        this.isNotifying.set(false);
+        this.notification.error(error.message || 'Failed to send notifications');
+      }
+    });
+  }
+
+  canNotify(score: EditableScore): boolean {
+    return score.score !== null || score.absent;
   }
 }

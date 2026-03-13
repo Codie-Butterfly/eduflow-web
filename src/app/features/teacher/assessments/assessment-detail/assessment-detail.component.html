@@ -182,6 +182,22 @@
             </td>
           </ng-container>
 
+          <!-- Actions Column -->
+          <ng-container matColumnDef="actions">
+            <th mat-header-cell *matHeaderCellDef>Notify</th>
+            <td mat-cell *matCellDef="let score">
+              <button
+                mat-icon-button
+                color="primary"
+                (click)="notifyParent(score.studentId, score.studentName)"
+                [disabled]="!canNotify(score)"
+                matTooltip="Notify parent of score"
+              >
+                <mat-icon>send</mat-icon>
+              </button>
+            </td>
+          </ng-container>
+
           <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
           <tr
             mat-row
@@ -193,23 +209,37 @@
       </mat-card-content>
     </mat-card>
 
-    <!-- Bottom Save Button -->
+    <!-- Bottom Actions -->
     <div class="bottom-actions">
       <button mat-button routerLink="/teacher/assessments">
         Back to List
       </button>
-      <button
-        mat-raised-button
-        color="primary"
-        (click)="saveScores()"
-        [disabled]="isSaving()"
-      >
-        @if (isSaving()) {
-          <mat-spinner diameter="20"></mat-spinner>
-        }
-        <mat-icon>save</mat-icon>
-        Save All Scores
-      </button>
+      <div class="action-buttons">
+        <button
+          mat-stroked-button
+          color="primary"
+          (click)="notifyAllParents()"
+          [disabled]="isNotifying() || scoresEntered() === 0"
+        >
+          @if (isNotifying()) {
+            <mat-spinner diameter="20"></mat-spinner>
+          }
+          <mat-icon>notifications</mat-icon>
+          Notify All Parents
+        </button>
+        <button
+          mat-raised-button
+          color="primary"
+          (click)="saveScores()"
+          [disabled]="isSaving()"
+        >
+          @if (isSaving()) {
+            <mat-spinner diameter="20"></mat-spinner>
+          }
+          <mat-icon>save</mat-icon>
+          Save All Scores
+        </button>
+      </div>
     </div>
   }
 </div>

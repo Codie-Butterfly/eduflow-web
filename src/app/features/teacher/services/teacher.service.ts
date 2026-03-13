@@ -542,6 +542,36 @@ export class TeacherService {
     );
   }
 
+  /**
+   * Notify parent about student's assessment score
+   */
+  notifyParentOfScore(assessmentId: number, studentId: number): Observable<{ message: string }> {
+    return this.http.post<{ message: string }>(
+      `${this.baseUrl}/assessments/${assessmentId}/notify/${studentId}`,
+      {}
+    ).pipe(
+      catchError(error => {
+        console.error('Failed to notify parent:', error);
+        return throwError(() => new Error(error.error?.message || 'Failed to send notification'));
+      })
+    );
+  }
+
+  /**
+   * Notify all parents about assessment scores
+   */
+  notifyAllParentsOfScores(assessmentId: number): Observable<{ message: string; notified: number }> {
+    return this.http.post<{ message: string; notified: number }>(
+      `${this.baseUrl}/assessments/${assessmentId}/notify-all`,
+      {}
+    ).pipe(
+      catchError(error => {
+        console.error('Failed to notify parents:', error);
+        return throwError(() => new Error(error.error?.message || 'Failed to send notifications'));
+      })
+    );
+  }
+
   getStudentFeeStatus(studentId: number): Observable<{
     studentId: number;
     totalFees: number;
