@@ -27,6 +27,23 @@ export interface ParentDashboardStats {
   unreadNotifications: number;
 }
 
+export interface ChildGrade {
+  id: number;
+  assessmentId: number;
+  assessmentTitle: string;
+  assessmentType: string;
+  subjectId: number;
+  subjectName: string;
+  date: string;
+  score: number | null;
+  maxScore: number;
+  percentage: number | null;
+  absent: boolean;
+  remarks?: string;
+  term: string;
+  academicYear: string;
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -290,5 +307,56 @@ export class ParentService {
 
   downloadReceipt(paymentId: number): Observable<Blob> {
     return this.http.get(`${this.baseUrl}/payments/${paymentId}/receipt`, { responseType: 'blob' });
+  }
+
+  /**
+   * Get child's assessment grades/scores
+   */
+  getChildGrades(childId: number, startDate?: string, endDate?: string): Observable<ChildGrade[]> {
+    let params = new HttpParams();
+    if (startDate) {
+      params = params.set('startDate', startDate);
+    }
+    if (endDate) {
+      params = params.set('endDate', endDate);
+    }
+
+    return this.http.get<any>(`${this.baseUrl}/children/${childId}/grades`, { params }).pipe(
+      map(response => {
+        const grades = Array.isArray(response) ? response : (response.content || response.grades || response.data || []);
+        return grades.map((g: any) => this.transformGrade(g));
+      }),
+      catchError(error => {
+        console.error('Failed to load child grades:', error);
+        return of([]);
+      })
+    );
+  }
+
+  private transformGrade(data: any): ChildGrade {
+    // Handle nested assessment object
+    const assessment = data.assessment || {};
+    const subject = data.subject || assessment.subject || {};
+
+    const score = data.score ?? data.marks ?? null;
+    const maxScore = data.maxScore || assessment.maxScore || 100;
+    const percentage = score !== null ? Math.round((score / maxScore) * 100 * 10) / 10 : null;
+
+    return {
+      id: data.id,
+      assessmentId: assessment.id || data.assessmentId || data.assessment_id,
+      assessmentTitle: assessment.title || data.assessmentTitle || data.title || '',
+      assessmentType: assessment.type || data.assessmentType || data.type || 'TEST',
+      subjectId: subject.id || data.subjectId || data.subject_id,
+      subjectName: subject.name || data.subjectName || data.subject_name || '',
+      date: assessment.date || data.date || '',
+      score,
+      maxScore,
+      percentage,
+      absent: data.absent || data.isAbsent || false,
+      remarks: data.remarks || data.comment || '',
+      term: assessment.term || data.term || '',
+      academicYear: assessment.academicYear || data.academicYear || ''
+    };
   }
 }

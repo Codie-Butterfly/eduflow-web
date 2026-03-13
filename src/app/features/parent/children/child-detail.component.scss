@@ -38,6 +38,8 @@
     }
 
     .info {
+      flex: 1;
+
       h1 {
         margin: 0;
         font-size: $font-size-xl;
@@ -46,6 +48,19 @@
       p {
         margin: $spacing-xs 0 0;
         color: $text-secondary;
+      }
+    }
+
+    .grades-button {
+      flex-shrink: 0;
+    }
+
+    @include mobile {
+      flex-wrap: wrap;
+
+      .grades-button {
+        width: 100%;
+        margin-top: $spacing-md;
       }
     }
   }

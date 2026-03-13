@@ -15,6 +15,10 @@ export const PARENT_ROUTES: Routes = [
       {
         path: ':id',
         loadComponent: () => import('./children/child-detail.component').then(m => m.ChildDetailComponent)
+      },
+      {
+        path: ':id/grades',
+        loadComponent: () => import('./children/child-grades.component').then(m => m.ChildGradesComponent)
       }
     ]
   },

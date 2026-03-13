@@ -19,6 +19,10 @@
           <h1>{{ c.fullName }}</h1>
           <p>{{ c.studentId }} | {{ c.currentClass?.name || 'Not enrolled' }}</p>
         </div>
+        <a mat-raised-button color="primary" [routerLink]="['grades']" class="grades-button">
+          <mat-icon>school</mat-icon>
+          View Grades
+        </a>
       </div>
 
       <div class="summary-stats">
