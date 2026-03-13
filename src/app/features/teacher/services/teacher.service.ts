@@ -98,6 +98,12 @@ export interface TeacherAssignment {
   studentCount: number;
 }
 
+export interface ClassSubject {
+  id: number;
+  name: string;
+  code?: string;
+}
+
 export interface Assessment {
   id: number;
   title: string;
@@ -310,6 +316,26 @@ export class TeacherService {
             return of([]);
           })
         );
+      })
+    );
+  }
+
+  /**
+   * Get subjects for a specific class
+   */
+  getClassSubjects(classId: number): Observable<ClassSubject[]> {
+    return this.http.get<any>(`${this.baseUrl}/classes/${classId}/subjects`).pipe(
+      map(response => {
+        const subjects = Array.isArray(response) ? response : (response.content || response.subjects || []);
+        return subjects.map((s: any) => ({
+          id: s.id,
+          name: s.name || s.subjectName || '',
+          code: s.code || s.subjectCode || ''
+        }));
+      }),
+      catchError(error => {
+        console.error('Failed to load class subjects:', error);
+        return of([]);
       })
     );
   }

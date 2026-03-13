@@ -58,7 +58,8 @@
   width: 100%;
 }
 
-.student-count {
+.student-count,
+.subject-code {
   font-size: $font-size-sm;
   color: $text-secondary;
   margin-left: $spacing-xs;

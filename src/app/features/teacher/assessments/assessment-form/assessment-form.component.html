@@ -23,19 +23,51 @@
             <mat-card-title>Assessment Details</mat-card-title>
           </mat-card-header>
           <mat-card-content>
+            <!-- Class Dropdown -->
             <mat-form-field appearance="outline" class="full-width">
-              <mat-label>Class / Subject</mat-label>
-              <mat-select formControlName="assignmentId">
-                @for (assignment of assignments(); track assignment.id) {
-                  <mat-option [value]="assignment.id">
-                    {{ assignment.className }} - {{ assignment.subjectName }}
-                    <span class="student-count">({{ assignment.studentCount }} students)</span>
+              <mat-label>Class</mat-label>
+              <mat-select formControlName="classId" (selectionChange)="onClassChange($event.value)">
+                @for (cls of classes(); track cls.id) {
+                  <mat-option [value]="cls.id">
+                    {{ cls.name }}
+                    <span class="student-count">({{ cls.studentCount }} students)</span>
                   </mat-option>
                 }
               </mat-select>
-              <mat-hint>Select the class and subject for this assessment</mat-hint>
-              @if (assignmentId?.hasError('required') && assignmentId?.touched) {
-                <mat-error>Please select a class/subject</mat-error>
+              <mat-hint>Select the class for this assessment</mat-hint>
+              @if (classId?.hasError('required') && classId?.touched) {
+                <mat-error>Please select a class</mat-error>
+              }
+            </mat-form-field>
+
+            <!-- Subject Dropdown -->
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Subject</mat-label>
+              <mat-select formControlName="subjectId" [disabled]="!classId?.value || isLoadingSubjects()">
+                @if (isLoadingSubjects()) {
+                  <mat-option disabled>Loading subjects...</mat-option>
+                } @else if (subjects().length === 0 && classId?.value) {
+                  <mat-option disabled>No subjects found</mat-option>
+                } @else {
+                  @for (subject of subjects(); track subject.id) {
+                    <mat-option [value]="subject.id">
+                      {{ subject.name }}
+                      @if (subject.code) {
+                        <span class="subject-code">({{ subject.code }})</span>
+                      }
+                    </mat-option>
+                  }
+                }
+              </mat-select>
+              <mat-hint>
+                @if (!classId?.value) {
+                  Select a class first
+                } @else {
+                  Select the subject for this assessment
+                }
+              </mat-hint>
+              @if (subjectId?.hasError('required') && subjectId?.touched) {
+                <mat-error>Please select a subject</mat-error>
               }
             </mat-form-field>
 
@@ -122,21 +154,21 @@
         </mat-card>
       </div>
 
-      <!-- Selected Class Info -->
-      @if (getSelectedAssignment()) {
+      <!-- Selected Class/Subject Info -->
+      @if (getSelectedClass() && getSelectedSubject()) {
         <mat-card class="info-card">
           <mat-card-content>
             <div class="info-item">
               <mat-icon>class</mat-icon>
-              <span>{{ getSelectedAssignment()?.className }}</span>
+              <span>{{ getSelectedClass()?.name }}</span>
             </div>
             <div class="info-item">
               <mat-icon>book</mat-icon>
-              <span>{{ getSelectedAssignment()?.subjectName }}</span>
+              <span>{{ getSelectedSubject()?.name }}</span>
             </div>
             <div class="info-item">
               <mat-icon>people</mat-icon>
-              <span>{{ getSelectedAssignment()?.studentCount }} students</span>
+              <span>{{ getSelectedClass()?.studentCount }} students</span>
             </div>
           </mat-card-content>
         </mat-card>

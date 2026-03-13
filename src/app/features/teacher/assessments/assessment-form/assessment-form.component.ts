@@ -14,7 +14,8 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 
 import {
   TeacherService,
-  TeacherAssignment,
+  TeacherClass,
+  ClassSubject,
   ASSESSMENT_TYPES,
   TERMS,
   CreateAssessmentRequest
@@ -49,10 +50,12 @@ export class AssessmentFormComponent implements OnInit {
 
   assessmentForm!: FormGroup;
   isLoading = signal(false);
+  isLoadingSubjects = signal(false);
   isSaving = signal(false);
 
   // Data
-  assignments = signal<TeacherAssignment[]>([]);
+  classes = signal<TeacherClass[]>([]);
+  subjects = signal<ClassSubject[]>([]);
 
   // Options
   assessmentTypes = ASSESSMENT_TYPES;
@@ -63,12 +66,13 @@ export class AssessmentFormComponent implements OnInit {
 
   ngOnInit(): void {
     this.initForm();
-    this.loadAssignments();
+    this.loadClasses();
   }
 
   private initForm(): void {
     this.assessmentForm = this.fb.group({
-      assignmentId: [null, [Validators.required]],
+      classId: [null, [Validators.required]],
+      subjectId: [null, [Validators.required]],
       title: ['', [Validators.required, Validators.minLength(3), Validators.maxLength(200)]],
       type: ['TEST', [Validators.required]],
       date: [new Date(), [Validators.required]],
@@ -79,16 +83,41 @@ export class AssessmentFormComponent implements OnInit {
     });
   }
 
-  private loadAssignments(): void {
+  private loadClasses(): void {
     this.isLoading.set(true);
-    this.teacherService.getMyAssignments().subscribe({
+    this.teacherService.getMyClasses().subscribe({
       next: (data) => {
-        this.assignments.set(data);
+        this.classes.set(data);
         this.isLoading.set(false);
       },
       error: () => {
-        this.notification.error('Failed to load class assignments');
+        this.notification.error('Failed to load classes');
         this.isLoading.set(false);
+      }
+    });
+  }
+
+  onClassChange(classId: number): void {
+    // Reset subject selection
+    this.assessmentForm.patchValue({ subjectId: null });
+    this.subjects.set([]);
+
+    if (!classId) return;
+
+    this.isLoadingSubjects.set(true);
+    this.teacherService.getClassSubjects(classId).subscribe({
+      next: (data) => {
+        this.subjects.set(data);
+        this.isLoadingSubjects.set(false);
+
+        // Auto-select if only one subject
+        if (data.length === 1) {
+          this.assessmentForm.patchValue({ subjectId: data[0].id });
+        }
+      },
+      error: () => {
+        this.notification.error('Failed to load subjects');
+        this.isLoadingSubjects.set(false);
       }
     });
   }
@@ -96,13 +125,17 @@ export class AssessmentFormComponent implements OnInit {
   private getCurrentAcademicYear(): string {
     const now = new Date();
     const year = now.getFullYear();
-    // Academic year typically starts in January
     return `${year}`;
   }
 
-  getSelectedAssignment(): TeacherAssignment | undefined {
-    const id = this.assessmentForm.get('assignmentId')?.value;
-    return this.assignments().find(a => a.id === id);
+  getSelectedClass(): TeacherClass | undefined {
+    const id = this.assessmentForm.get('classId')?.value;
+    return this.classes().find(c => c.id === id);
+  }
+
+  getSelectedSubject(): ClassSubject | undefined {
+    const id = this.assessmentForm.get('subjectId')?.value;
+    return this.subjects().find(s => s.id === id);
   }
 
   onSubmit(): void {
@@ -114,19 +147,12 @@ export class AssessmentFormComponent implements OnInit {
 
     this.isSaving.set(true);
     const formValue = this.assessmentForm.value;
-    const assignment = this.getSelectedAssignment();
-
-    if (!assignment) {
-      this.notification.error('Please select a class/subject');
-      this.isSaving.set(false);
-      return;
-    }
 
     const request: CreateAssessmentRequest = {
       title: formValue.title,
       type: formValue.type,
-      classId: assignment.classId,
-      subjectId: assignment.subjectId,
+      classId: formValue.classId,
+      subjectId: formValue.subjectId,
       date: this.formatDate(formValue.date),
       maxScore: formValue.maxScore,
       term: formValue.term,
@@ -137,7 +163,6 @@ export class AssessmentFormComponent implements OnInit {
     this.teacherService.createAssessment(request).subscribe({
       next: (assessment) => {
         this.notification.success('Assessment created successfully');
-        // Navigate to the assessment detail page to enter scores
         this.router.navigate(['/teacher/assessments', assessment.id]);
       },
       error: (error) => {
@@ -152,7 +177,8 @@ export class AssessmentFormComponent implements OnInit {
   }
 
   // Form getters
-  get assignmentId() { return this.assessmentForm.get('assignmentId'); }
+  get classId() { return this.assessmentForm.get('classId'); }
+  get subjectId() { return this.assessmentForm.get('subjectId'); }
   get title() { return this.assessmentForm.get('title'); }
   get type() { return this.assessmentForm.get('type'); }
   get date() { return this.assessmentForm.get('date'); }
