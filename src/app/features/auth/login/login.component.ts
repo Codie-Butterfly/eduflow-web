@@ -74,10 +74,10 @@ export class LoginComponent {
     });
   }
 
-  fillCredentials(email: string): void {
+  fillCredentials(email: string, password: string = 'admin123'): void {
     this.loginForm.patchValue({
       email,
-      password: 'admin123'
+      password
     });
   }
 
