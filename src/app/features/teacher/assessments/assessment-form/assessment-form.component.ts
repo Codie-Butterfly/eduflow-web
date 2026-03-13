@@ -85,7 +85,7 @@ export class AssessmentFormComponent implements OnInit {
 
   private loadClasses(): void {
     this.isLoading.set(true);
-    this.teacherService.getMyClasses().subscribe({
+    this.teacherService.getAllClasses().subscribe({
       next: (data) => {
         this.classes.set(data);
         this.isLoading.set(false);

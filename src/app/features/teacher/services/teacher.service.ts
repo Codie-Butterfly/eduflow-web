@@ -275,6 +275,25 @@ export class TeacherService {
     );
   }
 
+  /**
+   * Get all classes in the school (for assessment creation)
+   */
+  getAllClasses(): Observable<TeacherClass[]> {
+    return this.http.get<any>(`${environment.apiUrl}/v1/admin/classes`, {
+      params: new HttpParams().set('size', '100')
+    }).pipe(
+      map(response => {
+        const classes = Array.isArray(response) ? response : (response.content || []);
+        return classes.map((c: any) => this.transformClass(c));
+      }),
+      catchError(error => {
+        console.error('Failed to load all classes:', error);
+        // Fallback to teacher's classes if admin endpoint fails
+        return this.getMyClasses();
+      })
+    );
+  }
+
   getClassDetails(classId: number): Observable<TeacherClass> {
     return this.http.get<any>(`${this.baseUrl}/classes/${classId}`).pipe(
       map(response => this.transformClass(response)),
