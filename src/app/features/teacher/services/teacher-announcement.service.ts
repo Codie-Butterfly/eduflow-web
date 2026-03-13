@@ -21,7 +21,7 @@ export class TeacherAnnouncementService {
   private readonly classesUrl = `${environment.apiUrl}/v1/teacher/classes`;
 
   /**
-   * Get teacher's own announcements (paginated)
+   * Get teacher's own announcements (created by this teacher)
    */
   getMyAnnouncements(
     page: number = 0,
@@ -40,7 +40,8 @@ export class TeacherAnnouncementService {
       params = params.set('status', status);
     }
 
-    return this.http.get<any>(this.baseUrl, { params }).pipe(
+    // Use /my endpoint to get announcements created by this teacher
+    return this.http.get<any>(`${this.baseUrl}/my`, { params }).pipe(
       map(response => {
         const paged = this.transformPagedResponse<any>(response);
         return {
@@ -166,7 +167,8 @@ export class TeacherAnnouncementService {
       params = params.set('unreadOnly', 'true');
     }
 
-    return this.http.get<any>(this.baseUrl, { params }).pipe(
+    // Use /inbox endpoint to get announcements sent to this teacher
+    return this.http.get<any>(`${this.baseUrl}/inbox`, { params }).pipe(
       map(response => {
         const paged = this.transformPagedResponse<any>(response);
         return {
