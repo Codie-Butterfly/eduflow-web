@@ -57,16 +57,30 @@ export class TeacherService {
   private readonly baseUrl = `${environment.apiUrl}/v1/teacher`;
 
   getDashboardStats(): Observable<TeacherDashboardStats> {
-    return this.http.get<TeacherDashboardStats>(`${this.baseUrl}/dashboard`).pipe(
-      map(response => this.transformDashboardStats(response)),
-      catchError(error => {
-        console.error('Failed to load dashboard stats:', error);
-        return of({
-          totalClasses: 0,
-          totalStudents: 0,
-          todayAttendance: 0,
-          pendingAttendance: 0
-        });
+    return this.http.get<any>(`${this.baseUrl}/dashboard`).pipe(
+      map(response => {
+        console.log('Dashboard stats response:', response);
+        return this.transformDashboardStats(response);
+      }),
+      catchError(() => {
+        // Fallback: calculate stats from classes
+        return this.getMyClasses().pipe(
+          map(classes => {
+            const totalStudents = classes.reduce((sum, c) => sum + (c.studentCount || 0), 0);
+            return {
+              totalClasses: classes.length,
+              totalStudents,
+              todayAttendance: 0,
+              pendingAttendance: classes.length
+            };
+          }),
+          catchError(() => of({
+            totalClasses: 0,
+            totalStudents: 0,
+            todayAttendance: 0,
+            pendingAttendance: 0
+          }))
+        );
       })
     );
   }
@@ -226,10 +240,10 @@ export class TeacherService {
 
   private transformDashboardStats(data: any): TeacherDashboardStats {
     return {
-      totalClasses: data.totalClasses || data.total_classes || 0,
-      totalStudents: data.totalStudents || data.total_students || 0,
-      todayAttendance: data.todayAttendance || data.today_attendance || 0,
-      pendingAttendance: data.pendingAttendance || data.pending_attendance || 0
+      totalClasses: data.totalClasses || data.total_classes || data.classCount || data.class_count || 0,
+      totalStudents: data.totalStudents || data.total_students || data.studentCount || data.student_count || 0,
+      todayAttendance: data.todayAttendance || data.today_attendance || data.markedAttendance || data.marked_attendance || data.attendanceMarked || 0,
+      pendingAttendance: data.pendingAttendance || data.pending_attendance || data.pendingCount || data.pending_count || 0
     };
   }
 
