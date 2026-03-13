@@ -562,8 +562,8 @@ export class TeacherService {
   /**
    * Notify parent about student's assessment score
    */
-  notifyParentOfScore(assessmentId: number, studentId: number): Observable<{ message: string }> {
-    return this.http.post<{ message: string }>(
+  notifyParentOfScore(assessmentId: number, studentId: number): Observable<{ success: boolean; message: string }> {
+    return this.http.post<{ success: boolean; message: string }>(
       `${this.baseUrl}/assessments/${assessmentId}/notify/${studentId}`,
       {}
     ).pipe(
@@ -577,8 +577,16 @@ export class TeacherService {
   /**
    * Notify all parents about assessment scores
    */
-  notifyAllParentsOfScores(assessmentId: number): Observable<{ message: string; notified: number }> {
-    return this.http.post<{ message: string; notified: number }>(
+  notifyAllParentsOfScores(assessmentId: number): Observable<{
+    notificationsSent: number;
+    studentsWithoutParent: number;
+    message: string;
+  }> {
+    return this.http.post<{
+      notificationsSent: number;
+      studentsWithoutParent: number;
+      message: string;
+    }>(
       `${this.baseUrl}/assessments/${assessmentId}/notify-all`,
       {}
     ).pipe(

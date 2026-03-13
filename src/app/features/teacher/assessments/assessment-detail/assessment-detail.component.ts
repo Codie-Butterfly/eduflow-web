@@ -265,7 +265,11 @@ export class AssessmentDetailComponent implements OnInit {
     this.teacherService.notifyAllParentsOfScores(this.assessment()!.id).subscribe({
       next: (response) => {
         this.isNotifying.set(false);
-        this.notification.success(`Notifications sent to ${response.notified} parents`);
+        let message = `${response.notificationsSent} notifications sent successfully`;
+        if (response.studentsWithoutParent > 0) {
+          message += ` (${response.studentsWithoutParent} students have no parent linked)`;
+        }
+        this.notification.success(message);
       },
       error: (error) => {
         this.isNotifying.set(false);
