@@ -17,6 +17,7 @@ export class TeacherLayoutComponent {
     { icon: 'dashboard', label: 'Dashboard', route: '/teacher/dashboard' },
     { icon: 'class', label: 'My Classes', route: '/teacher/classes' },
     { icon: 'fact_check', label: 'Attendance', route: '/teacher/attendance' },
+    { icon: 'history', label: 'Attendance History', route: '/teacher/attendance/history' },
     { icon: 'campaign', label: 'Announcements', route: '/teacher/announcements' }
   ];
 

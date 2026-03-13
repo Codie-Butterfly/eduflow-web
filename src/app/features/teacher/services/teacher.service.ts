@@ -136,11 +136,22 @@ export class TeacherService {
         const list = Array.isArray(response) ? response : (response.content || response.data || []);
 
         const mapped = list.map((item: any) => {
-          // Handle various field name formats
-          const isCompleted = item.isCompleted ?? item.is_completed ?? item.completed ?? false;
-          const isPending = item.isPending ?? item.is_pending ?? item.pending ?? !isCompleted;
+          // Handle various field name formats - log all fields to debug
+          console.log('Raw item fields:', Object.keys(item), 'values:', item);
 
-          console.log(`Class ${item.classId}: isCompleted=${isCompleted}, isPending=${isPending}`);
+          // Check for completion status with various field names
+          const isCompleted = item.isCompleted ?? item.is_completed ?? item.completed ??
+                              item.attendanceCompleted ?? item.attendance_completed ??
+                              item.markedCompleted ?? item.marked_completed ??
+                              item.hasAttendance ?? item.has_attendance ?? false;
+
+          // Check for pending status with various field names
+          const isPending = item.isPending ?? item.is_pending ?? item.pending ??
+                            item.attendancePending ?? item.attendance_pending ??
+                            item.needsAttendance ?? item.needs_attendance ??
+                            !isCompleted;
+
+          console.log(`Class ${item.classId || item.class_id}: isCompleted=${isCompleted}, isPending=${isPending}, raw completed=${item.completed}, raw isCompleted=${item.isCompleted}`);
 
           return {
             classId: item.classId || item.class_id,
