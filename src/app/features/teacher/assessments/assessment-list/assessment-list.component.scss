@@ -71,20 +71,6 @@
   }
 }
 
-.class-cell {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-
-  .class-name {
-    font-weight: $font-weight-medium;
-  }
-
-  .subject-name {
-    font-size: $font-size-sm;
-    color: $text-secondary;
-  }
-}
 
 .progress-cell {
   display: flex;

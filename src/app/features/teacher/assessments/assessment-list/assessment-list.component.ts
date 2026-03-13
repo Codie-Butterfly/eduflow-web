@@ -61,7 +61,7 @@ export class AssessmentListComponent implements OnInit {
   // Options
   assessmentTypes = ASSESSMENT_TYPES;
 
-  displayedColumns = ['title', 'class', 'type', 'date', 'progress', 'average', 'actions'];
+  displayedColumns = ['title', 'class', 'subject', 'type', 'date', 'progress', 'average', 'actions'];
 
   ngOnInit(): void {
     this.loadClasses();
