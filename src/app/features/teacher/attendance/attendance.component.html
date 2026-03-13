@@ -4,6 +4,10 @@
       <h1>Mark Attendance</h1>
       <p class="text-secondary">Record student attendance for your classes</p>
     </div>
+    <a mat-button routerLink="/teacher/attendance/history" [queryParams]="selectedClassId ? {classId: selectedClassId} : {}">
+      <mat-icon>history</mat-icon>
+      View History
+    </a>
   </header>
 
   <mat-card class="filter-card">

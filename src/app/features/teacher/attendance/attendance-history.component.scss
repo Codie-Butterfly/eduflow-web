@@ -1,0 +1,164 @@
+@use 'styles/variables' as *;
+@use 'styles/mixins' as *;
+
+.attendance-history {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.page-header {
+  @include flex-between;
+  margin-bottom: $spacing-lg;
+
+  h1 {
+    margin: 0;
+  }
+
+  .text-secondary {
+    margin: $spacing-xs 0 0;
+    color: $text-secondary;
+  }
+}
+
+.filters-card {
+  margin-bottom: $spacing-lg;
+
+  .filters-row {
+    display: flex;
+    gap: $spacing-md;
+    flex-wrap: wrap;
+    align-items: flex-start;
+
+    .class-select {
+      min-width: 200px;
+    }
+
+    mat-form-field {
+      flex: 1;
+      min-width: 150px;
+    }
+
+    button {
+      margin-top: 4px;
+    }
+  }
+}
+
+.loading-container {
+  @include flex-center;
+  padding: $spacing-xxl;
+  flex-direction: column;
+  gap: $spacing-md;
+}
+
+.stats-row {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: $spacing-md;
+  margin-bottom: $spacing-lg;
+
+  @include tablet {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  @include mobile {
+    grid-template-columns: 1fr;
+  }
+}
+
+.stat-card {
+  display: flex;
+  align-items: center;
+  gap: $spacing-md;
+  padding: $spacing-md;
+
+  .stat-icon {
+    @include flex-center;
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+
+    mat-icon {
+      color: white;
+    }
+
+    &.present {
+      background: $success-color;
+    }
+
+    &.absent {
+      background: $error-color;
+    }
+
+    &.late {
+      background: $warning-color;
+    }
+
+    &.excused {
+      background: $primary-color;
+    }
+  }
+
+  .stat-info {
+    display: flex;
+    flex-direction: column;
+
+    .stat-value {
+      font-size: $font-size-xxl;
+      font-weight: $font-weight-bold;
+    }
+
+    .stat-label {
+      font-size: $font-size-sm;
+      color: $text-secondary;
+    }
+  }
+}
+
+.records-card {
+  mat-card-header {
+    @include flex-between;
+    margin-bottom: $spacing-md;
+
+    .record-count {
+      color: $text-secondary;
+      font-size: $font-size-sm;
+    }
+  }
+
+  .table-container {
+    overflow-x: auto;
+  }
+
+  .records-table {
+    width: 100%;
+
+    .status-icon {
+      font-size: 16px;
+      width: 16px;
+      height: 16px;
+      margin-right: 4px;
+    }
+  }
+}
+
+.empty-state,
+.empty-card mat-card-content {
+  @include flex-center;
+  flex-direction: column;
+  padding: $spacing-xxl;
+  color: $text-secondary;
+
+  mat-icon {
+    font-size: 64px;
+    width: 64px;
+    height: 64px;
+    margin-bottom: $spacing-md;
+    opacity: 0.5;
+  }
+
+  p {
+    margin: 0;
+    text-align: center;
+  }
+}

@@ -58,6 +58,15 @@ export interface AttendanceStatusResponse {
   totalStudents: number;
 }
 
+export interface AttendanceHistoryResponse {
+  classId: number;
+  className: string;
+  startDate: string;
+  endDate: string;
+  totalRecords: number;
+  records: AttendanceRecord[];
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -222,6 +231,41 @@ export class TeacherService {
       catchError(error => {
         console.error('Failed to load attendance summary:', error);
         return of([]);
+      })
+    );
+  }
+
+  /**
+   * Get attendance history for a class within a date range
+   */
+  getAttendanceHistory(classId: number, startDate: string, endDate: string): Observable<AttendanceHistoryResponse> {
+    const params = new HttpParams()
+      .set('startDate', startDate)
+      .set('endDate', endDate);
+
+    return this.http.get<any>(`${this.baseUrl}/classes/${classId}/attendance/range`, { params }).pipe(
+      map(response => {
+        console.log('Attendance history response:', response);
+        const records = (response.records || []).map((r: any) => this.transformAttendanceRecord(r));
+        return {
+          classId: response.classId || response.class_id || classId,
+          className: response.className || response.class_name || '',
+          startDate: response.startDate || response.start_date || startDate,
+          endDate: response.endDate || response.end_date || endDate,
+          totalRecords: response.totalRecords || response.total_records || records.length,
+          records
+        };
+      }),
+      catchError(error => {
+        console.error('Failed to load attendance history:', error);
+        return of({
+          classId,
+          className: '',
+          startDate,
+          endDate,
+          totalRecords: 0,
+          records: []
+        });
       })
     );
   }

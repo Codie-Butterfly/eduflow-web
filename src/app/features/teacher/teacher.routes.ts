@@ -23,6 +23,10 @@ export const TEACHER_ROUTES: Routes = [
     loadComponent: () => import('./attendance/attendance.component').then(m => m.AttendanceComponent)
   },
   {
+    path: 'attendance/history',
+    loadComponent: () => import('./attendance/attendance-history.component').then(m => m.AttendanceHistoryComponent)
+  },
+  {
     path: 'announcements',
     children: [
       {
