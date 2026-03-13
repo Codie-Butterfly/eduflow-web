@@ -27,6 +27,23 @@ export const TEACHER_ROUTES: Routes = [
     loadComponent: () => import('./attendance/attendance-history.component').then(m => m.AttendanceHistoryComponent)
   },
   {
+    path: 'assessments',
+    children: [
+      {
+        path: '',
+        loadComponent: () => import('./assessments/assessment-list/assessment-list.component').then(m => m.AssessmentListComponent)
+      },
+      {
+        path: 'new',
+        loadComponent: () => import('./assessments/assessment-form/assessment-form.component').then(m => m.AssessmentFormComponent)
+      },
+      {
+        path: ':id',
+        loadComponent: () => import('./assessments/assessment-detail/assessment-detail.component').then(m => m.AssessmentDetailComponent)
+      }
+    ]
+  },
+  {
     path: 'announcements',
     children: [
       {

@@ -1,0 +1,170 @@
+<div class="assessment-form">
+  <header class="page-header">
+    <div>
+      <h1>Create Assessment</h1>
+      <p class="text-secondary">Create a new assessment for your class</p>
+    </div>
+    <button mat-button routerLink="/teacher/assessments">
+      <mat-icon>arrow_back</mat-icon>
+      Back to List
+    </button>
+  </header>
+
+  @if (isLoading()) {
+    <div class="loading-container">
+      <mat-spinner diameter="40"></mat-spinner>
+    </div>
+  } @else {
+    <form [formGroup]="assessmentForm" (ngSubmit)="onSubmit()">
+      <div class="form-layout">
+        <!-- Main Content Card -->
+        <mat-card class="main-card">
+          <mat-card-header>
+            <mat-card-title>Assessment Details</mat-card-title>
+          </mat-card-header>
+          <mat-card-content>
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Class / Subject</mat-label>
+              <mat-select formControlName="assignmentId">
+                @for (assignment of assignments(); track assignment.id) {
+                  <mat-option [value]="assignment.id">
+                    {{ assignment.className }} - {{ assignment.subjectName }}
+                    <span class="student-count">({{ assignment.studentCount }} students)</span>
+                  </mat-option>
+                }
+              </mat-select>
+              <mat-hint>Select the class and subject for this assessment</mat-hint>
+              @if (assignmentId?.hasError('required') && assignmentId?.touched) {
+                <mat-error>Please select a class/subject</mat-error>
+              }
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Assessment Title</mat-label>
+              <input matInput formControlName="title" placeholder="e.g., Chapter 5 Test, Mid-term Exam">
+              <mat-hint>A clear, descriptive title</mat-hint>
+              @if (title?.hasError('required') && title?.touched) {
+                <mat-error>Title is required</mat-error>
+              }
+              @if (title?.hasError('minlength')) {
+                <mat-error>Title must be at least 3 characters</mat-error>
+              }
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Description (Optional)</mat-label>
+              <textarea
+                matInput
+                formControlName="description"
+                placeholder="Add any notes or description"
+                rows="3"
+              ></textarea>
+              <mat-hint align="end">{{ description?.value?.length || 0 }}/500</mat-hint>
+            </mat-form-field>
+          </mat-card-content>
+        </mat-card>
+
+        <!-- Settings Card -->
+        <mat-card class="settings-card">
+          <mat-card-header>
+            <mat-card-title>Settings</mat-card-title>
+          </mat-card-header>
+          <mat-card-content>
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Assessment Type</mat-label>
+              <mat-select formControlName="type">
+                @for (assessmentType of assessmentTypes; track assessmentType.value) {
+                  <mat-option [value]="assessmentType.value">
+                    {{ assessmentType.label }}
+                  </mat-option>
+                }
+              </mat-select>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Date</mat-label>
+              <input matInput [matDatepicker]="picker" formControlName="date">
+              <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
+              <mat-datepicker #picker></mat-datepicker>
+              @if (date?.hasError('required') && date?.touched) {
+                <mat-error>Date is required</mat-error>
+              }
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Maximum Score</mat-label>
+              <input matInput type="number" formControlName="maxScore" min="1" max="1000">
+              <mat-hint>The highest possible score (e.g., 100)</mat-hint>
+              @if (maxScore?.hasError('required') && maxScore?.touched) {
+                <mat-error>Maximum score is required</mat-error>
+              }
+              @if (maxScore?.hasError('min')) {
+                <mat-error>Score must be at least 1</mat-error>
+              }
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Term</mat-label>
+              <mat-select formControlName="term">
+                @for (termOption of terms; track termOption.value) {
+                  <mat-option [value]="termOption.value">
+                    {{ termOption.label }}
+                  </mat-option>
+                }
+              </mat-select>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Academic Year</mat-label>
+              <input matInput formControlName="academicYear" placeholder="e.g., 2024">
+            </mat-form-field>
+          </mat-card-content>
+        </mat-card>
+      </div>
+
+      <!-- Selected Class Info -->
+      @if (getSelectedAssignment()) {
+        <mat-card class="info-card">
+          <mat-card-content>
+            <div class="info-item">
+              <mat-icon>class</mat-icon>
+              <span>{{ getSelectedAssignment()?.className }}</span>
+            </div>
+            <div class="info-item">
+              <mat-icon>book</mat-icon>
+              <span>{{ getSelectedAssignment()?.subjectName }}</span>
+            </div>
+            <div class="info-item">
+              <mat-icon>people</mat-icon>
+              <span>{{ getSelectedAssignment()?.studentCount }} students</span>
+            </div>
+          </mat-card-content>
+        </mat-card>
+      }
+
+      <!-- Action Buttons -->
+      <div class="form-actions">
+        <button
+          mat-button
+          type="button"
+          routerLink="/teacher/assessments"
+          [disabled]="isSaving()"
+        >
+          Cancel
+        </button>
+        <button
+          mat-raised-button
+          color="primary"
+          type="submit"
+          [disabled]="isSaving()"
+        >
+          @if (isSaving()) {
+            <mat-spinner diameter="20"></mat-spinner>
+          }
+          <mat-icon>add</mat-icon>
+          Create Assessment
+        </button>
+      </div>
+    </form>
+  }
+</div>

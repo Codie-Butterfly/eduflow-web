@@ -1,0 +1,138 @@
+@use 'styles/variables' as *;
+@use 'styles/mixins' as *;
+
+.assessment-form {
+  max-width: 1000px;
+  margin: 0 auto;
+}
+
+.page-header {
+  @include flex-between;
+  flex-wrap: wrap;
+  gap: $spacing-md;
+  margin-bottom: $spacing-lg;
+
+  h1 {
+    margin: 0;
+    font-size: $font-size-xxl;
+    font-weight: $font-weight-medium;
+  }
+
+  .text-secondary {
+    margin: $spacing-xs 0 0;
+    color: $text-secondary;
+  }
+}
+
+.loading-container {
+  @include flex-center;
+  padding: $spacing-xxl;
+}
+
+.form-layout {
+  display: grid;
+  grid-template-columns: 1fr 300px;
+  gap: $spacing-lg;
+  margin-bottom: $spacing-lg;
+}
+
+.main-card,
+.settings-card {
+  mat-card-header {
+    margin-bottom: $spacing-md;
+  }
+
+  mat-card-title {
+    font-size: $font-size-lg;
+    font-weight: $font-weight-medium;
+  }
+
+  mat-card-content {
+    display: flex;
+    flex-direction: column;
+    gap: $spacing-md;
+  }
+}
+
+.full-width {
+  width: 100%;
+}
+
+.student-count {
+  font-size: $font-size-sm;
+  color: $text-secondary;
+  margin-left: $spacing-xs;
+}
+
+.info-card {
+  margin-bottom: $spacing-lg;
+  background: linear-gradient(135deg, rgba($primary-color, 0.1) 0%, rgba($primary-color, 0.05) 100%);
+
+  mat-card-content {
+    display: flex;
+    align-items: center;
+    gap: $spacing-xl;
+    flex-wrap: wrap;
+  }
+
+  .info-item {
+    display: flex;
+    align-items: center;
+    gap: $spacing-sm;
+
+    mat-icon {
+      color: $primary-color;
+    }
+
+    span {
+      font-weight: $font-weight-medium;
+    }
+  }
+}
+
+.form-actions {
+  @include flex-between;
+  padding: $spacing-md;
+  background: $surface-color;
+  border-radius: $border-radius-md;
+  box-shadow: $shadow-sm;
+
+  button {
+    mat-spinner {
+      margin-right: $spacing-sm;
+      display: inline-block;
+    }
+  }
+}
+
+@include tablet {
+  .form-layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+@include mobile {
+  .page-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .form-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .info-card mat-card-content {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: $spacing-sm;
+  }
+
+  .form-actions {
+    flex-direction: column;
+    gap: $spacing-md;
+
+    button {
+      width: 100%;
+    }
+  }
+}

@@ -1,0 +1,179 @@
+@use 'styles/variables' as *;
+@use 'styles/mixins' as *;
+
+.assessment-list {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.page-header {
+  @include flex-between;
+  flex-wrap: wrap;
+  gap: $spacing-md;
+  margin-bottom: $spacing-lg;
+
+  h1 {
+    margin: 0;
+  }
+
+  p {
+    margin: $spacing-xs 0 0;
+    color: $text-secondary;
+  }
+}
+
+.filter-card {
+  margin-bottom: $spacing-lg;
+  padding: $spacing-md;
+
+  .filters {
+    display: flex;
+    align-items: center;
+    gap: $spacing-md;
+    flex-wrap: wrap;
+
+    mat-form-field {
+      min-width: 200px;
+      margin-bottom: -1.25em;
+    }
+  }
+}
+
+.loading-container {
+  @include flex-center;
+  min-height: 300px;
+}
+
+.table-card {
+  overflow: hidden;
+
+  table {
+    width: 100%;
+  }
+}
+
+.title-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+
+  .title {
+    font-weight: $font-weight-medium;
+  }
+
+  .description {
+    font-size: $font-size-sm;
+    color: $text-secondary;
+    max-width: 300px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+}
+
+.class-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+
+  .class-name {
+    font-weight: $font-weight-medium;
+  }
+
+  .subject-name {
+    font-size: $font-size-sm;
+    color: $text-secondary;
+  }
+}
+
+.progress-cell {
+  display: flex;
+  align-items: center;
+  gap: $spacing-sm;
+
+  .progress-bar {
+    width: 80px;
+    height: 6px;
+    background: $divider-color;
+    border-radius: 3px;
+    overflow: hidden;
+
+    .progress-fill {
+      height: 100%;
+      transition: width 0.3s ease;
+
+      &.complete {
+        background: $success-color;
+      }
+
+      &.partial {
+        background: $warning-color;
+      }
+
+      &.low {
+        background: $error-color;
+      }
+    }
+  }
+
+  .progress-text {
+    font-size: $font-size-sm;
+    color: $text-secondary;
+    white-space: nowrap;
+  }
+}
+
+.average {
+  font-weight: $font-weight-medium;
+  color: $primary-color;
+}
+
+.no-data {
+  color: $text-disabled;
+}
+
+.empty-card {
+  mat-card-content {
+    @include flex-center;
+    @include flex-column;
+    padding: $spacing-xl * 2;
+    text-align: center;
+
+    mat-icon {
+      font-size: 80px;
+      width: 80px;
+      height: 80px;
+      color: $text-disabled;
+      margin-bottom: $spacing-lg;
+    }
+
+    h3 {
+      margin: 0 0 $spacing-sm;
+    }
+
+    p {
+      margin: $spacing-xs 0 $spacing-lg;
+      color: $text-secondary;
+    }
+  }
+}
+
+@include mobile {
+  .page-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .filter-card .filters {
+    flex-direction: column;
+    align-items: stretch;
+
+    mat-form-field {
+      width: 100%;
+    }
+  }
+
+  .progress-cell .progress-bar {
+    width: 60px;
+  }
+}

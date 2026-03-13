@@ -1,0 +1,176 @@
+<div class="assessment-list">
+  <header class="page-header">
+    <div>
+      <h1>Assessments</h1>
+      <p class="text-secondary">Create and manage student assessments</p>
+    </div>
+    <a mat-raised-button color="primary" routerLink="new">
+      <mat-icon>add</mat-icon>
+      Create Assessment
+    </a>
+  </header>
+
+  <!-- Filters -->
+  <mat-card class="filter-card">
+    <div class="filters">
+      <mat-form-field appearance="outline">
+        <mat-label>Filter by Class</mat-label>
+        <mat-select [(ngModel)]="selectedClassId" (selectionChange)="onFilterChange()">
+          <mat-option [value]="null">All Classes</mat-option>
+          @for (cls of classes(); track cls.id) {
+            <mat-option [value]="cls.id">{{ cls.name }}</mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Filter by Type</mat-label>
+        <mat-select [(ngModel)]="selectedType" (selectionChange)="onFilterChange()">
+          <mat-option [value]="null">All Types</mat-option>
+          @for (type of assessmentTypes; track type.value) {
+            <mat-option [value]="type.value">{{ type.label }}</mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+
+      @if (selectedClassId() || selectedType()) {
+        <button mat-button (click)="clearFilters()">
+          <mat-icon>clear</mat-icon>
+          Clear Filters
+        </button>
+      }
+    </div>
+  </mat-card>
+
+  @if (isLoading()) {
+    <div class="loading-container">
+      <mat-spinner diameter="40"></mat-spinner>
+    </div>
+  } @else {
+    @if (assessments().length === 0) {
+      <mat-card class="empty-card">
+        <mat-card-content>
+          <mat-icon>assignment</mat-icon>
+          <h3>No Assessments Found</h3>
+          @if (selectedClassId() || selectedType()) {
+            <p>No assessments match your filters.</p>
+            <button mat-button color="primary" (click)="clearFilters()">Clear Filters</button>
+          } @else {
+            <p>You haven't created any assessments yet.</p>
+            <a mat-raised-button color="primary" routerLink="new">
+              <mat-icon>add</mat-icon>
+              Create Your First Assessment
+            </a>
+          }
+        </mat-card-content>
+      </mat-card>
+    } @else {
+      <mat-card class="table-card">
+        <table mat-table [dataSource]="assessments()">
+          <!-- Title Column -->
+          <ng-container matColumnDef="title">
+            <th mat-header-cell *matHeaderCellDef>Title</th>
+            <td mat-cell *matCellDef="let assessment">
+              <div class="title-cell">
+                <span class="title">{{ assessment.title }}</span>
+                @if (assessment.description) {
+                  <span class="description">{{ assessment.description }}</span>
+                }
+              </div>
+            </td>
+          </ng-container>
+
+          <!-- Class Column -->
+          <ng-container matColumnDef="class">
+            <th mat-header-cell *matHeaderCellDef>Class / Subject</th>
+            <td mat-cell *matCellDef="let assessment">
+              <div class="class-cell">
+                <span class="class-name">{{ assessment.className }}</span>
+                <span class="subject-name">{{ assessment.subjectName }}</span>
+              </div>
+            </td>
+          </ng-container>
+
+          <!-- Type Column -->
+          <ng-container matColumnDef="type">
+            <th mat-header-cell *matHeaderCellDef>Type</th>
+            <td mat-cell *matCellDef="let assessment">
+              <mat-chip-set>
+                <mat-chip [highlighted]="false">
+                  {{ getTypeLabel(assessment.type) }}
+                </mat-chip>
+              </mat-chip-set>
+            </td>
+          </ng-container>
+
+          <!-- Date Column -->
+          <ng-container matColumnDef="date">
+            <th mat-header-cell *matHeaderCellDef>Date</th>
+            <td mat-cell *matCellDef="let assessment">
+              {{ assessment.date | date: 'mediumDate' }}
+            </td>
+          </ng-container>
+
+          <!-- Progress Column -->
+          <ng-container matColumnDef="progress">
+            <th mat-header-cell *matHeaderCellDef>Scores Progress</th>
+            <td mat-cell *matCellDef="let assessment">
+              <div class="progress-cell">
+                <div class="progress-bar">
+                  <div
+                    class="progress-fill"
+                    [class.complete]="getProgressPercent(assessment) === 100"
+                    [class.partial]="getProgressPercent(assessment) >= 50 && getProgressPercent(assessment) < 100"
+                    [class.low]="getProgressPercent(assessment) < 50"
+                    [style.width.%]="getProgressPercent(assessment)"
+                  ></div>
+                </div>
+                <span class="progress-text">
+                  {{ assessment.scoresEntered }}/{{ assessment.totalStudents }}
+                </span>
+              </div>
+            </td>
+          </ng-container>
+
+          <!-- Average Column -->
+          <ng-container matColumnDef="average">
+            <th mat-header-cell *matHeaderCellDef>Class Average</th>
+            <td mat-cell *matCellDef="let assessment">
+              @if (assessment.classAverage !== null && assessment.classAverage !== undefined) {
+                <span class="average">{{ assessment.classAverage | number: '1.1-1' }}%</span>
+              } @else {
+                <span class="no-data">--</span>
+              }
+            </td>
+          </ng-container>
+
+          <!-- Actions Column -->
+          <ng-container matColumnDef="actions">
+            <th mat-header-cell *matHeaderCellDef>Actions</th>
+            <td mat-cell *matCellDef="let assessment">
+              <a
+                mat-icon-button
+                [routerLink]="[assessment.id]"
+                matTooltip="Enter/Edit Scores"
+              >
+                <mat-icon>edit_note</mat-icon>
+              </a>
+            </td>
+          </ng-container>
+
+          <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+          <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+        </table>
+
+        <mat-paginator
+          [length]="totalElements()"
+          [pageSize]="pageSize()"
+          [pageIndex]="currentPage()"
+          [pageSizeOptions]="[5, 10, 25, 50]"
+          (page)="onPageChange($event)"
+          showFirstLastButtons
+        ></mat-paginator>
+      </mat-card>
+    }
+  }
+</div>

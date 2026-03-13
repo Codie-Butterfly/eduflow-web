@@ -18,6 +18,7 @@ export class TeacherLayoutComponent {
     { icon: 'class', label: 'My Classes', route: '/teacher/classes' },
     { icon: 'fact_check', label: 'Attendance', route: '/teacher/attendance' },
     { icon: 'history', label: 'Attendance History', route: '/teacher/attendance/history' },
+    { icon: 'assignment', label: 'Assessments', route: '/teacher/assessments' },
     { icon: 'campaign', label: 'Announcements', route: '/teacher/announcements' }
   ];
 

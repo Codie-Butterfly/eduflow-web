@@ -67,6 +67,89 @@ export interface AttendanceHistoryResponse {
   records: AttendanceRecord[];
 }
 
+// Assessment types
+export const ASSESSMENT_TYPES = [
+  { value: 'EXERCISE', label: 'Exercise' },
+  { value: 'TEST', label: 'Test' },
+  { value: 'QUIZ', label: 'Quiz' },
+  { value: 'EXAM', label: 'Exam' },
+  { value: 'PROJECT', label: 'Project' },
+  { value: 'ASSIGNMENT', label: 'Assignment' }
+] as const;
+
+export const TERMS = [
+  { value: 'TERM_1', label: 'Term 1' },
+  { value: 'TERM_2', label: 'Term 2' },
+  { value: 'TERM_3', label: 'Term 3' }
+] as const;
+
+export type AssessmentType = typeof ASSESSMENT_TYPES[number]['value'];
+export type Term = typeof TERMS[number]['value'];
+
+export interface TeacherAssignment {
+  id: number;
+  classId: number;
+  className: string;
+  grade: number;
+  section?: string;
+  subjectId: number;
+  subjectName: string;
+  academicYear: string;
+  studentCount: number;
+}
+
+export interface Assessment {
+  id: number;
+  title: string;
+  type: AssessmentType;
+  classId: number;
+  className: string;
+  subjectId: number;
+  subjectName: string;
+  date: string;
+  maxScore: number;
+  term: Term;
+  academicYear: string;
+  description?: string;
+  totalStudents: number;
+  scoresEntered: number;
+  classAverage?: number;
+  createdAt: string;
+}
+
+export interface AssessmentScore {
+  id?: number;
+  studentId: number;
+  studentName: string;
+  studentNumber: string;
+  score: number | null;
+  absent: boolean;
+  remarks?: string;
+}
+
+export interface AssessmentDetail extends Assessment {
+  scores: AssessmentScore[];
+}
+
+export interface CreateAssessmentRequest {
+  title: string;
+  type: AssessmentType;
+  classId: number;
+  subjectId: number;
+  date: string;
+  maxScore: number;
+  term: Term;
+  academicYear: string;
+  description?: string;
+}
+
+export interface RecordScoreRequest {
+  studentId: number;
+  score: number | null;
+  absent: boolean;
+  remarks?: string;
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -333,6 +416,106 @@ export class TeacherService {
     );
   }
 
+  // ===== Assessment Methods =====
+
+  /**
+   * Get teacher's class/subject assignments
+   */
+  getMyAssignments(): Observable<TeacherAssignment[]> {
+    return this.http.get<any>(`${this.baseUrl}/my-assignments`).pipe(
+      map(response => {
+        const assignments = Array.isArray(response) ? response : (response.content || response.data || []);
+        return assignments.map((a: any) => this.transformAssignment(a));
+      }),
+      catchError(error => {
+        console.error('Failed to load assignments:', error);
+        return of([]);
+      })
+    );
+  }
+
+  /**
+   * Get all assessments with optional filters
+   */
+  getAssessments(filters?: { classId?: number; type?: AssessmentType; term?: Term; page?: number; size?: number }): Observable<{ content: Assessment[]; totalElements: number; totalPages: number }> {
+    let params = new HttpParams();
+    if (filters?.classId) params = params.set('classId', filters.classId.toString());
+    if (filters?.type) params = params.set('type', filters.type);
+    if (filters?.term) params = params.set('term', filters.term);
+    if (filters?.page !== undefined) params = params.set('page', filters.page.toString());
+    if (filters?.size) params = params.set('size', filters.size.toString());
+
+    return this.http.get<any>(`${this.baseUrl}/assessments`, { params }).pipe(
+      map(response => {
+        const content = Array.isArray(response) ? response : (response.content || response.data || []);
+        return {
+          content: content.map((a: any) => this.transformAssessment(a)),
+          totalElements: response.totalElements || response.total_elements || content.length,
+          totalPages: response.totalPages || response.total_pages || 1
+        };
+      }),
+      catchError(error => {
+        console.error('Failed to load assessments:', error);
+        return of({ content: [], totalElements: 0, totalPages: 0 });
+      })
+    );
+  }
+
+  /**
+   * Get single assessment with scores
+   */
+  getAssessmentById(id: number): Observable<AssessmentDetail> {
+    return this.http.get<any>(`${this.baseUrl}/assessments/${id}`).pipe(
+      map(response => this.transformAssessmentDetail(response)),
+      catchError(error => {
+        console.error('Failed to load assessment:', error);
+        return throwError(() => new Error('Assessment not found'));
+      })
+    );
+  }
+
+  /**
+   * Create new assessment
+   */
+  createAssessment(data: CreateAssessmentRequest): Observable<Assessment> {
+    return this.http.post<any>(`${this.baseUrl}/assessments`, data).pipe(
+      map(response => this.transformAssessment(response)),
+      catchError(error => {
+        console.error('Failed to create assessment:', error);
+        return throwError(() => new Error(error.error?.message || 'Failed to create assessment'));
+      })
+    );
+  }
+
+  /**
+   * Record student scores for an assessment
+   */
+  recordScores(assessmentId: number, scores: RecordScoreRequest[]): Observable<AssessmentDetail> {
+    return this.http.post<any>(`${this.baseUrl}/assessments/${assessmentId}/scores`, scores).pipe(
+      map(response => this.transformAssessmentDetail(response)),
+      catchError(error => {
+        console.error('Failed to record scores:', error);
+        return throwError(() => new Error(error.error?.message || 'Failed to save scores'));
+      })
+    );
+  }
+
+  /**
+   * Get assessments for a specific class
+   */
+  getClassAssessments(classId: number): Observable<Assessment[]> {
+    return this.http.get<any>(`${this.baseUrl}/classes/${classId}/assessments`).pipe(
+      map(response => {
+        const assessments = Array.isArray(response) ? response : (response.content || response.data || []);
+        return assessments.map((a: any) => this.transformAssessment(a));
+      }),
+      catchError(error => {
+        console.error('Failed to load class assessments:', error);
+        return of([]);
+      })
+    );
+  }
+
   getStudentFeeStatus(studentId: number): Observable<{
     studentId: number;
     totalFees: number;
@@ -437,6 +620,58 @@ export class TeacherService {
       absent: data.absent || 0,
       late: data.late || 0,
       excused: data.excused || 0
+    };
+  }
+
+  private transformAssignment(data: any): TeacherAssignment {
+    return {
+      id: data.id,
+      classId: data.classId || data.class_id,
+      className: data.className || data.class_name || '',
+      grade: data.grade || 0,
+      section: data.section,
+      subjectId: data.subjectId || data.subject_id,
+      subjectName: data.subjectName || data.subject_name || '',
+      academicYear: data.academicYear || data.academic_year || '',
+      studentCount: data.studentCount || data.student_count || data.currentEnrollment || 0
+    };
+  }
+
+  private transformAssessment(data: any): Assessment {
+    return {
+      id: data.id,
+      title: data.title || '',
+      type: data.type || 'TEST',
+      classId: data.classId || data.class_id,
+      className: data.className || data.class_name || '',
+      subjectId: data.subjectId || data.subject_id,
+      subjectName: data.subjectName || data.subject_name || '',
+      date: data.date || '',
+      maxScore: data.maxScore || data.max_score || 100,
+      term: data.term || 'TERM_1',
+      academicYear: data.academicYear || data.academic_year || '',
+      description: data.description,
+      totalStudents: data.totalStudents || data.total_students || 0,
+      scoresEntered: data.scoresEntered || data.scores_entered || 0,
+      classAverage: data.classAverage || data.class_average,
+      createdAt: data.createdAt || data.created_at || ''
+    };
+  }
+
+  private transformAssessmentDetail(data: any): AssessmentDetail {
+    const scores = (data.scores || data.studentScores || data.student_scores || []).map((s: any) => ({
+      id: s.id,
+      studentId: s.studentId || s.student_id,
+      studentName: s.studentName || s.student_name || '',
+      studentNumber: s.studentNumber || s.student_number || s.studentCode || s.student_code || '',
+      score: s.score ?? s.marks ?? null,
+      absent: s.absent || s.isAbsent || s.is_absent || false,
+      remarks: s.remarks || s.comment || ''
+    }));
+
+    return {
+      ...this.transformAssessment(data),
+      scores
     };
   }
 }

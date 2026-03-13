@@ -1,0 +1,293 @@
+@use 'styles/variables' as *;
+@use 'styles/mixins' as *;
+
+.assessment-detail {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.loading-container {
+  @include flex-center;
+  min-height: 400px;
+}
+
+.page-header {
+  @include flex-between;
+  flex-wrap: wrap;
+  gap: $spacing-md;
+  margin-bottom: $spacing-lg;
+
+  .header-content {
+    display: flex;
+    align-items: flex-start;
+    gap: $spacing-md;
+
+    .back-button {
+      margin-top: 4px;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: $font-size-xxl;
+      font-weight: $font-weight-medium;
+    }
+
+    .text-secondary {
+      margin: $spacing-xs 0 0;
+      color: $text-secondary;
+    }
+  }
+
+  .header-actions {
+    display: flex;
+    align-items: center;
+    gap: $spacing-md;
+
+    .unsaved-indicator {
+      display: flex;
+      align-items: center;
+      gap: $spacing-xs;
+      color: $warning-color;
+      font-size: $font-size-sm;
+
+      mat-icon {
+        font-size: 18px;
+        width: 18px;
+        height: 18px;
+      }
+    }
+
+    button mat-spinner {
+      margin-right: $spacing-sm;
+    }
+  }
+}
+
+.info-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: $spacing-md;
+  margin-bottom: $spacing-lg;
+}
+
+.info-card {
+  mat-card-content {
+    padding: $spacing-md !important;
+    text-align: center;
+  }
+
+  .info-label {
+    font-size: $font-size-sm;
+    color: $text-secondary;
+    margin-bottom: $spacing-xs;
+  }
+
+  .info-value {
+    font-size: $font-size-lg;
+    font-weight: $font-weight-medium;
+  }
+}
+
+.progress-card {
+  margin-bottom: $spacing-lg;
+
+  mat-card-content {
+    padding: $spacing-lg !important;
+  }
+
+  .progress-info {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: $spacing-xl;
+  }
+
+  .progress-item {
+    text-align: center;
+    min-width: 200px;
+
+    .progress-label {
+      font-size: $font-size-sm;
+      color: $text-secondary;
+      margin-bottom: $spacing-sm;
+    }
+
+    .progress-value {
+      font-size: $font-size-xxl;
+      font-weight: $font-weight-bold;
+
+      .current {
+        color: $primary-color;
+      }
+
+      .total {
+        color: $text-secondary;
+        font-size: $font-size-lg;
+      }
+
+      .average {
+        &.excellent { color: $success-color; }
+        &.good { color: $primary-color; }
+        &.average { color: $warning-color; }
+        &.poor { color: $error-color; }
+      }
+
+      .no-data {
+        color: $text-disabled;
+      }
+    }
+
+    .progress-bar {
+      margin-top: $spacing-sm;
+      height: 8px;
+      background: $divider-color;
+      border-radius: 4px;
+      overflow: hidden;
+
+      .progress-fill {
+        height: 100%;
+        background: $warning-color;
+        transition: width 0.3s ease;
+
+        &.complete {
+          background: $success-color;
+        }
+      }
+    }
+  }
+
+  mat-divider[vertical] {
+    height: 80px;
+  }
+}
+
+.scores-card {
+  margin-bottom: $spacing-lg;
+
+  mat-card-header {
+    margin-bottom: $spacing-md;
+  }
+
+  table {
+    width: 100%;
+  }
+
+  .score-input {
+    width: 80px;
+    margin-bottom: -1.25em;
+
+    input {
+      text-align: center;
+    }
+  }
+
+  .remarks-input {
+    width: 150px;
+    margin-bottom: -1.25em;
+  }
+
+  .score-badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: $font-size-sm;
+    font-weight: $font-weight-medium;
+    margin-left: $spacing-sm;
+
+    &.excellent {
+      background: rgba($success-color, 0.1);
+      color: $success-color;
+    }
+
+    &.good {
+      background: rgba($primary-color, 0.1);
+      color: $primary-color;
+    }
+
+    &.average {
+      background: rgba($warning-color, 0.1);
+      color: $warning-color;
+    }
+
+    &.poor {
+      background: rgba($error-color, 0.1);
+      color: $error-color;
+    }
+
+    &.absent {
+      background: rgba($text-disabled, 0.1);
+      color: $text-disabled;
+    }
+  }
+
+  tr.dirty {
+    background: rgba($warning-color, 0.05);
+  }
+
+  tr.absent-row {
+    background: rgba($text-disabled, 0.05);
+
+    td {
+      color: $text-secondary;
+    }
+  }
+}
+
+.bottom-actions {
+  @include flex-between;
+  padding: $spacing-md;
+  background: $surface-color;
+  border-radius: $border-radius-md;
+  box-shadow: $shadow-sm;
+
+  button mat-spinner {
+    margin-right: $spacing-sm;
+  }
+}
+
+@include mobile {
+  .page-header {
+    flex-direction: column;
+    align-items: flex-start;
+
+    .header-actions {
+      width: 100%;
+      flex-direction: column;
+      align-items: stretch;
+
+      button {
+        width: 100%;
+      }
+    }
+  }
+
+  .progress-card .progress-info {
+    flex-direction: column;
+    gap: $spacing-lg;
+
+    mat-divider[vertical] {
+      display: none;
+    }
+  }
+
+  .info-cards {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .scores-card {
+    overflow-x: auto;
+
+    .remarks-input {
+      width: 100px;
+    }
+  }
+
+  .bottom-actions {
+    flex-direction: column;
+    gap: $spacing-md;
+
+    button {
+      width: 100%;
+    }
+  }
+}
