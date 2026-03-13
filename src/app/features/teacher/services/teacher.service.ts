@@ -49,6 +49,15 @@ export interface MarkAttendanceRequest {
   records: { studentId: number; status: string; remarks?: string }[];
 }
 
+export interface AttendanceStatusResponse {
+  classId: number;
+  className: string;
+  date: string;
+  isPending: boolean;
+  isCompleted: boolean;
+  totalStudents: number;
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -57,30 +66,71 @@ export class TeacherService {
   private readonly baseUrl = `${environment.apiUrl}/v1/teacher`;
 
   getDashboardStats(): Observable<TeacherDashboardStats> {
-    return this.http.get<any>(`${this.baseUrl}/dashboard`).pipe(
-      map(response => {
-        console.log('Dashboard stats response:', response);
-        return this.transformDashboardStats(response);
-      }),
-      catchError(() => {
-        // Fallback: calculate stats from classes
-        return this.getMyClasses().pipe(
-          map(classes => {
-            const totalStudents = classes.reduce((sum, c) => sum + (c.studentCount || 0), 0);
-            return {
-              totalClasses: classes.length,
-              totalStudents,
-              todayAttendance: 0,
-              pendingAttendance: classes.length
-            };
-          }),
-          catchError(() => of({
+    // Get classes first, then check attendance status
+    return this.getMyClasses().pipe(
+      switchMap(classes => {
+        if (classes.length === 0) {
+          return of({
             totalClasses: 0,
             totalStudents: 0,
             todayAttendance: 0,
             pendingAttendance: 0
+          });
+        }
+
+        const classIds = classes.map(c => c.id);
+        const totalStudents = classes.reduce((sum, c) => sum + (c.studentCount || 0), 0);
+
+        // Get attendance status for all classes
+        return this.getAttendanceStatus(classIds).pipe(
+          map(statusList => {
+            const completed = statusList.filter(s => s.isCompleted).length;
+            const pending = statusList.filter(s => s.isPending).length;
+
+            return {
+              totalClasses: classes.length,
+              totalStudents,
+              todayAttendance: completed,
+              pendingAttendance: pending
+            };
+          }),
+          catchError(() => of({
+            totalClasses: classes.length,
+            totalStudents,
+            todayAttendance: 0,
+            pendingAttendance: classes.length
           }))
         );
+      }),
+      catchError(() => of({
+        totalClasses: 0,
+        totalStudents: 0,
+        todayAttendance: 0,
+        pendingAttendance: 0
+      }))
+    );
+  }
+
+  /**
+   * Get attendance status for multiple classes
+   */
+  getAttendanceStatus(classIds: number[]): Observable<AttendanceStatusResponse[]> {
+    return this.http.post<any>(`${this.baseUrl}/attendance/status`, classIds).pipe(
+      map(response => {
+        console.log('Attendance status response:', response);
+        const list = Array.isArray(response) ? response : (response.content || []);
+        return list.map((item: any) => ({
+          classId: item.classId || item.class_id,
+          className: item.className || item.class_name || '',
+          date: item.date,
+          isPending: item.isPending ?? item.is_pending ?? !item.isCompleted,
+          isCompleted: item.isCompleted ?? item.is_completed ?? false,
+          totalStudents: item.totalStudents || item.total_students || 0
+        }));
+      }),
+      catchError(error => {
+        console.error('Failed to get attendance status:', error);
+        return of([]);
       })
     );
   }
