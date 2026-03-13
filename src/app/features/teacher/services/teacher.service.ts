@@ -239,11 +239,27 @@ export class TeacherService {
   }
 
   private transformDashboardStats(data: any): TeacherDashboardStats {
+    console.log('Raw dashboard data:', JSON.stringify(data));
+
+    // Handle various field names for attendance marked today
+    const todayAttendance = data.todayAttendance ?? data.today_attendance ??
+                           data.markedAttendance ?? data.marked_attendance ??
+                           data.attendanceMarked ?? data.attendance_marked ??
+                           data.classesWithAttendance ?? data.classes_with_attendance ??
+                           data.attendanceCount ?? data.attendance_count ?? 0;
+
+    // Handle various field names for pending attendance
+    const totalClasses = data.totalClasses ?? data.total_classes ?? data.classCount ?? data.class_count ?? 0;
+    const pendingAttendance = data.pendingAttendance ?? data.pending_attendance ??
+                              data.pendingCount ?? data.pending_count ??
+                              data.classesWithoutAttendance ?? data.classes_without_attendance ??
+                              (totalClasses - todayAttendance);
+
     return {
-      totalClasses: data.totalClasses || data.total_classes || data.classCount || data.class_count || 0,
-      totalStudents: data.totalStudents || data.total_students || data.studentCount || data.student_count || 0,
-      todayAttendance: data.todayAttendance || data.today_attendance || data.markedAttendance || data.marked_attendance || data.attendanceMarked || 0,
-      pendingAttendance: data.pendingAttendance || data.pending_attendance || data.pendingCount || data.pending_count || 0
+      totalClasses,
+      totalStudents: data.totalStudents ?? data.total_students ?? data.studentCount ?? data.student_count ?? 0,
+      todayAttendance,
+      pendingAttendance: pendingAttendance >= 0 ? pendingAttendance : 0
     };
   }
 
