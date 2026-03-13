@@ -44,6 +44,13 @@ export interface ChildGrade {
   academicYear: string;
 }
 
+export interface ChildGradesResponse {
+  totalAssessments: number;
+  overallAverage: number | null;
+  absences: number;
+  grades: ChildGrade[];
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -312,7 +319,7 @@ export class ParentService {
   /**
    * Get child's assessment grades/scores
    */
-  getChildGrades(childId: number, startDate?: string, endDate?: string): Observable<ChildGrade[]> {
+  getChildGrades(childId: number, startDate?: string, endDate?: string): Observable<ChildGradesResponse> {
     let params = new HttpParams();
     if (startDate) {
       params = params.set('startDate', startDate);
@@ -323,12 +330,23 @@ export class ParentService {
 
     return this.http.get<any>(`${this.baseUrl}/children/${childId}/grades`, { params }).pipe(
       map(response => {
-        const grades = Array.isArray(response) ? response : (response.content || response.grades || response.data || []);
-        return grades.map((g: any) => this.transformGrade(g));
+        // Handle response with summary data
+        const grades = response.grades || response.content || response.data || [];
+        return {
+          totalAssessments: response.totalAssessments ?? response.total_assessments ?? grades.length,
+          overallAverage: response.overallAverage ?? response.overall_average ?? null,
+          absences: response.absences ?? response.absent_count ?? 0,
+          grades: grades.map((g: any) => this.transformGrade(g))
+        };
       }),
       catchError(error => {
         console.error('Failed to load child grades:', error);
-        return of([]);
+        return of({
+          totalAssessments: 0,
+          overallAverage: null,
+          absences: 0,
+          grades: []
+        });
       })
     );
   }
@@ -340,7 +358,8 @@ export class ParentService {
 
     const score = data.score ?? data.marks ?? null;
     const maxScore = data.maxScore || assessment.maxScore || 100;
-    const percentage = score !== null ? Math.round((score / maxScore) * 100 * 10) / 10 : null;
+    // Use percentage from API if available, otherwise calculate
+    const percentage = data.percentage ?? (score !== null ? Math.round((score / maxScore) * 100 * 10) / 10 : null);
 
     return {
       id: data.id,

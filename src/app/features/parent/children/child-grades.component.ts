@@ -14,7 +14,7 @@ import { MatNativeDateModule } from '@angular/material/core';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatTooltipModule } from '@angular/material/tooltip';
 
-import { ParentService, ChildGrade, ChildSummary } from '../services/parent.service';
+import { ParentService, ChildGrade, ChildGradesResponse } from '../services/parent.service';
 import { NotificationService } from '../../../core/services';
 
 @Component({
@@ -51,6 +51,9 @@ export class ChildGradesComponent implements OnInit {
   childName = signal('');
   isLoading = signal(true);
   grades = signal<ChildGrade[]>([]);
+  totalAssessments = signal(0);
+  overallAverage = signal<number | null>(null);
+  absences = signal(0);
 
   // Date filters
   startDate: Date | null = null;
@@ -88,8 +91,11 @@ export class ChildGradesComponent implements OnInit {
     const endDateStr = this.endDate ? this.formatDate(this.endDate) : undefined;
 
     this.parentService.getChildGrades(this.childId, startDateStr, endDateStr).subscribe({
-      next: (data) => {
-        this.grades.set(data);
+      next: (response) => {
+        this.grades.set(response.grades);
+        this.totalAssessments.set(response.totalAssessments);
+        this.overallAverage.set(response.overallAverage);
+        this.absences.set(response.absences);
         this.isLoading.set(false);
       },
       error: () => {
@@ -136,17 +142,14 @@ export class ChildGradesComponent implements OnInit {
   }
 
   getOverallAverage(): number | null {
-    const validGrades = this.grades().filter(g => g.percentage !== null && !g.absent);
-    if (validGrades.length === 0) return null;
-    const sum = validGrades.reduce((acc, g) => acc + (g.percentage || 0), 0);
-    return Math.round((sum / validGrades.length) * 10) / 10;
+    return this.overallAverage();
   }
 
   getTotalAssessments(): number {
-    return this.grades().length;
+    return this.totalAssessments();
   }
 
   getAbsentCount(): number {
-    return this.grades().filter(g => g.absent).length;
+    return this.absences();
   }
 }
