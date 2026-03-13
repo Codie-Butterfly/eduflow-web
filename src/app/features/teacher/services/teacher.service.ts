@@ -121,10 +121,16 @@ export class TeacherService {
   }
 
   /**
-   * Get attendance status for multiple classes
+   * Get attendance status for multiple classes (for today)
    */
   getAttendanceStatus(classIds: number[]): Observable<AttendanceStatusResponse[]> {
-    return this.http.post<any>(`${this.baseUrl}/attendance/status`, classIds).pipe(
+    // Add today's date as query parameter
+    const today = new Date().toISOString().split('T')[0];
+    const params = new HttpParams().set('date', today);
+
+    console.log('Calling attendance status with classIds:', classIds, 'date:', today);
+
+    return this.http.post<any>(`${this.baseUrl}/attendance/status`, classIds, { params }).pipe(
       map(response => {
         console.log('Attendance status response:', response);
         const list = Array.isArray(response) ? response : (response.content || []);
