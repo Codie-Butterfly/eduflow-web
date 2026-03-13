@@ -106,17 +106,46 @@ export class AssessmentDetailComponent implements OnInit {
     this.teacherService.getAssessmentById(id).subscribe({
       next: (assessment) => {
         this.assessment.set(assessment);
-        this.scores.set(
-          assessment.scores.map(s => ({
-            ...s,
-            isDirty: false
-          }))
-        );
-        this.isLoading.set(false);
+
+        // If no scores exist yet, load students from the class
+        if (!assessment.scores || assessment.scores.length === 0) {
+          this.loadClassStudents(assessment.classId);
+        } else {
+          this.scores.set(
+            assessment.scores.map(s => ({
+              ...s,
+              isDirty: false
+            }))
+          );
+          this.isLoading.set(false);
+        }
       },
       error: () => {
         this.notification.error('Failed to load assessment');
         this.router.navigate(['/teacher/assessments']);
+      }
+    });
+  }
+
+  private loadClassStudents(classId: number): void {
+    this.teacherService.getClassStudents(classId).subscribe({
+      next: (students) => {
+        // Create empty score entries for each student
+        const emptyScores: EditableScore[] = students.map(student => ({
+          studentId: student.id,
+          studentName: student.fullName || `${student.firstName} ${student.lastName}`.trim(),
+          studentNumber: student.studentId || '',
+          score: null,
+          absent: false,
+          remarks: '',
+          isDirty: false
+        }));
+        this.scores.set(emptyScores);
+        this.isLoading.set(false);
+      },
+      error: () => {
+        this.notification.error('Failed to load class students');
+        this.isLoading.set(false);
       }
     });
   }
