@@ -132,16 +132,28 @@ export class TeacherService {
 
     return this.http.post<any>(`${this.baseUrl}/attendance/status`, classIds, { params }).pipe(
       map(response => {
-        console.log('Attendance status response:', response);
-        const list = Array.isArray(response) ? response : (response.content || []);
-        return list.map((item: any) => ({
-          classId: item.classId || item.class_id,
-          className: item.className || item.class_name || '',
-          date: item.date,
-          isPending: item.isPending ?? item.is_pending ?? !item.isCompleted,
-          isCompleted: item.isCompleted ?? item.is_completed ?? false,
-          totalStudents: item.totalStudents || item.total_students || 0
-        }));
+        console.log('Attendance status raw response:', JSON.stringify(response));
+        const list = Array.isArray(response) ? response : (response.content || response.data || []);
+
+        const mapped = list.map((item: any) => {
+          // Handle various field name formats
+          const isCompleted = item.isCompleted ?? item.is_completed ?? item.completed ?? false;
+          const isPending = item.isPending ?? item.is_pending ?? item.pending ?? !isCompleted;
+
+          console.log(`Class ${item.classId}: isCompleted=${isCompleted}, isPending=${isPending}`);
+
+          return {
+            classId: item.classId || item.class_id,
+            className: item.className || item.class_name || '',
+            date: item.date,
+            isPending,
+            isCompleted,
+            totalStudents: item.totalStudents || item.total_students || 0
+          };
+        });
+
+        console.log('Mapped attendance status:', mapped);
+        return mapped;
       }),
       catchError(error => {
         console.error('Failed to get attendance status:', error);
