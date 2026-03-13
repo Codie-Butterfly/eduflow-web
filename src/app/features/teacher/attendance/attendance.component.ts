@@ -108,30 +108,43 @@ export class AttendanceComponent implements OnInit {
 
     this.teacherService.getAttendanceForDate(this.selectedClassId, dateStr).subscribe({
       next: (records) => {
-        this.attendanceEntries.set(records.map(r => ({
-          studentId: r.studentId,
-          studentName: r.studentName,
-          studentNumber: r.studentNumber,
-          status: r.status,
-          remarks: r.remarks || ''
+        if (records.length > 0) {
+          // Use existing attendance records
+          this.attendanceEntries.set(records.map(r => ({
+            studentId: r.studentId,
+            studentName: r.studentName,
+            studentNumber: r.studentNumber,
+            status: r.status,
+            remarks: r.remarks || ''
+          })));
+          this.isLoading.set(false);
+        } else {
+          // No records for this date - load students to create new entries
+          this.loadStudentsForAttendance();
+        }
+      },
+      error: () => {
+        // On error, try to load students
+        this.loadStudentsForAttendance();
+      }
+    });
+  }
+
+  private loadStudentsForAttendance(): void {
+    this.teacherService.getClassStudents(this.selectedClassId!).subscribe({
+      next: (students) => {
+        this.attendanceEntries.set(students.map(s => ({
+          studentId: s.id,
+          studentName: s.fullName,
+          studentNumber: s.studentId,
+          status: 'PRESENT' as AttendanceStatus,
+          remarks: ''
         })));
         this.isLoading.set(false);
       },
       error: () => {
-        // If no records exist, load students and create empty entries
-        this.teacherService.getClassStudents(this.selectedClassId!).subscribe({
-          next: (students) => {
-            this.attendanceEntries.set(students.map(s => ({
-              studentId: s.id,
-              studentName: s.fullName,
-              studentNumber: s.studentId,
-              status: 'PRESENT' as AttendanceStatus,
-              remarks: ''
-            })));
-            this.isLoading.set(false);
-          },
-          error: () => this.isLoading.set(false)
-        });
+        this.notification.error('Failed to load students');
+        this.isLoading.set(false);
       }
     });
   }

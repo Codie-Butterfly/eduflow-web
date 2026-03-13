@@ -134,17 +134,13 @@ export class TeacherService {
     return this.http.get<any>(`${this.baseUrl}/classes/${classId}/attendance`, { params }).pipe(
       map(response => {
         console.log('Attendance response:', response);
-        const records = Array.isArray(response) ? response : (response.content || response.records || []);
-        if (records.length === 0) {
-          // Throw error to trigger fallback to load students
-          throw new Error('No attendance records');
-        }
+        const records = Array.isArray(response) ? response : (response.content || response.records || response.attendance || []);
         return records.map((r: any) => this.transformAttendanceRecord(r));
       }),
       catchError(error => {
-        console.error('No attendance records, will load students:', error);
-        // Return throwError to trigger the fallback in the component
-        return throwError(() => new Error('No attendance records'));
+        console.error('Failed to load attendance:', error);
+        // Return empty array - component will load students if empty
+        return of([]);
       })
     );
   }
@@ -167,8 +163,32 @@ export class TeacherService {
   }
 
   markAttendance(data: MarkAttendanceRequest): Observable<AttendanceSummary> {
-    return this.http.post<any>(`${this.baseUrl}/attendance`, data).pipe(
-      map(response => this.transformAttendanceSummary(response)),
+    const params = new HttpParams().set('date', data.date);
+    // Send just the records array as the body
+    const body = data.records.map(r => ({
+      studentId: r.studentId,
+      status: r.status,
+      remarks: r.remarks || null
+    }));
+
+    return this.http.post<any>(`${this.baseUrl}/classes/${data.classId}/attendance`, body, { params }).pipe(
+      map(response => {
+        console.log('Mark attendance response:', response);
+        // If response is the saved records, calculate summary
+        if (Array.isArray(response)) {
+          return {
+            classId: data.classId,
+            className: '',
+            date: data.date,
+            totalStudents: response.length,
+            present: response.filter((r: any) => r.status === 'PRESENT').length,
+            absent: response.filter((r: any) => r.status === 'ABSENT').length,
+            late: response.filter((r: any) => r.status === 'LATE').length,
+            excused: response.filter((r: any) => r.status === 'EXCUSED').length
+          };
+        }
+        return this.transformAttendanceSummary(response);
+      }),
       catchError(error => {
         console.error('Failed to mark attendance:', error);
         return throwError(() => new Error('Failed to mark attendance'));
