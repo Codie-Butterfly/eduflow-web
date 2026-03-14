@@ -74,22 +74,17 @@ export class SubjectFormComponent implements OnInit {
   }
 
   private generateSubjectCode(name: string): string {
-    const words = name.trim().split(/\s+/);
+    const cleanName = name.trim().replace(/\s+/g, '').toUpperCase();
+    if (cleanName.length < 2) return cleanName;
 
-    if (words.length === 1) {
-      // Single word: take first 4 characters
-      return words[0].substring(0, 4).toUpperCase();
-    } else if (words.length === 2) {
-      // Two words: take first 2 characters of each
-      return (words[0].substring(0, 2) + words[1].substring(0, 2)).toUpperCase();
-    } else {
-      // Multiple words: take first letter of each word (up to 6)
-      return words
-        .slice(0, 6)
-        .map(word => word.charAt(0))
-        .join('')
-        .toUpperCase();
-    }
+    const firstLetter = cleanName.charAt(0);
+    const lastLetter = cleanName.charAt(cleanName.length - 1);
+
+    // Get digit representation (A=1, B=2, ..., Z=26)
+    const firstDigit = firstLetter.charCodeAt(0) - 64;
+    const lastDigit = lastLetter.charCodeAt(0) - 64;
+
+    return `${firstLetter}${lastLetter}-${firstDigit}${lastDigit}`;
   }
 
   private checkEditMode(): void {
