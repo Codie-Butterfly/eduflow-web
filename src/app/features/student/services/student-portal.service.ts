@@ -194,14 +194,30 @@ export class StudentPortalService {
   }
 
   getDashboardStats(): Observable<StudentDashboardStats> {
-    return this.http.get<StudentDashboardStats>(`${this.baseUrl}/dashboard`).pipe(
-      catchError(() => of({
-        totalFees: 10500,
-        totalPaid: 5500,
-        balance: 5000,
-        pendingFees: 2,
-        overdueFees: 1
-      }))
+    return this.http.get<any>(`${this.baseUrl}/dashboard`).pipe(
+      map(response => {
+        console.log('Dashboard API response:', response);
+        // Transform and ensure all required properties exist
+        return {
+          totalFees: response.totalFees ?? response.total_fees ?? 0,
+          totalPaid: response.totalPaid ?? response.total_paid ?? response.amountPaid ?? response.amount_paid ?? 0,
+          balance: response.balance ?? response.balanceDue ?? response.balance_due ?? 0,
+          pendingFees: response.pendingFees ?? response.pending_fees ?? response.pendingCount ?? 0,
+          overdueFees: response.overdueFees ?? response.overdue_fees ?? response.overdueCount ?? 0,
+          recentGrades: response.recentGrades ?? response.recent_grades,
+          upcomingAssessments: response.upcomingAssessments ?? response.upcoming_assessments
+        };
+      }),
+      catchError((error) => {
+        console.error('Dashboard API error:', error);
+        return of({
+          totalFees: 0,
+          totalPaid: 0,
+          balance: 0,
+          pendingFees: 0,
+          overdueFees: 0
+        });
+      })
     );
   }
 
