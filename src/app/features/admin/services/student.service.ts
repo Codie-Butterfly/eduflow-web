@@ -12,6 +12,30 @@ import {
   MessageResponse
 } from '../../../core/models';
 
+export interface StudentGrade {
+  id: number;
+  assessmentId: number;
+  assessmentTitle: string;
+  assessmentType: string;
+  subjectId: number;
+  subjectName: string;
+  date: string;
+  score: number | null;
+  maxScore: number;
+  percentage: number | null;
+  absent: boolean;
+  remarks?: string;
+  term: string;
+  academicYear: string;
+}
+
+export interface StudentGradesResponse {
+  totalAssessments: number;
+  overallAverage: number | null;
+  absences: number;
+  grades: StudentGrade[];
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -237,6 +261,66 @@ export class StudentService {
 
   getStudentsByStatus(status: string, page: number = 0, size: number = 10): Observable<PagedResponse<Student>> {
     return this.getStudents(page, size, undefined, status);
+  }
+
+  /**
+   * Get student's assessment grades/scores
+   */
+  getStudentGrades(studentId: number, startDate?: string, endDate?: string): Observable<StudentGradesResponse> {
+    let params = new HttpParams();
+    if (startDate) {
+      params = params.set('startDate', startDate);
+    }
+    if (endDate) {
+      params = params.set('endDate', endDate);
+    }
+
+    return this.http.get<any>(`${this.baseUrl}/${studentId}/grades`, { params }).pipe(
+      map(response => {
+        const grades = response.grades || response.content || response.data || [];
+        return {
+          totalAssessments: response.totalAssessments ?? response.total_assessments ?? grades.length,
+          overallAverage: response.overallAverage ?? response.overall_average ?? null,
+          absences: response.absences ?? response.absent_count ?? 0,
+          grades: grades.map((g: any) => this.transformGrade(g))
+        };
+      }),
+      catchError(error => {
+        console.error('Failed to load student grades:', error);
+        return of({
+          totalAssessments: 0,
+          overallAverage: null,
+          absences: 0,
+          grades: []
+        });
+      })
+    );
+  }
+
+  private transformGrade(data: any): StudentGrade {
+    const assessment = data.assessment || {};
+    const subject = data.subject || assessment.subject || {};
+
+    const score = data.score ?? data.marks ?? null;
+    const maxScore = data.maxScore || assessment.maxScore || 100;
+    const percentage = data.percentage ?? (score !== null ? Math.round((score / maxScore) * 100 * 10) / 10 : null);
+
+    return {
+      id: data.id,
+      assessmentId: assessment.id || data.assessmentId || data.assessment_id,
+      assessmentTitle: assessment.title || data.assessmentTitle || data.title || '',
+      assessmentType: assessment.type || data.assessmentType || data.type || 'TEST',
+      subjectId: subject.id || data.subjectId || data.subject_id,
+      subjectName: subject.name || data.subjectName || data.subject_name || '',
+      date: assessment.date || data.date || '',
+      score,
+      maxScore,
+      percentage,
+      absent: data.absent || data.isAbsent || false,
+      remarks: data.remarks || data.comment || '',
+      term: assessment.term || data.term || '',
+      academicYear: assessment.academicYear || data.academicYear || ''
+    };
   }
 
   private transformPagedResponse<T>(response: any): PagedResponse<T> {

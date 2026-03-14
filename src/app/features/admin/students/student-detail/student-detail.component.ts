@@ -165,6 +165,12 @@ export class StudentDetailComponent implements OnInit {
     return this.studentFees().reduce((sum, fee) => sum + fee.balance, 0);
   }
 
+  viewGrades(): void {
+    const student = this.student();
+    if (!student) return;
+    this.router.navigate(['/admin/students', student.id, 'grades']);
+  }
+
   assignToClass(): void {
     const student = this.student();
     if (!student) return;
