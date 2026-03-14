@@ -1,0 +1,57 @@
+<div class="profile-page">
+  <header class="page-header">
+    <h1>My Profile</h1>
+    <p class="text-secondary">View your account information</p>
+  </header>
+
+  @if (user(); as u) {
+    <div class="profile-content">
+      <mat-card class="profile-card">
+        <mat-card-content>
+          <div class="profile-header">
+            <div class="avatar">{{ getInitials(u) }}</div>
+            <div class="user-info">
+              <h2>{{ u.fullName }}</h2>
+              <p class="email">{{ u.email }}</p>
+              <mat-chip [color]="getRoleColor(u)" selected>
+                {{ getRoleLabel(u) }}
+              </mat-chip>
+            </div>
+          </div>
+
+          <mat-divider></mat-divider>
+
+          <div class="info-section">
+            <h3>Personal Information</h3>
+            <div class="info-grid">
+              <div class="info-item">
+                <mat-icon>person</mat-icon>
+                <div class="info-content">
+                  <label>Full Name</label>
+                  <span>{{ u.fullName }}</span>
+                </div>
+              </div>
+
+              <div class="info-item">
+                <mat-icon>email</mat-icon>
+                <div class="info-content">
+                  <label>Email Address</label>
+                  <span>{{ u.email }}</span>
+                </div>
+              </div>
+
+              <div class="info-item">
+                <mat-icon>badge</mat-icon>
+                <div class="info-content">
+                  <label>Role</label>
+                  <span>{{ getRoleLabel(u) }}</span>
+                </div>
+              </div>
+
+            </div>
+          </div>
+        </mat-card-content>
+      </mat-card>
+    </div>
+  }
+</div>

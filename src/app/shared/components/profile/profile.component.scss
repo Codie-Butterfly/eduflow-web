@@ -1,0 +1,116 @@
+@use 'styles/variables' as *;
+@use 'styles/mixins' as *;
+
+.profile-page {
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.page-header {
+  margin-bottom: $spacing-lg;
+
+  h1 {
+    margin: 0;
+    font-size: $font-size-xxl;
+    font-weight: $font-weight-medium;
+  }
+
+  .text-secondary {
+    margin: $spacing-xs 0 0;
+    color: $text-secondary;
+  }
+}
+
+.profile-card {
+  .profile-header {
+    display: flex;
+    align-items: center;
+    gap: $spacing-lg;
+    padding: $spacing-lg 0;
+
+    .avatar {
+      @include flex-center;
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, $primary-color, darken($primary-color, 15%));
+      color: white;
+      font-size: $font-size-xxl;
+      font-weight: $font-weight-bold;
+      flex-shrink: 0;
+    }
+
+    .user-info {
+      h2 {
+        margin: 0 0 $spacing-xs;
+        font-size: $font-size-xl;
+        font-weight: $font-weight-medium;
+      }
+
+      .email {
+        margin: 0 0 $spacing-sm;
+        color: $text-secondary;
+      }
+    }
+  }
+
+  mat-divider {
+    margin: $spacing-md 0;
+  }
+
+  .info-section {
+    h3 {
+      margin: 0 0 $spacing-md;
+      font-size: $font-size-md;
+      font-weight: $font-weight-medium;
+      color: $text-secondary;
+    }
+  }
+
+  .info-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: $spacing-md;
+  }
+
+  .info-item {
+    display: flex;
+    align-items: flex-start;
+    gap: $spacing-sm;
+    padding: $spacing-sm;
+    background: rgba(0, 0, 0, 0.02);
+    border-radius: $border-radius-md;
+
+    mat-icon {
+      color: $primary-color;
+      margin-top: 2px;
+    }
+
+    .info-content {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+
+      label {
+        font-size: $font-size-sm;
+        color: $text-secondary;
+      }
+
+      span {
+        font-size: $font-size-base;
+        color: $text-primary;
+      }
+    }
+  }
+}
+
+@include mobile {
+  .profile-card .profile-header {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .info-grid {
+    grid-template-columns: 1fr;
+  }
+}

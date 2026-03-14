@@ -65,6 +65,14 @@ export const TEACHER_ROUTES: Routes = [
     ]
   },
   {
+    path: 'profile',
+    loadComponent: () => import('../../shared/components/profile/profile.component').then(m => m.ProfileComponent)
+  },
+  {
+    path: 'account',
+    loadComponent: () => import('../../shared/components/account/account.component').then(m => m.AccountComponent)
+  },
+  {
     path: '',
     redirectTo: 'dashboard',
     pathMatch: 'full'

@@ -140,6 +140,10 @@ export class AuthService {
     return this.http.post<MessageResponse>(`${this.baseUrl}/reset-password`, { token, newPassword });
   }
 
+  changePassword(currentPassword: string, newPassword: string): Observable<MessageResponse> {
+    return this.http.post<MessageResponse>(`${this.baseUrl}/change-password`, { currentPassword, newPassword });
+  }
+
   // Helper methods
   hasRole(role: string): boolean {
     const user = this.currentUserSignal();

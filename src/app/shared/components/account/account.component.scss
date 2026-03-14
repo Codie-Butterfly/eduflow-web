@@ -1,0 +1,65 @@
+@use 'styles/variables' as *;
+@use 'styles/mixins' as *;
+
+.account-page {
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.page-header {
+  margin-bottom: $spacing-lg;
+
+  h1 {
+    margin: 0;
+    font-size: $font-size-xxl;
+    font-weight: $font-weight-medium;
+  }
+
+  .text-secondary {
+    margin: $spacing-xs 0 0;
+    color: $text-secondary;
+  }
+}
+
+.password-card {
+  mat-card-header {
+    margin-bottom: $spacing-md;
+
+    mat-icon[mat-card-avatar] {
+      background: rgba($primary-color, 0.1);
+      color: $primary-color;
+      @include flex-center;
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+    }
+  }
+
+  mat-divider {
+    margin: $spacing-sm 0 $spacing-md;
+  }
+
+  .password-form {
+    display: flex;
+    flex-direction: column;
+    gap: $spacing-sm;
+  }
+
+  .form-field {
+    width: 100%;
+  }
+
+  .form-actions {
+    margin-top: $spacing-md;
+
+    button {
+      display: flex;
+      align-items: center;
+      gap: $spacing-xs;
+
+      mat-spinner {
+        display: inline-block;
+      }
+    }
+  }
+}
