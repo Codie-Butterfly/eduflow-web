@@ -264,4 +264,14 @@ export class StudentPortalService {
       catchError(() => of([]))
     );
   }
+
+  getPaymentById(paymentId: number): Observable<Payment> {
+    return this.http.get<Payment>(`${this.baseUrl}/payments/${paymentId}`).pipe(
+      catchError(() => {
+        const payment = this.mockPayments.find(p => p.id === paymentId);
+        if (payment) return of(payment);
+        throw new Error('Payment not found');
+      })
+    );
+  }
 }
