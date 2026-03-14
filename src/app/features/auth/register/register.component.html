@@ -49,15 +49,39 @@
       }
     </mat-form-field>
 
-    <mat-form-field appearance="outline" class="form-field">
-      <mat-label>Child's Student ID</mat-label>
-      <input matInput formControlName="studentId" placeholder="e.g., STU-2024-001">
-      <mat-icon matPrefix>school</mat-icon>
-      <mat-hint>Enter your child's student ID to link your account</mat-hint>
-      @if (studentId?.hasError('required') && studentId?.touched) {
-        <mat-error>Student ID is required</mat-error>
+    <div class="student-ids-field">
+      <label class="field-label">
+        <mat-icon>school</mat-icon>
+        Children's Student IDs
+      </label>
+
+      @if (studentIds().length > 0) {
+        <mat-chip-set class="student-chips">
+          @for (id of studentIds(); track id) {
+            <mat-chip (removed)="removeStudentId(id)">
+              {{ id }}
+              <button matChipRemove>
+                <mat-icon>cancel</mat-icon>
+              </button>
+            </mat-chip>
+          }
+        </mat-chip-set>
       }
-    </mat-form-field>
+
+      <mat-form-field appearance="outline" class="form-field">
+        <mat-label>Add Student ID</mat-label>
+        <input
+          matInput
+          [(ngModel)]="currentStudentId"
+          [ngModelOptions]="{standalone: true}"
+          placeholder="e.g., STU-2024-001"
+          (keydown)="onStudentIdKeydown($event)">
+        <button mat-icon-button matSuffix type="button" (click)="addStudentId()" [disabled]="!currentStudentId.trim()">
+          <mat-icon>add_circle</mat-icon>
+        </button>
+        <mat-hint>Enter student ID and press Enter or click + to add. Add multiple children if needed.</mat-hint>
+      </mat-form-field>
+    </div>
 
     <mat-form-field appearance="outline" class="form-field">
       <mat-label>Password</mat-label>

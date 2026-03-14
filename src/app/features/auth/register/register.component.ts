@@ -1,6 +1,6 @@
 import { Component, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormBuilder, FormGroup, ReactiveFormsModule, Validators, AbstractControl } from '@angular/forms';
+import { FormBuilder, FormGroup, ReactiveFormsModule, FormsModule, Validators, AbstractControl } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
@@ -8,6 +8,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatSelectModule } from '@angular/material/select';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatChipsModule } from '@angular/material/chips';
 
 import { AuthService, NotificationService } from '../../../core/services';
 
@@ -17,13 +18,15 @@ import { AuthService, NotificationService } from '../../../core/services';
   imports: [
     CommonModule,
     ReactiveFormsModule,
+    FormsModule,
     RouterLink,
     MatFormFieldModule,
     MatInputModule,
     MatButtonModule,
     MatSelectModule,
     MatIconModule,
-    MatProgressSpinnerModule
+    MatProgressSpinnerModule,
+    MatChipsModule
   ],
   templateUrl: './register.component.html',
   styleUrl: './register.component.scss'
@@ -38,6 +41,8 @@ export class RegisterComponent {
   hidePassword = signal(true);
   hideConfirmPassword = signal(true);
   isLoading = signal(false);
+  studentIds = signal<string[]>([]);
+  currentStudentId = '';
 
   constructor() {
     this.registerForm = this.fb.group({
@@ -45,10 +50,28 @@ export class RegisterComponent {
       lastName: ['', [Validators.required, Validators.minLength(2)]],
       email: ['', [Validators.required, Validators.email]],
       phone: ['', [Validators.pattern(/^\+?[0-9]{10,15}$/)]],
-      studentId: ['', [Validators.required]],  // Required for parent to link to child
       password: ['', [Validators.required, Validators.minLength(8)]],
       confirmPassword: ['', Validators.required]
     }, { validators: this.passwordMatchValidator });
+  }
+
+  addStudentId(): void {
+    const id = this.currentStudentId.trim();
+    if (id && !this.studentIds().includes(id)) {
+      this.studentIds.update(ids => [...ids, id]);
+      this.currentStudentId = '';
+    }
+  }
+
+  removeStudentId(id: string): void {
+    this.studentIds.update(ids => ids.filter(s => s !== id));
+  }
+
+  onStudentIdKeydown(event: KeyboardEvent): void {
+    if (event.key === 'Enter' || event.key === ',') {
+      event.preventDefault();
+      this.addStudentId();
+    }
   }
 
   passwordMatchValidator(control: AbstractControl): { [key: string]: boolean } | null {
@@ -75,8 +98,13 @@ export class RegisterComponent {
       return;
     }
 
+    if (this.studentIds().length === 0) {
+      this.notification.error('Please add at least one student ID');
+      return;
+    }
+
     this.isLoading.set(true);
-    const { firstName, lastName, email, phone, password, studentId } = this.registerForm.value;
+    const { firstName, lastName, email, phone, password } = this.registerForm.value;
 
     const registerData = {
       firstName,
@@ -85,7 +113,7 @@ export class RegisterComponent {
       phone,
       password,
       role: 'PARENT' as const,
-      studentId
+      studentIds: this.studentIds()
     };
 
     this.authService.register(registerData).subscribe({
@@ -99,7 +127,7 @@ export class RegisterComponent {
         if (error.status === 409) {
           this.notification.error('An account with this email already exists');
         } else if (error.status === 404) {
-          this.notification.error('Student ID not found. Please check and try again.');
+          this.notification.error('One or more Student IDs not found. Please check and try again.');
         } else if (error.error?.message) {
           this.notification.error(error.error.message);
         } else {
@@ -113,7 +141,6 @@ export class RegisterComponent {
   get lastName() { return this.registerForm.get('lastName'); }
   get email() { return this.registerForm.get('email'); }
   get phone() { return this.registerForm.get('phone'); }
-  get studentId() { return this.registerForm.get('studentId'); }
   get password() { return this.registerForm.get('password'); }
   get confirmPassword() { return this.registerForm.get('confirmPassword'); }
 }

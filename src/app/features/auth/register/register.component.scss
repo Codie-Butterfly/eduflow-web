@@ -39,6 +39,34 @@
   width: 100%;
 }
 
+.student-ids-field {
+  margin-bottom: $spacing-sm;
+
+  .field-label {
+    display: flex;
+    align-items: center;
+    gap: $spacing-xs;
+    font-size: $font-size-sm;
+    color: $text-secondary;
+    margin-bottom: $spacing-sm;
+
+    mat-icon {
+      font-size: 18px;
+      width: 18px;
+      height: 18px;
+    }
+  }
+
+  .student-chips {
+    margin-bottom: $spacing-sm;
+
+    mat-chip {
+      background-color: rgba($primary-color, 0.1);
+      color: $primary-color;
+    }
+  }
+}
+
 .submit-button {
   margin-top: $spacing-sm;
   height: 48px;
