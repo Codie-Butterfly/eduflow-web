@@ -153,7 +153,7 @@ export class StudentFormComponent implements OnInit {
   private createStudent(data: any): void {
     this.studentService.createStudent(data).subscribe({
       next: (student) => {
-        this.notification.success('Student created successfully');
+        this.notification.success('Student created successfully. Login credentials have been sent to their email.');
         this.router.navigate(['/admin/students', student.id]);
       },
       error: () => {

@@ -177,7 +177,7 @@ export class TeacherFormComponent implements OnInit {
   private createTeacher(data: CreateTeacherRequest): void {
     this.staffService.createTeacher(data).subscribe({
       next: () => {
-        this.notification.success('Teacher created successfully');
+        this.notification.success('Teacher created successfully. Login credentials have been sent to their email.');
         this.router.navigate(['/admin/teachers']);
       },
       error: (err) => {
