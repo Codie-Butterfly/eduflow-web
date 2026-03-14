@@ -10,6 +10,10 @@ export const STUDENT_ROUTES: Routes = [
     loadComponent: () => import('./fees/student-fees.component').then(m => m.StudentFeesComponent)
   },
   {
+    path: 'grades',
+    loadComponent: () => import('./grades/student-grades.component').then(m => m.StudentGradesComponent)
+  },
+  {
     path: 'announcements',
     loadComponent: () => import('./announcements/announcement-inbox.component').then(m => m.AnnouncementInboxComponent)
   },

@@ -7,6 +7,10 @@
 }
 
 .page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: $spacing-md;
   margin-bottom: $spacing-lg;
 
   h1 {
@@ -15,6 +19,19 @@
 
   p {
     margin: $spacing-xs 0 0;
+  }
+
+  .year-filter {
+    min-width: 150px;
+    margin-bottom: -1.25em;
+  }
+
+  @include mobile {
+    flex-direction: column;
+
+    .year-filter {
+      width: 100%;
+    }
   }
 }
 

@@ -1,6 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
-import { Observable, of, catchError } from 'rxjs';
+import { Observable, of, catchError, map } from 'rxjs';
 import { environment } from '../../../../environments/environment';
 import { StudentFee, Payment, PagedResponse } from '../../../core/models';
 
@@ -22,6 +22,12 @@ export interface StudentProfile {
     section?: string;
     academicYear: string;
   };
+  parent?: {
+    id: number;
+    fullName: string;
+    email: string;
+    phone?: string;
+  };
   enrollmentDate?: string;
   status: string;
 }
@@ -32,6 +38,42 @@ export interface StudentDashboardStats {
   balance: number;
   pendingFees: number;
   overdueFees: number;
+  recentGrades?: number;
+  upcomingAssessments?: number;
+}
+
+export interface StudentGrade {
+  id: number;
+  assessmentId: number;
+  assessmentTitle: string;
+  assessmentType: string;
+  subjectId: number;
+  subjectName: string;
+  date: string;
+  score: number | null;
+  maxScore: number;
+  percentage: number | null;
+  absent: boolean;
+  remarks?: string;
+  term: string;
+  academicYear: string;
+}
+
+export interface StudentGradesResponse {
+  totalAssessments: number;
+  overallAverage: number | null;
+  absences: number;
+  grades: StudentGrade[];
+}
+
+export interface StudentNotification {
+  id: number;
+  type: string;
+  title: string;
+  message: string;
+  read: boolean;
+  createdAt: string;
+  data?: Record<string, any>;
 }
 
 @Injectable({
@@ -184,6 +226,42 @@ export class StudentPortalService {
         first: page === 0,
         last: true
       }))
+    );
+  }
+
+  getFeesByYear(year: string): Observable<StudentFee[]> {
+    return this.http.get<StudentFee[]>(`${this.baseUrl}/fees/${year}`).pipe(
+      catchError(() => of(this.mockFees.filter(f => f.academicYear === year)))
+    );
+  }
+
+  getGrades(startDate?: string, endDate?: string): Observable<StudentGradesResponse> {
+    let params = new HttpParams();
+    if (startDate) params = params.set('startDate', startDate);
+    if (endDate) params = params.set('endDate', endDate);
+
+    return this.http.get<StudentGradesResponse>(`${this.baseUrl}/grades`, { params }).pipe(
+      map(response => {
+        // Transform response if needed
+        return {
+          totalAssessments: response.totalAssessments ?? 0,
+          overallAverage: response.overallAverage,
+          absences: response.absences ?? 0,
+          grades: response.grades || []
+        };
+      }),
+      catchError(() => of({
+        totalAssessments: 0,
+        overallAverage: null,
+        absences: 0,
+        grades: []
+      }))
+    );
+  }
+
+  getNotifications(): Observable<StudentNotification[]> {
+    return this.http.get<StudentNotification[]>(`${this.baseUrl}/notifications`).pipe(
+      catchError(() => of([]))
     );
   }
 }

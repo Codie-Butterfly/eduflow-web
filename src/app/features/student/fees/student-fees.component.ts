@@ -1,5 +1,6 @@
 import { Component, inject, signal, OnInit } from '@angular/core';
 import { CommonModule, CurrencyPipe, DatePipe } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
@@ -8,6 +9,8 @@ import { MatChipsModule } from '@angular/material/chips';
 import { MatTabsModule } from '@angular/material/tabs';
 import { MatTableModule } from '@angular/material/table';
 import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
+import { MatSelectModule } from '@angular/material/select';
+import { MatFormFieldModule } from '@angular/material/form-field';
 
 import { StudentPortalService } from '../services/student-portal.service';
 import { StudentFee, Payment, PAYMENT_METHODS, PAYMENT_STATUSES } from '../../../core/models';
@@ -17,6 +20,7 @@ import { StudentFee, Payment, PAYMENT_METHODS, PAYMENT_STATUSES } from '../../..
   standalone: true,
   imports: [
     CommonModule,
+    FormsModule,
     MatCardModule,
     MatButtonModule,
     MatIconModule,
@@ -25,6 +29,8 @@ import { StudentFee, Payment, PAYMENT_METHODS, PAYMENT_STATUSES } from '../../..
     MatTabsModule,
     MatTableModule,
     MatPaginatorModule,
+    MatSelectModule,
+    MatFormFieldModule,
     CurrencyPipe,
     DatePipe
   ],
@@ -48,14 +54,31 @@ export class StudentFeesComponent implements OnInit {
   pageSize = 10;
   currentPage = 0;
 
+  // Year filter
+  selectedYear = '';
+  academicYears: string[] = [];
+
+  private initAcademicYears(): void {
+    const currentYear = new Date().getFullYear();
+    this.academicYears = [];
+    for (let i = 0; i <= 3; i++) {
+      this.academicYears.push((currentYear - i).toString());
+    }
+  }
+
   ngOnInit(): void {
+    this.initAcademicYears();
     this.loadData();
   }
 
   private loadData(): void {
     this.isLoading.set(true);
 
-    this.studentService.getMyFees().subscribe({
+    const feesObservable = this.selectedYear
+      ? this.studentService.getFeesByYear(this.selectedYear)
+      : this.studentService.getMyFees();
+
+    feesObservable.subscribe({
       next: (data) => {
         this.fees.set(data);
         this.isLoading.set(false);
@@ -64,6 +87,10 @@ export class StudentFeesComponent implements OnInit {
     });
 
     this.loadPayments();
+  }
+
+  onYearChange(): void {
+    this.loadData();
   }
 
   private loadPayments(): void {

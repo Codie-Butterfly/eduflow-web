@@ -4,6 +4,15 @@
       <h1>My Fees</h1>
       <p class="text-secondary">View your fee status and payment history</p>
     </div>
+    <mat-form-field appearance="outline" class="year-filter">
+      <mat-label>Academic Year</mat-label>
+      <mat-select [(ngModel)]="selectedYear" (selectionChange)="onYearChange()">
+        <mat-option value="">All Years</mat-option>
+        @for (year of academicYears; track year) {
+          <mat-option [value]="year">{{ year }}</mat-option>
+        }
+      </mat-select>
+    </mat-form-field>
   </header>
 
   @if (isLoading()) {
