@@ -63,6 +63,33 @@ export class SubjectFormComponent implements OnInit {
       credits: [null, [Validators.min(1), Validators.max(10)]],
       active: [true]
     });
+
+    // Auto-generate code from name (only in create mode)
+    this.subjectForm.get('name')?.valueChanges.subscribe(name => {
+      if (!this.isEditMode() && name) {
+        const generatedCode = this.generateSubjectCode(name);
+        this.subjectForm.get('code')?.setValue(generatedCode, { emitEvent: false });
+      }
+    });
+  }
+
+  private generateSubjectCode(name: string): string {
+    const words = name.trim().split(/\s+/);
+
+    if (words.length === 1) {
+      // Single word: take first 4 characters
+      return words[0].substring(0, 4).toUpperCase();
+    } else if (words.length === 2) {
+      // Two words: take first 2 characters of each
+      return (words[0].substring(0, 2) + words[1].substring(0, 2)).toUpperCase();
+    } else {
+      // Multiple words: take first letter of each word (up to 6)
+      return words
+        .slice(0, 6)
+        .map(word => word.charAt(0))
+        .join('')
+        .toUpperCase();
+    }
   }
 
   private checkEditMode(): void {
