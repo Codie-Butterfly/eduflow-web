@@ -39,38 +39,16 @@ export class RegisterComponent {
   hideConfirmPassword = signal(true);
   isLoading = signal(false);
 
-  roles = [
-    { value: 'PARENT', label: 'Parent' },
-    { value: 'TEACHER', label: 'Teacher' },
-    { value: 'STUDENT', label: 'Student' }
-  ];
-
   constructor() {
     this.registerForm = this.fb.group({
       firstName: ['', [Validators.required, Validators.minLength(2)]],
       lastName: ['', [Validators.required, Validators.minLength(2)]],
       email: ['', [Validators.required, Validators.email]],
       phone: ['', [Validators.pattern(/^\+?[0-9]{10,15}$/)]],
-      role: ['PARENT', Validators.required],
-      studentId: [''],  // For parents to enter their child's student ID
+      studentId: ['', [Validators.required]],  // Required for parent to link to child
       password: ['', [Validators.required, Validators.minLength(8)]],
       confirmPassword: ['', Validators.required]
     }, { validators: this.passwordMatchValidator });
-
-    // Watch for role changes to update studentId validation
-    this.registerForm.get('role')?.valueChanges.subscribe(role => {
-      const studentIdControl = this.registerForm.get('studentId');
-      if (role === 'PARENT') {
-        studentIdControl?.setValidators([Validators.required]);
-      } else {
-        studentIdControl?.clearValidators();
-        studentIdControl?.setValue('');
-      }
-      studentIdControl?.updateValueAndValidity();
-    });
-
-    // Trigger initial validation since default is PARENT
-    this.registerForm.get('studentId')?.setValidators([Validators.required]);
   }
 
   passwordMatchValidator(control: AbstractControl): { [key: string]: boolean } | null {
@@ -98,14 +76,17 @@ export class RegisterComponent {
     }
 
     this.isLoading.set(true);
-    const { firstName, lastName, email, phone, role, password, studentId } = this.registerForm.value;
+    const { firstName, lastName, email, phone, password, studentId } = this.registerForm.value;
 
-    const registerData: any = { firstName, lastName, email, phone, role, password };
-
-    // Include studentId only for parent registration
-    if (role === 'PARENT' && studentId) {
-      registerData.studentId = studentId;
-    }
+    const registerData = {
+      firstName,
+      lastName,
+      email,
+      phone,
+      password,
+      role: 'PARENT' as const,
+      studentId
+    };
 
     this.authService.register(registerData).subscribe({
       next: () => {
@@ -132,12 +113,7 @@ export class RegisterComponent {
   get lastName() { return this.registerForm.get('lastName'); }
   get email() { return this.registerForm.get('email'); }
   get phone() { return this.registerForm.get('phone'); }
-  get role() { return this.registerForm.get('role'); }
   get studentId() { return this.registerForm.get('studentId'); }
   get password() { return this.registerForm.get('password'); }
   get confirmPassword() { return this.registerForm.get('confirmPassword'); }
-
-  isParentRole(): boolean {
-    return this.registerForm.get('role')?.value === 'PARENT';
-  }
 }
