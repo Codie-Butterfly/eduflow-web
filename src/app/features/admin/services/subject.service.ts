@@ -39,12 +39,14 @@ export class SubjectService {
       .set('page', page.toString())
       .set('size', size.toString());
 
+    // Use /search endpoint if search query provided, otherwise use base endpoint
+    const url = search ? `${this.baseUrl}/search` : this.baseUrl;
     if (search) {
-      params = params.set('search', search);
+      params = params.set('name', search);
     }
 
-    console.log('Fetching subjects with params:', { page, size, search });
-    return this.http.get<any>(this.baseUrl, { params }).pipe(
+    console.log('Fetching subjects with params:', { page, size, search, url });
+    return this.http.get<any>(url, { params }).pipe(
       map(response => {
         console.log('Subjects API response:', response);
         return this.transformPagedResponse<Subject>(response);
