@@ -78,9 +78,9 @@ export class AccountComponent {
     }
 
     this.isLoading.set(true);
-    const { currentPassword, newPassword } = this.passwordForm.value;
+    const { currentPassword, newPassword, confirmPassword } = this.passwordForm.value;
 
-    this.authService.changePassword(currentPassword, newPassword).subscribe({
+    this.authService.changePassword(currentPassword, newPassword, confirmPassword).subscribe({
       next: () => {
         this.isLoading.set(false);
         this.notification.success('Password changed successfully!');
